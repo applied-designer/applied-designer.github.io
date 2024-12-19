@@ -1,0 +1,128 @@
+body {
+    height: 100%;
+    min-height: 100%;
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    
+    margin: 2rem;
+
+    color: #000000;
+    font-family: "tt-commons-pro", "Helvetica", sans-serif;
+    font-weight: 500;
+    font-style: normal;
+}
+
+header, footer {
+    display: grid;
+    justify-content: space-between;
+
+    font-size: 1rem;
+
+    color: #929292;
+}
+
+header > div, footer > div {
+    grid-row: 1;
+}
+
+footer {
+    padding-bottom: 2rem;
+}
+
+.grid-1 {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 0.5rem;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+}
+
+.grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+}
+
+.grid-6 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2rem;
+}
+
+
+.img-full-w {
+    max-width: 100%;
+}
+
+.img-caption {
+    color: gray;
+}
+
+
+a {
+    text-decoration: none !important;
+    color: inherit;
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+
+    font-size: 3rem;
+}
+
+h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+h3 {
+    margin-top: 0.5rem;
+    margin-bottom: .25rem;
+}
+
+p {
+    margin-top: 0;
+    line-height: 1.4;
+}
+
+p.bigtype {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* TODO: test on mobile; tighter margins */
+
+@media only screen and (max-width: 860px) {
+    body {
+        margin: 1rem;
+    }
+
+    .grid-1, .grid-2, .grid-3, .grid-4, .grid-5, .grid-6 {
+        grid-template-columns: repeat(1, 1fr) !important;
+        gap: 0.25rem;
+    }
+
+    h2 {
+        margin-bottom: 0.25rem;
+    }
+}
