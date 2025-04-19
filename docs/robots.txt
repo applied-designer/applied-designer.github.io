@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: *.json
+Disallow: *.md
+
+Sitemap: https://applieddesigner.com/sitemap.txt
