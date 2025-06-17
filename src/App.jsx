@@ -91,7 +91,7 @@ class Dodecahedron extends React.Component {
     super(props)
     // Create and store the dodecahedron geometry (radius 1, detail 0).
     // This geometry automatically triangulates each pentagon into 3 triangles.
-    this.geometry = new THREE.DodecahedronGeometry(2, 0)
+    this.geometry = new THREE.DodecahedronGeometry(1.8, 0)
     // Ensure there are groups for multi-material usage.
     if (this.geometry.groups.length === 0) {
       this.geometry.clearGroups()
