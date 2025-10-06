@@ -13,17 +13,17 @@ body {
 }
 
 nav {
-    flex-direction: row;
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    margin: 0 auto;
-    padding-left: 4rem;
-    padding-right: 4rem;
-    margin-top: 2rem;
-    font-family: "urw-din", sans-serif;
-    font-weight: 500;
-    font-size: 2rem;
+  flex-direction: row;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  margin-top: 2rem;
+  font-family: "urw-din", sans-serif;
+  font-weight: 500;
+  font-size: 1.125rem;
 }
 
 a {
@@ -65,10 +65,22 @@ a {
   max-width: 25vw;
 }
 
+.modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media only screen and (max-width: 860px) {
   nav {
     flex-direction: column;
-    font-size: 1rem;
+    font-size: 1.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
     text-align: center;
@@ -76,11 +88,21 @@ a {
 
   #designer {
     top: 0;
-    margin-top: 10vh;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    margin-top: 15vh;
   }
 
+  #designer > div {
+    margin-top: 0;
+  }
+
+  #designer > div > h2 {
+    margin-top: 0;
+  }
 
   #bio {
-    max-width: 100vw;
+    max-width: 75vw;
   }
 }

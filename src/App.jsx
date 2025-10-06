@@ -1,7 +1,8 @@
-import React from 'react'
+import React, {useState} from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
+import {createPortal} from "react-dom";
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
 
@@ -91,7 +92,7 @@ class Dodecahedron extends React.Component {
     super(props)
     // Create and store the dodecahedron geometry (radius 1, detail 0).
     // This geometry automatically triangulates each pentagon into 3 triangles.
-    this.geometry = new THREE.DodecahedronGeometry(1.8, 0)
+    this.geometry = new THREE.DodecahedronGeometry(1.5, 0)
     // Ensure there are groups for multi-material usage.
     if (this.geometry.groups.length === 0) {
       this.geometry.clearGroups()
@@ -205,16 +206,62 @@ export default function App() {
       document.getElementById('archetype').innerText = archetypes[faceIndex]
       document.getElementById('bio').innerText = bios[faceIndex]
       document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`)
+
+      createPortal(
+          // <ModalContent onClose={() => setShowModal(true)} faceIndex={faceIndex} />,
+          <h1>Hello modal!</h1>,
+          document.body
+      );
+      // MyPortal.props.faceIndex = faceIndex;
+      // createPortal(
+      //     // <ModalContent onClose={() => setShowModal(true)} faceIndex={faceIndex} />,
+      //     <ModalContent faceIndex={faceIndex} />,
+      //     document.body
+      // );
     }
   }
 
+  function ModalContent({faceIndex = null }) {
+    return (
+        <div className="modal">
+          <h1>hellooooo</h1>
+          <div className="designer-name">{faceIndex ? designers[faceIndex] : null}</div>
+          <div className="designer-archetype">{faceIndex ? archetypes[faceIndex] : null}</div>
+          <div className="designer-bio">{faceIndex ? bios[faceIndex] : null}</div>
+          <div className="designer-headshot">
+            {faceIndex ? <img src={`/headshots/${designers[faceIndex]}.png`} alt={`designers[faceIndex] headshot`} /> : null}
+          </div>
+          <button onClick={onClose}>Close</button>
+        </div>
+    );
+  }
+
+  function Portal() {
+    const [showModal, setShowModal] = useState(false);
+    return (
+        <>
+          {/*<button onClick={() => setShowModal(true)}>*/}
+          {/*  Show modal using a portal*/}
+          {/*</button>*/}
+          {showModal && createPortal(
+              <ModalContent onClose={() => setShowModal(false)} />,
+              document.body
+          )}
+        </>
+    );
+  }
+
+  // const MyPortal = <Portal />;
+
   return (
     <>
+      {/*<MyPortal />*/}
       <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh' }}>
         {/* Set a gray background */}
         <color attach="background" args={['#969696']} />
         {/* <pointLight position={[10, 10, 10]} /> */}
         <Dodecahedron onFaceClick={handleFaceClick} />
+        {/*<OrbitControls enableZoom={false} />*/}
         <OrbitControls />
       </Canvas>
       {/* 2D overlay for displaying the message */}
