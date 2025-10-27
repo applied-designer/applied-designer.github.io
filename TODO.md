@@ -1,5 +1,3 @@
-
-
 Overall infra + tooling
 
 - [ ] restructure the homepage light this: https://godly.website/website/quentin-hocde-736
@@ -14,3 +12,6 @@ New features
 - [ ] Redesign the homepage, scale should be much better in general
 - [ ] Card design UI
 - [ ] Get AD quiz working digitally, could use https://www.scoreapp.com/assesments-quizzes/
+
+
+More reference for UI standard components https://ui.aceternity.com/components
