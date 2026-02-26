@@ -102,22 +102,45 @@ header nav div:nth-child(2) a:hover {
   padding: 2rem;
   color: black;
   font-family: 'Loretta', sans-serif;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .quiz-title {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   font-size: 2.5rem;
   font-weight: 600;
+  font-family: "urw-din", sans-serif;
+}
+
+.quiz-intro {
+  max-width: 760px;
+  margin: 0 auto 2rem;
+  text-align: center;
+  font-family: 'Loretta', serif;
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
 .survey-wrapper {
   width: 100%;
   max-width: none;
   margin: 0 auto;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: transparent;
   padding: 2rem;
-  border-radius: 8px;
+  border: none;
+  border-radius: 0;
+  overflow-x: hidden;
+}
+
+.survey-wrapper .sd-root-modern,
+.survey-wrapper .sd-container-modern,
+.survey-wrapper .sd-body,
+.survey-wrapper .sd-page {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* SurveyJS Custom Theme */
@@ -130,13 +153,47 @@ header nav div:nth-child(2) a:hover {
 }
 
 .sd-container-modern .sd-question {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   background-color: transparent;
-  padding: 1rem;
-  border-radius: 4px;
+  padding: 1rem 1rem 2rem;
+  border-radius: 0;
   text-align: left !important;
   flex: 1;
-  min-width: 300px;
+  min-width: 0;
+  position: relative;
+  border: none;
+}
+
+.survey-wrapper .sd-question.quiz-panel {
+  --panel-fg: #000000;
+  background-color: transparent;
+  color: var(--panel-fg);
+  padding: 2rem !important;
+}
+
+.survey-wrapper .sd-question.quiz-panel-blue {
+  --panel-fg: #ffffff;
+  background-color: #1975A1;
+}
+
+.survey-wrapper .sd-question.quiz-panel-brown {
+  --panel-fg: #ffffff;
+  background-color: #7B392A;
+}
+
+.survey-wrapper .sd-question.quiz-panel-green {
+  --panel-fg: #000000;
+  background-color: #D0E7BF;
+}
+
+.survey-wrapper .sd-question.quiz-panel-yellow {
+  --panel-fg: #000000;
+  background-color: #FAA41A;
+}
+
+.survey-wrapper .sd-question.quiz-panel-purple {
+  --panel-fg: #ffffff;
+  background-color: #893A69;
 }
 
 @media (min-width: 768px) {
@@ -151,46 +208,106 @@ header nav div:nth-child(2) a:hover {
   }
 }
 
-.sd-container-modern .sd-title {
-  color: black !important;
+.survey-wrapper .sd-question.quiz-panel .sd-title,
+.survey-wrapper .sd-question.quiz-panel .sd-question__title {
+  color: var(--panel-fg) !important;
   font-weight: 600;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
   text-align: left !important;
+  font-family: "urw-din", sans-serif !important;
+  line-height: 1.15;
+}
+
+.survey-wrapper .sd-question.quiz-panel .sd-question__description,
+.survey-wrapper .sd-question.quiz-panel .sd-description {
+  color: var(--panel-fg) !important;
+}
+
+/* Ensure question count text matches panel fg color */
+.survey-wrapper .sd-question.quiz-panel .sd-progress__text {
+  color: var(--panel-fg) !important;
 }
 
 .sd-container-modern .sd-radioitem {
-  margin-bottom: 0.75rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 0.75rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
+  margin-bottom: 0.35rem;
+  background-color: transparent;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0;
+  border: none;
   transition: all 0.2s ease;
+  font-family: 'Loretta', serif;
+  line-height: 1.25;
+  color: var(--panel-fg);
+}
+
+.survey-wrapper .sd-question fieldset > div {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
 }
 
 .sd-container-modern .sd-radioitem:hover {
-  border-color: black;
-  background-color: white;
+  border-color: currentColor;
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 .sd-container-modern .sd-radioitem--selected {
-  background-color: white;
-  border-color: black;
+  background-color: rgba(255, 255, 255, 0.18);
+  border-color: currentColor;
   font-weight: 500;
 }
 
 .sd-container-modern .sd-radioitem__dot {
-  border-color: black;
+  border-color: currentColor !important;
+  border-width: 2px;
+  border-radius: 999px;
+  background: transparent !important;
+  width: 1.05em !important;
+  height: 1.05em !important;
+  min-width: 1.05em !important;
+  min-height: 1.05em !important;
+  max-width: 1.05em !important;
+  max-height: 1.05em !important;
 }
 
 .sd-container-modern .sd-radioitem--selected .sd-radioitem__dot {
-  background-color: black;
+  background-color: currentColor !important;
+}
+
+.sd-question__required-text {
+  display: none !important;
+}
+
+.sd-container-modern .sd-radioitem__control-label,
+.sd-container-modern .sd-item__control-label,
+.sd-container-modern .sd-item__control {
+  color: var(--panel-fg) !important;
+  font-family: 'Loretta', serif !important;
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.sd-container-modern .sd-question__description,
+.sd-container-modern .sd-description {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.55rem;
+  margin: 0;
+  font-family: "urw-din", sans-serif !important;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: #000000 !important;
+}
+
+.sd-container-modern .sd-question__required-text,
+.sd-container-modern .sd-required {
+  color: #893A69 !important;
 }
 
 /* Submit Button */
 .submit-button {
   display: block;
-  margin: 3rem auto 0;
+  margin: 2rem auto 0;
   background-color: black;
   color: #969696;
   border: none;
@@ -200,6 +317,14 @@ header nav div:nth-child(2) a:hover {
   cursor: pointer;
   transition: opacity 0.3s ease;
   font-family: "urw-din", sans-serif;
+  min-height: 44px;
+}
+
+.submit-button:focus-visible,
+.results-button:focus-visible,
+.sd-container-modern .sd-radioitem:focus-within {
+  outline: 2px solid black;
+  outline-offset: 2px;
 }
 
 .submit-button.enabled {
@@ -218,6 +343,8 @@ header nav div:nth-child(2) a:hover {
   padding: 2rem;
   color: black;
   font-family: 'Loretta', sans-serif;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .results-content {
@@ -234,6 +361,7 @@ header nav div:nth-child(2) a:hover {
   font-weight: 700;
   margin-bottom: 2rem;
   line-height: 1.2;
+  font-family: "urw-din", sans-serif;
 }
 
 .results-subtitle {
@@ -243,6 +371,7 @@ header nav div:nth-child(2) a:hover {
   margin-bottom: 1rem;
   color: #333;
   line-height: 1.4;
+  font-family: 'Loretta', serif;
 }
 
 .results-notes {
@@ -253,6 +382,7 @@ header nav div:nth-child(2) a:hover {
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;
+  font-family: 'Loretta', serif;
 }
 
 .results-actions {
@@ -272,6 +402,7 @@ header nav div:nth-child(2) a:hover {
   cursor: pointer;
   transition: opacity 0.3s ease;
   font-family: "urw-din", sans-serif;
+  min-height: 44px;
 }
 
 .results-button:hover {
@@ -315,11 +446,32 @@ header nav div:nth-child(2) a:hover {
 
   .quiz-title {
     font-size: 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .quiz-intro {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
   }
 
   .survey-wrapper {
     padding: 1rem;
+  }
+
+  .sd-container-modern .sd-title {
+    font-size: 2rem;
+  }
+
+  .sd-container-modern .sd-radioitem__control-label,
+  .sd-container-modern .sd-item__control-label,
+  .sd-container-modern .sd-item__control {
+    font-size: 1rem;
+  }
+
+  .submit-button,
+  .results-button {
+    width: 100%;
+    max-width: 320px;
   }
 
   .results-content {

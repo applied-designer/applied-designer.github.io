@@ -1,56 +1,61 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { archetypeData } from '../data/archetypeData'
+import RadarChart from '../components/RadarChart'
+import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
 
+/**
+ * ResultsPage: Decodes dimension scores from base64 query param, computes archetypes, and renders chart/results.
+ * Redirects to /quiz if query param is missing or invalid.
+ */
 export default function ResultsPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { scores } = location.state || {}
-  
-  if (!scores) {
-    navigate('/quiz')
+  // Expect ?dims=base64string
+  const params = new URLSearchParams(location.search)
+  const dimsB64 = params.get('dims')
+  const dims = dimsB64 ? decodeDims(dimsB64) : null
+
+  // Redirect to quiz if missing/invalid
+  if (!dims) {
+    navigate('/quiz', { replace: true })
     return null
   }
-  
-  const primary = archetypeData[scores.primary.archetype]
-  const secondary = scores.secondary ? archetypeData[scores.secondary.archetype] : null
+
+  // Match user dimensions to closest archetypes using cosine similarity
+  const { primary, secondary } = getClosestArchetypes(dims)
+  const primaryData = archetypeData[primary] || {}
+  const secondaryData = archetypeData[secondary] || {}
+  const radarValues = dimsToArray(dims)
   
   return (
     <div className="results-container">
       <div className="results-content">
         <h1 className="results-title">
-          You are {primary.emoji} {scores.primary.archetype}
+          You are {primaryData.emoji} {primary}
         </h1>
-        
         <h2 className="results-subtitle">
-          You are most alive when {primary.mostAliveWhen}
+          You are most alive when {primaryData.mostAliveWhen}
         </h2>
-        
         <h2 className="results-subtitle">
-          Your mantra could be "{primary.mantra}"
+          Your mantra could be "{primaryData.mantra}"
         </h2>
-        
+        <div style={{ maxWidth: 400, margin: '0 auto 2.5rem' }}>
+          <RadarChart values={radarValues} />
+        </div>
         <div className="results-notes">
           <p className="results-note">
-            <strong>{scores.primary.archetype}:</strong> {primary.description}
+            <strong>{primary}:</strong> {primaryData.description}
           </p>
-          
-          {secondary && (
+          {secondaryData && (
             <p className="results-note">
-              <strong>{scores.secondary.archetype}:</strong> {secondary.description}
+              <strong>{secondary}:</strong> {secondaryData.description}
             </p>
           )}
-          
           <p className="results-note">
-            <strong>Scores:</strong> {scores.primary.archetype} - {scores.primary.score} points
+            <strong>Dimension breakdown:</strong>{' '}
+            {DIM_KEYS.map(k => `${k} (${dims[k]})`).join(', ')}
           </p>
-          
-          {secondary && (
-            <p className="results-note">
-              {scores.secondary.archetype} - {scores.secondary.score} points
-            </p>
-          )}
         </div>
-        
         <div className="results-actions">
           <button 
             className="results-button"

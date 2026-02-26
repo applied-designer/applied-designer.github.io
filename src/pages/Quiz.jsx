@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Model, Survey } from 'survey-react-ui'
 import { quizQuestions } from '../data/quizData'
 import { calculateScores } from '../data/scoringUtils'
+import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
 import 'survey-core/survey-core.css'
 
 export default function QuizPage() {
@@ -20,11 +21,20 @@ export default function QuizPage() {
   }
   
   useEffect(() => {
+    const panelClassOrder = [
+      'quiz-panel-blue',
+      'quiz-panel-brown',
+      'quiz-panel-green',
+      'quiz-panel-yellow',
+      'quiz-panel-purple'
+    ]
+
     const surveyModel = new Model({
-      questions: quizQuestions.map(q => ({
+      questions: quizQuestions.map((q, index) => ({
         type: 'radiogroup',
         name: q.id,
         title: q.text,
+        description: `${index + 1} of ${quizQuestions.length}`,
         choices: q.choices.map(c => c.text),
         isRequired: true,
         showNoneItem: false
@@ -43,6 +53,14 @@ export default function QuizPage() {
       const allAnswered = checkCompletion(sender.data)
       setIsComplete(allAnswered)
     })
+
+    surveyModel.onAfterRenderQuestion.add((sender, options) => {
+      const questionIndex = quizQuestions.findIndex(question => question.id === options.question.name)
+      const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
+      // Remove all quiz-panel-* classes, always add 'quiz-panel'
+      options.htmlElement.classList.remove('quiz-panel-blue', 'quiz-panel-brown', 'quiz-panel-green', 'quiz-panel-yellow', 'quiz-panel-purple')
+      options.htmlElement.classList.add('quiz-panel', panelClass)
+    })
     
     // Set initial state
     const initiallyComplete = checkCompletion(surveyModel.data)
@@ -53,14 +71,18 @@ export default function QuizPage() {
   
   const handleSubmit = () => {
     if (!survey || !isComplete) return
-    
-    const responses = Object.entries(survey.data).map(([questionId, answer]) => ({
-      questionId,
-      answer
-    }))
-    
+    // Calculate dimension scores from responses
+    const responses = Object.entries(survey.data).map(([questionId, answer]) => ({ questionId, answer }))
     const scores = calculateScores(responses)
-    navigate('/results', { state: { scores } })
+    // Build dims object in canonical order
+    const dims = Object.fromEntries(
+      (scores.dimensionScores || []).map(([k, v]) => [k, v])
+    )
+    // Fill missing keys with 0
+    DIM_KEYS.forEach(k => { if (!(k in dims)) dims[k] = 0 })
+    // Encode as base64 and navigate
+    const dimsB64 = encodeDimsV1(dims)
+    navigate(`/results?dims=${encodeURIComponent(dimsB64)}`)
   }
   
   if (!survey) {
@@ -70,18 +92,21 @@ export default function QuizPage() {
   return (
     <div className="quiz-container">
       <h1 className="quiz-title">Applied Designer Quiz</h1>
+      <p className="quiz-intro">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+      </p>
       
       <div className="survey-wrapper">
         <Survey model={survey} />
+
+        <button 
+          className={`submit-button ${isComplete ? 'enabled' : 'disabled'}`}
+          onClick={handleSubmit}
+          disabled={!isComplete}
+        >
+          Submit
+        </button>
       </div>
-      
-      <button 
-        className={`submit-button ${isComplete ? 'enabled' : 'disabled'}`}
-        onClick={handleSubmit}
-        disabled={!isComplete}
-      >
-        Submit
-      </button>
     </div>
   )
 }

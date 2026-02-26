@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { calculateScores } from '../data/scoringUtils'
-import { quizQuestions } from '../data/quizData'
 
 describe('Scoring Utils', () => {
   describe('calculateScores', () => {
@@ -25,19 +24,22 @@ describe('Scoring Utils', () => {
       
       expect(result.primary.archetype).toBe('The Orchestrator')
       expect(result.primary.score).toBe(5)
-      expect(result.secondary.archetype).toBe('The Multidisciplinary')
+      expect(result.secondary.archetype).toBe('The Researcher')
       expect(result.secondary.score).toBe(2)
+      expect(result.tieBreakMethod).toBe('dominant-dimension-rank')
+      expect(result.dimensionScores.length).toBe(5)
     })
 
     it('should handle empty responses', () => {
       const result = calculateScores([])
       
       expect(result.primary.score).toBe(0)
-      // With no responses, all scores will be 0, so secondary will be the first alphabetically
+      expect(result.primary.archetype).toBe('The Orchestrator')
+      expect(result.secondary.archetype).toBe('The Researcher')
       expect(result.secondary).toBeTruthy()
     })
 
-    it('should handle tie-breaking alphabetically', () => {
+    it('should handle tie-breaking by dominant dimensions', () => {
       // Create responses that result in a tie
       const responses = [
         { questionId: 'Q1', answer: 'Finding patterns and designing a system' }, // The Orchestrator
@@ -46,12 +48,10 @@ describe('Scoring Utils', () => {
       
       const result = calculateScores(responses)
       
-      // Both should have 1 point, should be sorted alphabetically
       expect(result.primary.score).toBe(1)
       expect(result.secondary.score).toBe(1)
-      expect(['The Director', 'The Orchestrator']).toContain(result.primary.archetype)
-      expect(['The Director', 'The Orchestrator']).toContain(result.secondary.archetype)
-      expect(result.primary.archetype < result.secondary.archetype).toBe(true)
+      expect(result.primary.archetype).toBe('The Director')
+      expect(result.secondary.archetype).toBe('The Orchestrator')
     })
 
     it('should handle partial responses', () => {
@@ -81,6 +81,8 @@ describe('Scoring Utils', () => {
       const secondHighestScore = sortedScores[1][1]
       
       expect(highestScore).toBeGreaterThanOrEqual(secondHighestScore)
+      expect(result.primary.archetype).toBe('The Connector')
+      expect(result.secondary.archetype).toBe('The Orchestrator')
       
       // Verify all scores are descending or equal
       for (let i = 1; i < sortedScores.length - 1; i++) {
@@ -110,10 +112,25 @@ describe('Scoring Utils', () => {
       
       const result = calculateScores(responses)
       
-      // Should count both answers for Q1 (this is a known behavior, may need fixing)
-      expect(result.allScores.find(([archetype]) => archetype === 'The Orchestrator')[1]).toBe(1)
+      // Last answer for duplicate question should win
+      expect(result.allScores.find(([archetype]) => archetype === 'The Orchestrator')[1]).toBe(0)
       expect(result.allScores.find(([archetype]) => archetype === 'The Researcher')[1]).toBe(1)
       expect(result.allScores.find(([archetype]) => archetype === 'The Connector')[1]).toBe(1)
+    })
+
+    it('should always return distinct primary and secondary archetypes', () => {
+      const responses = [
+        { questionId: 'Q1', answer: 'Finding patterns and designing a system' },
+        { questionId: 'Q2', answer: 'Bridging gaps between people or roles' },
+        { questionId: 'Q3', answer: 'Connecting unexpected ideas' },
+        { questionId: 'Q4', answer: 'Scaling an idea across different contexts' }
+      ]
+
+      const result = calculateScores(responses)
+
+      expect(result.primary.archetype).toBeTruthy()
+      expect(result.secondary.archetype).toBeTruthy()
+      expect(result.primary.archetype).not.toBe(result.secondary.archetype)
     })
   })
 })
