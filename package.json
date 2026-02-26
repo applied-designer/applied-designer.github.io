@@ -12,16 +12,28 @@
     "r3f-perf": "7.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-router-dom": "^7.11.0",
     "react-scripts": "5.0.1",
+    "survey-core": "^2.5.4",
+    "survey-react-ui": "^2.5.4",
     "three": "0.160.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.2.6"
+    "@vitest/ui": "^4.0.16",
+    "jsdom": "^27.4.0",
+    "playwright": "^1.57.0",
+    "vite": "^6.2.6",
+    "vitest": "^4.0.16"
   },
   "scripts": {
     "dist": "vite build",
-    "start": "vite build && vite preview"
+    "start": "vite build && vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test"
   },
   "browserslist": [
     ">0.2%",
