@@ -13,6 +13,40 @@ New features
 - [ ] Redesign the homepage, scale should be much better in general
 - [ ] Card design UI
 - [ ] Get AD quiz working digitally, could use https://www.scoreapp.com/assesments-quizzes/
+- [ ] Add pages for each archetype with: description, example designer, etc.
 
 
 More reference for UI standard components https://ui.aceternity.com/components
+
+Future notes for the quiz from Claude:
+
+What to Track for v2
+Once live, monitor:
+
+Which archetypes users actually get (does real data match brute force?)
+Which results get shared most (engagement signal)
+Any feedback about results feeling "off" or too common
+Drop-off points (which questions lose people?)
+
+After 50-100 responses:
+
+Analyze actual distribution
+Compare to brute force prediction
+Decide if reweighting needed or if distribution is actually fine
+
+
+The Reality Check
+Brute force analysis assumes:
+
+Equal likelihood of every answer to every question
+No human behavioral patterns (people don't answer randomly)
+
+Real users:
+
+Have answer biases (certain options more appealing)
+Skip extremes (rarely pick "strongly" options)
+Self-select (designers taking this quiz ≠ random sample)
+
+Actual distribution might be MORE balanced than brute force suggests.
+Or it might be even more skewed.
+You won't know until real people take it.
