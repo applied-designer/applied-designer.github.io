@@ -54,8 +54,11 @@ export default function QuizPage() {
 
     const applyPanelStyle = (questionName) => {
       const questionIndex = quizQuestions.findIndex(question => question.id === questionName)
+      if (questionIndex === -1) return
+      
       const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
       const colors = panelColors[panelClass]
+      if (!colors) return
       
       // Find question element - SurveyJS renders to .sd-question elements
       const questionElements = document.querySelectorAll('.sd-question')
@@ -87,8 +90,11 @@ export default function QuizPage() {
 
     surveyModel.onAfterRenderQuestion.add((sender, options) => {
       const questionIndex = quizQuestions.findIndex(question => question.id === options.question.name)
+      if (questionIndex === -1) return
+      
       const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
       const colors = panelColors[panelClass]
+      if (!colors) return
       
       // Apply inline styles
       options.htmlElement.style.backgroundColor = colors.bg

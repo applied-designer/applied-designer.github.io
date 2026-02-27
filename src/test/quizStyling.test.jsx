@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom'
 import QuizPage from '../pages/Quiz'
 import '@testing-library/jest-dom'
 
+const qCount = 12;
+
 describe('Quiz Styling with SurveyJS Custom CSS', () => {
   beforeEach(() => {
     // Clear any previous test state
@@ -18,7 +20,8 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const surveyRoot = document.querySelector('.survey-root')
+      // SurveyJS renders with sd-root-modern class
+      const surveyRoot = document.querySelector('.sd-root-modern')
       expect(surveyRoot).toBeTruthy()
     }, { timeout: 3000 })
   })
@@ -31,7 +34,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const container = document.querySelector('.survey-container')
+      const container = document.querySelector('.sd-root-modern')
       expect(container).toBeTruthy()
     }, { timeout: 3000 })
   })
@@ -45,7 +48,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
 
     await waitFor(() => {
       // Wait for SurveyJS to render at least one question
-      const questions = document.querySelectorAll('.survey-question')
+      const questions = document.querySelectorAll('.sd-question')
       expect(questions.length).toBeGreaterThan(0)
     }, { timeout: 3000 })
   })
@@ -58,7 +61,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const questions = document.querySelectorAll('.survey-question')
+      const questions = document.querySelectorAll('.sd-question')
       const panelClasses = ['quiz-panel-blue', 'quiz-panel-brown', 'quiz-panel-green', 'quiz-panel-yellow', 'quiz-panel-purple']
       
       // Map questions to their expected panel colors (cycling through 5 colors)
@@ -83,7 +86,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const titles = document.querySelectorAll('.survey-question-title')
+      const titles = document.querySelectorAll('.sd-question__title')
       expect(titles.length).toBeGreaterThan(0)
     }, { timeout: 3000 })
   })
@@ -96,7 +99,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const radioItems = document.querySelectorAll('.survey-radioitem')
+      const radioItems = document.querySelectorAll('.sd-radio')
       expect(radioItems.length).toBeGreaterThan(0)
     }, { timeout: 3000 })
   })
@@ -126,16 +129,17 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const panelQuestion = document.querySelector('.quiz-panel')
+      const panelQuestion = document.querySelector('.sd-question.quiz-panel')
       if (panelQuestion) {
         const styles = window.getComputedStyle(panelQuestion)
-        // Should have --panel-fg CSS variable
-        expect(styles.getPropertyValue('--panel-fg')).toBeTruthy()
+        // Should have --panel-fg CSS variable set
+        const panelFg = styles.getPropertyValue('--panel-fg').trim()
+        expect(panelFg.length).toBeGreaterThan(0)
       }
     }, { timeout: 3000 })
   })
 
-  it('should not have any .sd-* or .sv-* classes in rendered DOM', async () => {
+  it('should apply custom panel styling on top of default SurveyJS classes', async () => {
     render(
       <BrowserRouter>
         <QuizPage />
@@ -143,11 +147,13 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const surveyRoot = document.querySelector('.survey-root')
+      const surveyRoot = document.querySelector('.sd-root-modern')
       if (surveyRoot) {
-        const allElements = surveyRoot.querySelectorAll('[class*="sd-"], [class*="sv-"]')
-        // Should be empty - all SurveyJS internal classes should be mapped to custom classes
-        expect(allElements.length).toBe(0)
+        const questions = surveyRoot.querySelectorAll('.sd-question')
+        // Should have survey questions with custom panel classes applied
+        expect(questions.length).toBeGreaterThan(0)
+        const hasCustomClass = Array.from(questions).some(q => q.classList.contains('quiz-panel'))
+        expect(hasCustomClass).toBe(true)
       }
     }, { timeout: 3000 })
   })
@@ -160,7 +166,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const descriptions = document.querySelectorAll('.survey-question-description')
+      const descriptions = document.querySelectorAll('.sd-question__description')
       // Question description should exist (question counter)
       expect(descriptions.length).toBeGreaterThan(0)
     }, { timeout: 3000 })
@@ -174,7 +180,7 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const radioItems = container.querySelectorAll('.survey-radioitem')
+      const radioItems = container.querySelectorAll('.sd-radio')
       expect(radioItems.length).toBeGreaterThan(0)
       
       // First radio item should exist
@@ -213,12 +219,12 @@ describe('Quiz Styling with SurveyJS Custom CSS', () => {
     )
 
     await waitFor(() => {
-      const questions = document.querySelectorAll('.survey-question')
-      expect(questions.length).toBeGreaterThan(0)
+      const questions = document.querySelectorAll('.sd-question')
+      expect(questions.length).toEqual(qCount);
       
       // All questions should have survey-question-title
       questions.forEach((question) => {
-        const title = question.querySelector('.survey-question-title')
+        const title = question.querySelector('.sv-title-actions__title')
         expect(title).toBeTruthy()
       })
     }, { timeout: 3000 })

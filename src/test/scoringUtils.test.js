@@ -17,7 +17,7 @@ describe('Scoring Utils', () => {
         { questionId: 'Q9', answer: 'Designing a system or workflow' }, // The Orchestrator
         { questionId: 'Q10', answer: 'Extensions of my thinking' }, // The Researcher
         { questionId: 'Q11', answer: 'Open-ended questions' }, // The Researcher
-        { questionId: 'Q12', answer: 'Is not just visual — it\'s strategic' } // The Orchestrator
+        { questionId: 'Q12', answer: 'Visuals can be strategic' } // The Orchestrator
       ]
       
       const result = calculateScores(responses)
