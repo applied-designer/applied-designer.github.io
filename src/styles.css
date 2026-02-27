@@ -128,10 +128,13 @@ header nav div:nth-child(2) a:hover {
   max-width: none;
   margin: 0 auto;
   background-color: transparent;
-  padding: 2rem;
+  padding: 3rem 2rem;
   border: none;
   border-radius: 0;
   overflow-x: hidden;
+  --sjs-font-questiontitle-size: 1.8rem !important;
+  --sjs-question-title-margin-bottom: 0.5rem;
+  --sjs-radioitem-size: 12px;
 }
 
 .survey-wrapper .sd-root-modern,
@@ -149,26 +152,28 @@ header nav div:nth-child(2) a:hover {
   max-width: 100%;
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .sd-container-modern .sd-question {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
   background-color: transparent;
-  padding: 1rem 1rem 2rem;
-  border-radius: 0;
+  padding: 2rem;
+  border-radius: 8px;
   text-align: left !important;
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
   position: relative;
   border: none;
+  box-shadow: none;
 }
 
 .survey-wrapper .sd-question.quiz-panel {
-  --panel-fg: #000000;
+  --panel-fg: #ffffff;
   background-color: transparent;
   color: var(--panel-fg);
-  padding: 2rem !important;
+  padding: 2.5rem !important;
+  border-radius: 8px;
+  box-shadow: none;
 }
 
 .survey-wrapper .sd-question.quiz-panel-blue {
@@ -198,25 +203,27 @@ header nav div:nth-child(2) a:hover {
 
 @media (min-width: 768px) {
   .sd-container-modern .sd-question {
-    flex: 0 0 calc(50% - 1rem);
+    flex: 1 1 calc(50% - 0.75rem);
   }
 }
 
 @media (min-width: 1200px) {
   .sd-container-modern .sd-question {
-    flex: 0 0 calc(33.333% - 1rem);
+    flex: 1 1 calc(33.333% - 1rem);
   }
 }
 
 .survey-wrapper .sd-question.quiz-panel .sd-title,
 .survey-wrapper .sd-question.quiz-panel .sd-question__title {
   color: var(--panel-fg) !important;
-  font-weight: 600;
-  font-size: 2.2rem;
-  margin-bottom: 0.75rem;
+  font-weight: 700 !important;
+  font-size: 4rem !important;
+  margin: 0 0 0.5rem 0 !important;
+  padding: 0 !important;
   text-align: left !important;
   font-family: "urw-din", sans-serif !important;
-  line-height: 1.15;
+  line-height: 1.3 !important;
+  letter-spacing: -0.2px !important;
 }
 
 .survey-wrapper .sd-question.quiz-panel .sd-question__description,
@@ -230,48 +237,80 @@ header nav div:nth-child(2) a:hover {
 }
 
 .sd-container-modern .sd-radioitem {
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.75rem;
   background-color: transparent;
-  padding: 0.2rem 0.45rem;
-  border-radius: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 4px;
   border: none;
   transition: all 0.2s ease;
   font-family: 'Loretta', serif;
-  line-height: 1.25;
+  line-height: 1.35;
   color: var(--panel-fg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .survey-wrapper .sd-question fieldset > div {
-  padding-top: 0.2rem;
-  padding-bottom: 0.2rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
 }
 
 .sd-container-modern .sd-radioitem:hover {
-  border-color: currentColor;
   background-color: rgba(255, 255, 255, 0.12);
 }
 
 .sd-container-modern .sd-radioitem--selected {
   background-color: rgba(255, 255, 255, 0.18);
-  border-color: currentColor;
   font-weight: 500;
+}
+
+/* Override selected state styling for quiz panels - preserve panel colors */
+.survey-wrapper .sd-question.quiz-panel .sd-radioitem--selected {
+  background-color: transparent !important;
+  font-weight: inherit !important;
+  color: var(--panel-fg) !important;
 }
 
 .sd-container-modern .sd-radioitem__dot {
   border-color: currentColor !important;
-  border-width: 2px;
-  border-radius: 999px;
+  border-width: 2px !important;
+  border-radius: 50% !important;
   background: transparent !important;
-  width: 1.05em !important;
-  height: 1.05em !important;
-  min-width: 1.05em !important;
-  min-height: 1.05em !important;
-  max-width: 1.05em !important;
-  max-height: 1.05em !important;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  min-height: 12px !important;
+  max-width: 12px !important;
+  max-height: 12px !important;
+  flex-shrink: 0 !important;
 }
 
 .sd-container-modern .sd-radioitem--selected .sd-radioitem__dot {
   background-color: currentColor !important;
+}
+
+.sd-item__decorator.sd-radio__decorator {
+  width: calc(2 * var(--sjs-base-unit, 8px)) !important;
+  height: calc(2 * var(--sjs-base-unit, 8px)) !important;
+  min-width: calc(2 * var(--sjs-base-unit, 8px)) !important;
+  min-height: calc(2 * var(--sjs-base-unit, 8px)) !important;
+  max-width: calc(2 * var(--sjs-base-unit, 8px)) !important;
+  max-height: calc(2 * var(--sjs-base-unit, 8px)) !important;
+  align-self: flex-start !important;
+  margin-top: 4px !important;
+}
+
+.sd-item--checked .sd-item__decorator {
+  background: #969696 !important;
+}
+
+.sd-radio--checked .sd-radio__control:focus + .sd-radio__decorator:after {
+  background-color: #ffffff !important;
+}
+
+.sd-item__control:focus + .sd-item__decorator {
+  box-shadow: 0 0 0 2px #969696 !important;
 }
 
 .sd-question__required-text {
@@ -283,20 +322,29 @@ header nav div:nth-child(2) a:hover {
 .sd-container-modern .sd-item__control {
   color: var(--panel-fg) !important;
   font-family: 'Loretta', serif !important;
-  font-size: 1.1rem;
-  line-height: 1.25;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  margin: 0;
+  padding: 0;
 }
 
 .sd-container-modern .sd-question__description,
 .sd-container-modern .sd-description {
   position: absolute;
-  right: 0.75rem;
-  bottom: 0.55rem;
+  right: 1.5rem;
+  bottom: 1.5rem;
   margin: 0;
   font-family: "urw-din", sans-serif !important;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   line-height: 1;
-  color: #000000 !important;
+  color: rgba(0, 0, 0, 0.5) !important;
+  font-weight: 500;
+}
+
+.sd-question.quiz-panel-blue .sd-question__description,
+.sd-question.quiz-panel-brown .sd-question__description,
+.sd-question.quiz-panel-purple .sd-question__description {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .sd-container-modern .sd-question__required-text,
@@ -409,7 +457,161 @@ header nav div:nth-child(2) a:hover {
   opacity: 0.8;
 }
 
+/* Archetype Detail Page Styles */
+.archetype-detail-container {
+  background-color: #969696;
+  min-height: 100vh;
+  padding: 2rem;
+  color: black;
+  font-family: 'Loretta', sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.archetype-content {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 3rem;
+  border-radius: 8px;
+}
+
+.archetype-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.archetype-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  font-family: "urw-din", sans-serif;
+}
+
+.archetype-mantra {
+  font-size: 1.3rem;
+  font-style: italic;
+  color: #333;
+  margin: 0;
+  font-family: 'Loretta', serif;
+}
+
+.archetype-section {
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.archetype-section:last-of-type {
+  border-bottom: none;
+}
+
+.archetype-section h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  font-family: "urw-din", sans-serif;
+}
+
+.archetype-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #222;
+  font-family: 'Loretta', serif;
+}
+
+.archetype-alive-when {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #222;
+  font-family: 'Loretta', serif;
+  font-style: italic;
+}
+
+.archetype-dimensions {
+  margin-top: 2rem;
+}
+
+.archetype-dimensions table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  font-family: 'Loretta', serif;
+}
+
+.archetype-dimensions th,
+.archetype-dimensions td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.archetype-dimensions th {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  font-family: "urw-din", sans-serif;
+}
+
+.dim-name {
+  font-weight: 500;
+  width: 50%;
+}
+
+.dim-value {
+  text-align: right;
+  color: #893A69;
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+}
+
+.archetype-designers {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  font-family: 'Loretta', serif;
+}
+
+.archetype-designers li {
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: #222;
+}
+
+.archetype-designers li:before {
+  content: '→ ';
+  margin-right: 0.5rem;
+  color: #1975A1;
+  font-weight: bold;
+}
+
+.archetype-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.archetype-button {
+  background-color: black;
+  color: #969696;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  font-family: "urw-din", sans-serif;
+  min-height: 44px;
+}
+
+.archetype-button:hover {
+  opacity: 0.8;
+}
+
 /* Responsive Design */
+
 @media only screen and (max-width: 860px) {
   nav {
     flex-direction: column;

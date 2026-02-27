@@ -9,6 +9,7 @@
     "@react-three/fiber": "8.15.12",
     "@react-three/postprocessing": "2.15.11",
     "@types/three": "0.160.0",
+    "p5": "^1.7.0",
     "r3f-perf": "7.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -29,6 +30,7 @@
     "vitest": "^4.0.16"
   },
   "scripts": {
+    "dev": "vite",
     "dist": "vite build",
     "start": "vite build && vite preview",
     "test": "vitest",

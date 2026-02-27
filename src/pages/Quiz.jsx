@@ -43,10 +43,41 @@ export default function QuizPage() {
       showProgressBar: false,
       completedHtml: '<div></div>'
     })
-    
+
+    const panelColors = {
+      'quiz-panel-blue': { bg: '#1975A1', fg: '#ffffff' },
+      'quiz-panel-brown': { bg: '#7B392A', fg: '#ffffff' },
+      'quiz-panel-green': { bg: '#D0E7BF', fg: '#000000' },
+      'quiz-panel-yellow': { bg: '#FAA41A', fg: '#000000' },
+      'quiz-panel-purple': { bg: '#893A69', fg: '#ffffff' }
+    }
+
+    const applyPanelStyle = (questionName) => {
+      const questionIndex = quizQuestions.findIndex(question => question.id === questionName)
+      const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
+      const colors = panelColors[panelClass]
+      
+      // Find question element - SurveyJS renders to .sd-question elements
+      const questionElements = document.querySelectorAll('.sd-question')
+      questionElements.forEach(el => {
+        const titleEl = el.querySelector('.sd-question__title')
+        if (titleEl && titleEl.textContent.includes(quizQuestions[questionIndex].text.substring(0, 20))) {
+          // Apply inline styles to ensure they stick through re-renders
+          el.style.backgroundColor = colors.bg
+          el.style.color = colors.fg
+          el.style.setProperty('--panel-fg', colors.fg)
+          el.classList.add('quiz-panel', panelClass)
+        }
+      })
+    }
+
     surveyModel.onValueChanged.add((sender, options) => {
       const allAnswered = checkCompletion(sender.data)
       setIsComplete(allAnswered)
+      // Reapply styles on value change
+      if (options.question) {
+        setTimeout(() => applyPanelStyle(options.question.name), 0)
+      }
     })
     
     surveyModel.onCurrentPageChanged.add((sender, options) => {
@@ -57,8 +88,12 @@ export default function QuizPage() {
     surveyModel.onAfterRenderQuestion.add((sender, options) => {
       const questionIndex = quizQuestions.findIndex(question => question.id === options.question.name)
       const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
-      // Remove all quiz-panel-* classes, always add 'quiz-panel'
-      options.htmlElement.classList.remove('quiz-panel-blue', 'quiz-panel-brown', 'quiz-panel-green', 'quiz-panel-yellow', 'quiz-panel-purple')
+      const colors = panelColors[panelClass]
+      
+      // Apply inline styles
+      options.htmlElement.style.backgroundColor = colors.bg
+      options.htmlElement.style.color = colors.fg
+      options.htmlElement.style.setProperty('--panel-fg', colors.fg)
       options.htmlElement.classList.add('quiz-panel', panelClass)
     })
     

@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { archetypeData } from '../data/archetypeData'
 import RadarChart from '../components/RadarChart'
 import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
+import { exportToPNG } from '../utils/pngExport'
 
 /**
  * ResultsPage: Decodes dimension scores from base64 query param, computes archetypes, and renders chart/results.
@@ -26,6 +27,18 @@ export default function ResultsPage() {
   const primaryData = archetypeData[primary] || {}
   const secondaryData = archetypeData[secondary] || {}
   const radarValues = dimsToArray(dims)
+
+  // Share/Export handlers
+  const handleCopyLink = () => {
+    const url = window.location.href
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copied to clipboard!')
+    })
+  }
+
+  const handleDownloadPNG = async () => {
+    await exportToPNG(radarValues, primaryData)
+  }
   
   return (
     <div className="results-container">
@@ -55,6 +68,15 @@ export default function ResultsPage() {
             <strong>Dimension breakdown:</strong>{' '}
             {DIM_KEYS.map(k => `${k} (${dims[k]})`).join(', ')}
           </p>
+          <p className="results-note">
+            <button 
+              className="results-button"
+              onClick={() => navigate(`/archetype/${primary.toLowerCase().replace(/\s+/g, '-')}`)}
+              style={{ marginTop: '1.5rem' }}
+            >
+              Learn More About {primary}
+            </button>
+          </p>
         </div>
         <div className="results-actions">
           <button 
@@ -68,6 +90,18 @@ export default function ResultsPage() {
             onClick={() => navigate('/')}
           >
             Back to Home
+          </button>
+          <button 
+            className="results-button"
+            onClick={handleCopyLink}
+          >
+            Copy Link
+          </button>
+          <button 
+            className="results-button"
+            onClick={handleDownloadPNG}
+          >
+            Download PNG
           </button>
         </div>
       </div>
