@@ -1,19 +1,7 @@
 import { test, expect } from 'playwright/test'
+import { getFullQuizAnswers } from '../utils/archetypeTestUtils'
 
-const fullQuizAnswers = [
-  'Finding patterns and designing a system',
-  'Bridging gaps between people or roles',
-  'Connecting unexpected ideas',
-  'Scaling an idea across different contexts',
-  'Jump into making something',
-  'Nonlinear and cross-disciplinary',
-  'Teach or inspire someone else',
-  'Structure and cohesion',
-  'Designing a system or workflow',
-  'Extensions of my thinking',
-  'Open-ended questions',
-  'Is not just visual — it\'s strategic'
-]
+const fullQuizAnswers = getFullQuizAnswers()
 
 test.describe('Quiz mobile flow', () => {
   test('applies deterministic panel color sequence with matching text styles', async ({ page }) => {

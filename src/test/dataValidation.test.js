@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { quizQuestions } from '../data/quizData'
 import { archetypeData } from '../data/archetypeData'
+import { ARCHETYPES } from './utils/archetypeTestUtils'
 
 describe('Data Validation', () => {
   describe('quizQuestions', () => {
@@ -95,14 +96,8 @@ describe('Data Validation', () => {
     })
 
     it('should have all expected archetypes present', () => {
-      const expectedArchetypes = [
-        'The Orchestrator', 'The Researcher', 'The Multidisciplinary', 'The Generalist',
-        'The Director', 'The Advocate', 'The Experimentalist', 'The Disruptor',
-        'The Connector', 'The Idealist', 'The Improviser', 'The Educator'
-      ]
-      
       const actualArchetypes = Object.keys(archetypeData)
-      expect(actualArchetypes).toEqual(expect.arrayContaining(expectedArchetypes))
+      expect(actualArchetypes).toEqual(expect.arrayContaining(ARCHETYPES))
       expect(actualArchetypes).toHaveLength(12)
     })
 

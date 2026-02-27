@@ -4,6 +4,7 @@ import path from 'path'
 import readline from 'readline'
 import { getClosestArchetypes, dimsToArray } from '../data/quizUtils'
 import { archetypeData } from '../data/archetypeData'
+import { ARCHETYPES, SHORT_TO_FULL } from './utils/archetypeTestUtils'
 
 /**
  * fixtures.test.js
@@ -69,27 +70,11 @@ describe('Quiz Fixtures Integration Tests', () => {
    * but we can verify that the archetype names exist and are valid.
    */
   it('should have valid archetype names in fixture', () => {
-    const validArchetypes = Object.keys(archetypeData)
-    const shortToFull = {
-      orchestrator: 'The Orchestrator',
-      researcher: 'The Researcher',
-      multidisciplinary: 'The Multidisciplinary',
-      generalist: 'The Generalist',
-      director: 'The Director',
-      advocate: 'The Advocate',
-      experimentalist: 'The Experimentalist',
-      disruptor: 'The Disruptor',
-      connector: 'The Connector',
-      idealist: 'The Idealist',
-      improviser: 'The Improviser',
-      educator: 'The Educator'
-    }
-
     fixtureData.forEach(({ primary, secondary }) => {
-      const primaryFull = shortToFull[primary.toLowerCase()] || primary
-      const secondaryFull = shortToFull[secondary.toLowerCase()] || secondary
-      expect(validArchetypes).toContain(primaryFull)
-      expect(validArchetypes).toContain(secondaryFull)
+      const primaryFull = SHORT_TO_FULL[primary.toLowerCase()] || primary
+      const secondaryFull = SHORT_TO_FULL[secondary.toLowerCase()] || secondary
+      expect(ARCHETYPES).toContain(primaryFull)
+      expect(ARCHETYPES).toContain(secondaryFull)
     })
   })
 

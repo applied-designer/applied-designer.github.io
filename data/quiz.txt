@@ -75,7 +75,7 @@
 [ ] Seeing it work in the real world
 
 12. I wish more people understood that design…
-[ ] Is not just visual — it’s strategic
+[ ] Visuals can be strategic
 [ ] Can change how things work
 [ ] Is a way of thinking
 [ ] Thrives in complexity
