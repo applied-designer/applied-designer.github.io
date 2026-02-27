@@ -16,14 +16,14 @@ export const quizQuestions = [
     choices: [
       { text: 'Bridging gaps between people or roles', archetype: 'The Connector' },
       { text: 'Taking the lead and shaping the process', archetype: 'The Director' },
-      { text: 'Filling in wherever I\'m needed', archetype: 'The Improviser' },
+      { text: 'Filling in wherever I’m needed', archetype: 'The Improviser' },
       { text: 'Supporting others as they grow', archetype: 'The Educator' },
       { text: 'Keeping things small and focused', archetype: 'The Generalist' }
     ]
   },
   {
     id: 'Q3',
-    text: 'What\'s your creative strength?',
+    text: 'What’s your creative strength?',
     choices: [
       { text: 'Connecting unexpected ideas', archetype: 'The Multidisciplinary' },
       { text: 'Making sense of messy information', archetype: 'The Orchestrator' },
@@ -45,7 +45,7 @@ export const quizQuestions = [
   },
   {
     id: 'Q5',
-    text: 'When I\'m stuck, I…',
+    text: 'When I’m stuck, I…',
     choices: [
       { text: 'Jump into making something', archetype: 'The Experimentalist' },
       { text: 'Look back at my research', archetype: 'The Researcher' },
@@ -124,7 +124,7 @@ export const quizQuestions = [
     id: 'Q12',
     text: 'I wish more people understood that design…',
     choices: [
-      { text: 'Is not just visual — it\'s strategic', archetype: 'The Orchestrator' },
+      { text: 'Visuals can be strategic', archetype: 'The Orchestrator' },
       { text: 'Can change how things work', archetype: 'The Advocate' },
       { text: 'Is a way of thinking', archetype: 'The Multidisciplinary' },
       { text: 'Thrives in complexity', archetype: 'The Researcher' },

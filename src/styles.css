@@ -133,6 +133,11 @@ nav a:hover {
   box-shadow: none !important;
 }
 
+.sd-body.sd-body--static {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
 /* SurveyJS Custom Theme */
 .sd-container-modern {
   width: 100%;
@@ -339,10 +344,14 @@ nav a:hover {
   color: #893A69 !important;
 }
 
+.sd-row.sd-clearfix.sd-page__row {
+  margin: 2rem 0;
+}
+
 /* Submit Button */
 .submit-button {
   display: block;
-  margin: 2rem auto 0;
+  margin: 3rem auto;
   background-color: black;
   color: #969696;
   border: none;

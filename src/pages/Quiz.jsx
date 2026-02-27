@@ -127,6 +127,9 @@ export default function QuizPage() {
   return (
     <div className="quiz-container">
       <h1 className="quiz-title">Applied Designer Quiz</h1>
+      {/* TODO: fix padding properly */}
+      <br />
+      <br />
       <p className="quiz-intro">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
       </p>
