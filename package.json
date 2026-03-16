@@ -1,46 +1,51 @@
 {
-  "name": "applied-designer-microsite",
-  "version": "1.0.0",
-  "description": "",
-  "keywords": [],
-  "main": "src/index.jsx",
-  "dependencies": {
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.5.0",
-    "@react-three/postprocessing": "^3.0.4",
-    "p5": "^2.2.2",
-    "r3f-perf": "^7.2.3",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-router-dom": "^7.11.0",
-    "survey-core": "^2.5.4",
-    "survey-react-ui": "^2.5.4",
-    "three": "^0.183.1"
-  },
-  "devDependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.1",
-    "@types/three": "^0.183.1",
-    "@vitejs/plugin-react": "^5.1.4",
-    "@vitest/ui": "^4.0.16",
-    "jsdom": "^28.1.0",
-    "playwright": "^1.57.0",
-    "vite": "^7.3.1",
-    "vitest": "^4.0.16"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "start": "vite build && vite preview",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:e2e": "playwright test"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+    "name": "applied-designer-microsite",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "type": "module",
+    "main": "src/index.jsx",
+    "dependencies": {
+        "@react-three/drei": "^10.7.7",
+        "@react-three/fiber": "^9.5.0",
+        "@react-three/postprocessing": "^3.0.4",
+        "p5": "^2.2.2",
+        "r3f-perf": "^7.2.3",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "react-router-dom": "^7.11.0",
+        "survey-core": "^2.5.4",
+        "survey-react-ui": "^2.5.4",
+        "three": "^0.183.1"
+    },
+    "devDependencies": {
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.1",
+        "@types/three": "^0.183.1",
+        "@vitejs/plugin-react": "^5.1.4",
+        "@vitest/ui": "^4.0.16",
+        "eslint": "^10.0.3",
+        "eslint-plugin-react": "^7.37.5",
+        "jsdom": "^28.1.0",
+        "playwright": "^1.57.0",
+        "vite": "^7.3.1",
+        "vitest": "^4.0.16"
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "start": "vite build && vite preview",
+        "test": "vitest",
+        "test:ui": "vitest --ui",
+        "test:e2e": "playwright test",
+        "lint": "eslint src --ext .js,.jsx --ignore-pattern src/test",
+        "lint:fix": "eslint src --fix --ext .js,.jsx --ignore-pattern src/test"
+    },
+    "browserslist": [
+        ">0.2%",
+        "not dead",
+        "not ie <= 11",
+        "not op_mini all"
+    ]
 }
