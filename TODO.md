@@ -1,6 +1,11 @@
 Overall infra + tooling
 
-- [ ] restructure the homepage light this: https://godly.website/website/quentin-hocde-736
+TODO: need to ensure URL is versioned...
+
+TEST URL: http://localhost:4173/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR5OjM5LGNvbGxhYm9yYXRpb246NDYsZXhwZXJpbWVudGF0aW9uOjMzLGltcGFjdDo0NA%3D%3D
+
+
+- [ ] restructure the homepage like this: https://godly.website/website/quentin-hocde-736
 - [ ] just use this, ditch all the React crap (might not be totally possible because we need a 3d rendering library): https://threejs.org/docs/scenes/geometry-browser.html#DodecahedronGeometry
     - [ ] Even better, what if we throw everything away and just use raw HTML canvas APIs? The hardest part will be filling solid faces, but that code should already exist https://github.com/tsoding/formula
 - [ ] if we keep react... can try adding a mouse trail like the last example here: https://blog.maximeheckel.com/posts/post-processing-as-a-creative-medium/
@@ -9,6 +14,7 @@ Overall infra + tooling
 New features
 
 - [ ] about page
+- [ ] full copyright disclaimer, footer probably
 - [ ] links to Whatsapp groups
 - [ ] Redesign the homepage, scale should be much better in general
 - [ ] Card design UI

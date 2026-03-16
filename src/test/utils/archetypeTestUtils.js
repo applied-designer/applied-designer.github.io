@@ -23,30 +23,30 @@ export const EDUCATOR = findArchetype('educator')
 
 // Build short-to-full mapping dynamically from ARCHETYPES
 export const SHORT_TO_FULL = Object.fromEntries(
-  ARCHETYPES.map(archetype => [
-    archetype.toLowerCase().replace('the ', ''),
-    archetype
-  ])
+    ARCHETYPES.map(archetype => [
+        archetype.toLowerCase().replace('the ', ''),
+        archetype
+    ])
 )
 
 // Get answer text for a question and archetype
 export const getAnswerForArchetype = (questionId, archetypeName) => {
-  const question = quizQuestions.find(q => q.id === questionId)
-  const choice = question?.choices.find(c => c.archetype === archetypeName)
-  return choice?.text
+    const question = quizQuestions.find(q => q.id === questionId)
+    const choice = question?.choices.find(c => c.archetype === archetypeName)
+    return choice?.text
 }
 
 // Get all answers for completing the full quiz (first choice of each question)
 export const getFullQuizAnswers = () => {
-  return quizQuestions.map(question => question.choices[0].text)
+    return quizQuestions.map(question => question.choices[0].text)
 }
 
 // Validate that a string is a valid archetype name
 export const isValidArchetype = (name) => {
-  return ARCHETYPES.includes(name)
+    return ARCHETYPES.includes(name)
 }
 
 // Convert short archetype name to full name
 export const shortToFullArchetype = (shortName) => {
-  return SHORT_TO_FULL[shortName.toLowerCase()] || shortName
+    return SHORT_TO_FULL[shortName.toLowerCase()] || shortName
 }
