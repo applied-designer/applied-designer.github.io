@@ -3,11 +3,12 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import {createPortal} from "react-dom";
+import { DIM_COLORS_HEX } from '../data/colors'
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
 
 // Global array of 12 desired colors (for when a face is clicked)
-const brandColors = ['#1975A1', '#7B392A', '#D0E7BF', '#FAA41A', '#893A69']
+const brandColors = DIM_COLORS_HEX
 
 // Global messages for each face.
 const messages = {

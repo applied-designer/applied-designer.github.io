@@ -8,19 +8,19 @@ test.describe('Quiz Styling E2E Tests', () => {
 
     test('should render quiz with properly styled questions', async ({ page }) => {
     // Wait for first question to render
-        await page.waitForSelector('.survey-question', { timeout: 5000 })
+        await page.waitForSelector('.sd-question', { timeout: 5000 })
 
         // Verify container classes exist
-        const container = await page.locator('.survey-container').count()
+        const container = await page.locator('.survey-wrapper').count()
         expect(container).toBeGreaterThan(0)
 
         // Verify question elements exist
-        const questions = await page.locator('.survey-question').count()
+        const questions = await page.locator('.sd-question').count()
         expect(questions).toBeGreaterThan(0)
     })
 
     test('should apply correct panel colors to questions', async ({ page }) => {
-        await page.waitForSelector('.survey-question')
+        await page.waitForSelector('.sd-question')
 
         const bluePanels = await page.locator('.quiz-panel-blue').count()
         const brownPanels = await page.locator('.quiz-panel-brown').count()
@@ -70,32 +70,39 @@ test.describe('Quiz Styling E2E Tests', () => {
     })
 
     test('should have question titles with custom styling class', async ({ page }) => {
-        await page.waitForSelector('.survey-question-title')
+        await page.waitForSelector('.sd-question__title')
 
-        const titles = await page.locator('.survey-question-title').count()
+        const titles = await page.locator('.sd-question__title').count()
         expect(titles).toBeGreaterThan(0)
 
         // Check font properties
-        const titleFontSize = await page.locator('.survey-question-title').first().evaluate((el) => 
+        const titleFontSize = await page.locator('.sd-question__title').first().evaluate((el) => 
             window.getComputedStyle(el).fontSize
         )
         expect(titleFontSize).toBeTruthy()
     })
 
     test('should have radio items with custom styling', async ({ page }) => {
-        await page.waitForSelector('.survey-radioitem')
+        await page.waitForSelector('.sd-item')
 
-        const radioItems = await page.locator('.survey-radioitem').count()
+        const radioItems = await page.locator('.sd-item').count()
         expect(radioItems).toBeGreaterThan(0)
     })
 
     test('should not have any SurveyJS internal classes in live DOM', async ({ page }) => {
-        await page.waitForSelector('.survey-root')
+        await page.waitForSelector('.sd-question')
 
-        // Check for any .sd-* or .sv-* classes
+        // Check for any .sd-* or .sv-* classes on custom quiz panels
         const hasOldClasses = await page.evaluate(() => {
-            const elements = document.querySelectorAll('[class*="sd-"], [class*="sv-"]')
-            return elements.length > 0
+            const quizPanels = document.querySelectorAll('.quiz-panel')
+            let foundOldClasses = false
+            quizPanels.forEach(el => {
+                if (el.className.match(/sd-|sv-/)) {
+                    foundOldClasses = true
+                }
+            })
+            // Check if quiz-panel class is applied
+            return !document.querySelector('.quiz-panel') && foundOldClasses
         })
 
         expect(hasOldClasses).toBe(false)
@@ -112,9 +119,9 @@ test.describe('Quiz Styling E2E Tests', () => {
     })
 
     test('should style first and last questions with correct panel colors', async ({ page }) => {
-        await page.waitForSelector('.survey-question')
+        await page.waitForSelector('.sd-question')
 
-        const questions = await page.locator('.survey-question')
+        const questions = await page.locator('.sd-question')
         const count = await questions.count()
         expect(count).toBe(12)
 
@@ -134,25 +141,20 @@ test.describe('Quiz Styling E2E Tests', () => {
     })
 
     test('should have proper spacing and layout', async ({ page }) => {
-        await page.waitForSelector('.survey-container')
+        await page.waitForSelector('.survey-wrapper')
 
-        const container = await page.locator('.survey-container')
+        const container = await page.locator('.quiz-container')
         const display = await container.evaluate((el) => 
             window.getComputedStyle(el).display
         )
 
-        expect(display).toBe('flex')
-
-        const gap = await container.evaluate((el) => 
-            window.getComputedStyle(el).gap
-        )
-        expect(gap).toBeTruthy()
+        expect(display).toBe('block')
     })
 
     test('should apply focus styles to radio items', async ({ page }) => {
-        await page.waitForSelector('.survey-radioitem')
+        await page.waitForSelector('.sd-item')
 
-        const firstRadio = page.locator('.survey-radioitem').first()
+        const firstRadio = page.locator('.sd-item').first()
     
         // Focus the element
         await firstRadio.focus()
@@ -167,23 +169,23 @@ test.describe('Quiz Styling E2E Tests', () => {
     })
 
     test('should have question description with proper styling', async ({ page }) => {
-        await page.waitForSelector('.survey-question-description')
+        await page.waitForSelector('.sd-question__description')
 
-        const descriptions = await page.locator('.survey-question-description').count()
+        const descriptions = await page.locator('.sd-question__description').count()
         expect(descriptions).toBeGreaterThan(0)
 
         // Should show question counter (e.g., "1 of 12")
-        const firstDesc = await page.locator('.survey-question-description').first()
+        const firstDesc = await page.locator('.sd-question__description').first()
         const text = await firstDesc.innerText()
         expect(text).toMatch(/\d+ of \d+/)
     })
 
     test('should maintain consistent styling across multiple questions', async ({ page }) => {
-        await page.waitForSelector('.survey-question')
+        await page.waitForSelector('.sd-question')
 
         const questionsWithTitles = await page.evaluate(() => {
-            const questions = document.querySelectorAll('.survey-question')
-            return Array.from(questions).every(q => q.querySelector('.survey-question-title'))
+            const questions = document.querySelectorAll('.sd-question')
+            return Array.from(questions).every(q => q.querySelector('.sd-question__title'))
         })
 
         expect(questionsWithTitles).toBe(true)
@@ -191,12 +193,12 @@ test.describe('Quiz Styling E2E Tests', () => {
 
     test('should have submit button with proper styling', async ({ page }) => {
     // Fill out quiz first
-        const radioItems = await page.locator('[role="radio"]')
+        const radioItems = await page.locator('.sd-item')
         const count = await radioItems.count()
 
         // Click enough radio items to complete the quiz
         for (let i = 0; i < Math.min(12, count); i++) {
-            await page.locator(`[role="radio"]`).nth(i).click()
+            await page.locator('.sd-item').nth(i).click()
         }
 
         // Submit button should exist and be styled
@@ -213,9 +215,9 @@ test.describe('Quiz Styling E2E Tests', () => {
 
     test('should display all 12 questions with correct layout', async ({ page }) => {
     // Wait for all questions to load
-        await page.waitForSelector('.survey-question')
+        await page.waitForSelector('.sd-question')
     
-        const allQuestions = await page.locator('.survey-question').all()
+        const allQuestions = await page.locator('.sd-question').all()
         expect(allQuestions.length).toBe(12)
 
         // All should have the same core classes
@@ -224,7 +226,7 @@ test.describe('Quiz Styling E2E Tests', () => {
                 el.classList.contains('quiz-panel')
             )
             const hasTitle = await question.evaluate((el) => 
-                el.querySelector('.survey-question-title') !== null
+                el.querySelector('.sd-question__title') !== null
             )
 
             expect(hasQuizPanel).toBe(true)

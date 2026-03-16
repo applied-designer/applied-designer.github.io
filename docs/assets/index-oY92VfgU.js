@@ -215900,127 +215900,6 @@ type(p5$2);
 p5$2.registerAddon(shader);
 p5$2.registerAddon(strands);
 Promise.all([waitForDocumentReady(), waitingForTranslator]).then(_globalInit);
-function createExportSketch(values, archetypeData2) {
-  const DIM_COLORS2 = ["#1975A1", "#7B392A", "#D0E7BF", "#FAA41A", "#893A69"];
-  const DIM_LABELS2 = ["Strategy", "Adaptability", "Collaboration", "Experimentation", "Impact"];
-  const getPentagonPoints = (centerX, centerY, radius) => {
-    const angle = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
-    return Array.from({ length: 5 }, (_23, i) => ({
-      x: centerX + radius * Math.cos(angle(i)),
-      y: centerY + radius * Math.sin(angle(i))
-    }));
-  };
-  const getValuePoints = (centerX, centerY, radius, normalVals) => {
-    const angle = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
-    return normalVals.map((v, i) => ({
-      x: centerX + radius * v * Math.cos(angle(i)),
-      y: centerY + radius * v * Math.sin(angle(i))
-    }));
-  };
-  const normalizedValues = values.map((v) => {
-    const max2 = Math.max(...values);
-    return max2 > 0 ? v / max2 : 0;
-  });
-  return (p2) => {
-    const CANVAS_W = 1080;
-    const CANVAS_H = 1920;
-    const MARGIN = 80;
-    const HEADER_H = 300;
-    p2.setup = function() {
-      p2.createCanvas(CANVAS_W, CANVAS_H);
-      p2.background("#f5f5f5");
-      p2.fill(0);
-      p2.textAlign(p2.CENTER, p2.TOP);
-      p2.textFont("urw-din, sans-serif");
-      p2.textSize(56);
-      p2.textStyle(p2.BOLD);
-      p2.text(
-        `${archetypeData2.emoji || "🎨"} ${archetypeData2.name || "Archetype"}`,
-        CANVAS_W / 2,
-        MARGIN
-      );
-      p2.fill(100);
-      p2.textSize(24);
-      p2.textStyle(p2.NORMAL);
-      p2.text(archetypeData2.mantra || "", CANVAS_W / 2, MARGIN + 70);
-      const cx = CANVAS_W / 2;
-      const cy = HEADER_H + (CANVAS_H - HEADER_H) / 2 - 100;
-      const r2 = 250;
-      const pentPoints = getPentagonPoints(cx, cy, r2);
-      const valPoints = getValuePoints(cx, cy, r2, normalizedValues);
-      for (let i = 0; i < 5; i++) {
-        const pt2 = pentPoints[i];
-        const next = pentPoints[(i + 1) % 5];
-        p2.fill(p2.color(DIM_COLORS2[i]));
-        p2.stroke("none");
-        p2.triangle(cx, cy, pt2.x, pt2.y, next.x, next.y);
-      }
-      p2.noFill();
-      p2.stroke(51);
-      p2.strokeWeight(3);
-      p2.beginShape();
-      pentPoints.forEach((pt2) => p2.vertex(pt2.x, pt2.y));
-      p2.endShape(p2.CLOSE);
-      p2.stroke(p2.color("#1975A1"));
-      p2.strokeWeight(3);
-      p2.fill(p2.color("#1975A1"));
-      p2.beginShape();
-      valPoints.forEach((pt2) => p2.vertex(pt2.x, pt2.y));
-      p2.endShape(p2.CLOSE);
-      for (let i = 0; i < 5; i++) {
-        const pt2 = valPoints[i];
-        p2.fill(p2.color(DIM_COLORS2[i]));
-        p2.stroke(51);
-        p2.strokeWeight(2);
-        p2.circle(pt2.x, pt2.y, 16);
-      }
-      p2.fill(51);
-      p2.noStroke();
-      p2.textSize(20);
-      p2.textAlign(p2.CENTER, p2.CENTER);
-      pentPoints.forEach((pt2, i) => {
-        const offset2 = 60;
-        const dx = pt2.x - cx;
-        const dy = pt2.y - cy;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        const labelX = cx + dx / len * (len + offset2);
-        const labelY = cy + dy / len * (len + offset2);
-        p2.text(DIM_LABELS2[i], labelX, labelY);
-      });
-      p2.fill(100);
-      p2.textSize(16);
-      p2.textAlign(p2.CENTER, p2.BOTTOM);
-      const footerY = CANVAS_H - 120;
-      const dims = DIM_LABELS2.map((label, i) => `${label}: ${values[i]}`).join(" · ");
-      p2.text(dims, CANVAS_W / 2, footerY);
-      if (archetypeData2.description) {
-        p2.textSize(14);
-        p2.textAlign(p2.CENTER, p2.BOTTOM);
-        p2.text(archetypeData2.description, CANVAS_W / 2 - 40, CANVAS_H - 40, 80);
-      }
-    };
-    p2.draw = function() {
-    };
-  };
-}
-async function exportToPNG(values, archetypeData2, filename = "applied-designer-result") {
-  return new Promise((resolve2) => {
-    let instance2 = null;
-    const tempDiv = document.createElement("div");
-    tempDiv.style.display = "none";
-    document.body.appendChild(tempDiv);
-    const sketch = createExportSketch(values, archetypeData2);
-    instance2 = new p5$2(sketch, tempDiv);
-    setTimeout(() => {
-      instance2.saveCanvas(filename, "png");
-      setTimeout(() => {
-        instance2.remove();
-        document.body.removeChild(tempDiv);
-        resolve2();
-      }, 100);
-    }, 500);
-  });
-}
 const DIM_LABELS = ["Systems", "People", "Ideas", "Scale", "Action"];
 function mapRange(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
@@ -216071,13 +215950,16 @@ function ResultsPage() {
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsChart, { values: radarValues }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-notes", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "results-note", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-note", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Dimension breakdown:" }),
         DIM_KEYS.map((k2) => (
           // `${k} (${dims[k]}/60)`).join(', ')
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("dl", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("dt", { style: { textTransform: "capitalize", display: "inline" }, children: k2 }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("dd", { style: { display: "inline" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { textTransform: "capitalize", display: "inline" }, children: [
+              k2,
+              ": "
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { display: "inline" }, children: [
               dims[k2],
               "/60"
             ] })
@@ -216128,97 +216010,6 @@ function ResultsPage() {
           className: "results-button",
           onClick: handleCopyLink,
           children: "Copy Link"
-        }
-      )
-    ] })
-  ] }) });
-}
-function SampleResultsPage() {
-  const navigate = useNavigate();
-  const dims = {
-    strategy: 5,
-    adaptability: 2,
-    collaboration: 4,
-    experimentation: 2,
-    impact: 3
-  };
-  const primary = "The Orchestrator";
-  const secondary = "The Educator";
-  const primaryData = archetypeData[primary];
-  const secondaryData = archetypeData[secondary];
-  const radarValues = dimsToArray(dims);
-  const handleCopyLink = () => {
-    alert("Copy link clicked (sample)");
-  };
-  const handleDownloadPNG = async () => {
-    await exportToPNG(radarValues, primaryData);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "results-container", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-content", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "results-title", children: [
-      primaryData.emoji,
-      " ",
-      primary
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
-      "You are most alive when ",
-      primaryData.mostAliveWhen
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
-      "Your mantra could be “",
-      primaryData.mantra,
-      "”"
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { maxWidth: 400, margin: "0 auto 2.5rem" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(RadarChart, { values: radarValues }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-notes", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "results-note", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
-          primary,
-          ":"
-        ] }),
-        " ",
-        primaryData.description
-      ] }),
-      secondaryData && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "results-note", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
-          secondary,
-          ":"
-        ] }),
-        " ",
-        secondaryData.description
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "results-note", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Dimension breakdown:" }),
-        " ",
-        DIM_KEYS.map((k2) => `${k2} (${dims[k2]})`).join(", ")
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
-        {
-          className: "results-button",
-          onClick: () => navigate(`/archetype/${primary.toLowerCase().replace(/\s+/g, "-")}`),
-          style: { marginTop: "1.5rem" },
-          children: [
-            "Learn More About ",
-            primary
-          ]
-        }
-      ) })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-actions", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: "results-button",
-          onClick: handleCopyLink,
-          children: "Copy Link"
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: "results-button",
-          onClick: handleDownloadPNG,
-          children: "Download PNG"
         }
       )
     ] })
@@ -216297,7 +216088,7 @@ function App() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/quiz", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuizPage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/results", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/sample-results", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SampleResultsPage, {}) }),
+    false,
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/archetype/:name", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ArchetypeDetail, {}) })
   ] }) });
 }

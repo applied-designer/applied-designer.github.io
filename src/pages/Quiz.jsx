@@ -4,6 +4,7 @@ import { Model, Survey } from 'survey-react-ui'
 import { quizQuestions } from '../data/quizData'
 import { calculateScores } from '../data/scoringUtils'
 import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
+import { PANEL_COLORS_HEX_HEX } from '../data/colors'
 import 'survey-core/survey-core.css'
 
 export default function QuizPage() {
@@ -44,20 +45,12 @@ export default function QuizPage() {
             completedHtml: '<div></div>'
         })
 
-        const panelColors = {
-            'quiz-panel-blue': { bg: '#1975A1', fg: '#ffffff' },
-            'quiz-panel-brown': { bg: '#7B392A', fg: '#ffffff' },
-            'quiz-panel-green': { bg: '#D0E7BF', fg: '#000000' },
-            'quiz-panel-yellow': { bg: '#FAA41A', fg: '#000000' },
-            'quiz-panel-purple': { bg: '#893A69', fg: '#ffffff' }
-        }
-
         const applyPanelStyle = (questionName) => {
             const questionIndex = quizQuestions.findIndex(question => question.id === questionName)
             if (questionIndex === -1) return
       
             const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
-            const colors = panelColors[panelClass]
+            const colors = PANEL_COLORS_HEX[panelClass]
             if (!colors) return
       
             // Find question element - SurveyJS renders to .sd-question elements
@@ -93,7 +86,7 @@ export default function QuizPage() {
             if (questionIndex === -1) return
       
             const panelClass = panelClassOrder[questionIndex % panelClassOrder.length]
-            const colors = panelColors[panelClass]
+            const colors = PANEL_COLORS_HEX[panelClass]
             if (!colors) return
       
             // Apply inline styles

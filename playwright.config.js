@@ -26,7 +26,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dist && npm start',
+    command: 'bun run build && npm start',
     port: 4173,
     reuseExistingServer: !process.env.CI,
   },

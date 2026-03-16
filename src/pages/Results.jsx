@@ -3,10 +3,7 @@ import { archetypeData } from '../data/archetypeData'
 import RadarChart from '../components/RadarChart'
 import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
 import { exportToPNG } from '../utils/pngExport'
-
-
-const DIM_COLORS = ['#1975A1', '#7B392A', '#D0E7BF', '#FAA41A', '#893A69']
-const DIM_LABELS = ['Systems', 'People', 'Ideas', 'Scale', 'Action']
+import { DIM_COLORS, DIM_LABELS } from '../data/colors'
 
 // Source - https://stackoverflow.com/a/5650012
 // Posted by Alnitak, modified by community. See post 'Timeline' for change history

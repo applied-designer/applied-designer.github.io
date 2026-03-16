@@ -1,8 +1,5 @@
 import React from 'react'
-
-// Brand colors for each dimension (order: blue, brown, green, yellow, purple)
-const DIM_COLORS = ['#1975A1', '#7B392A', '#D0E7BF', '#FAA41A', '#893A69']
-const DIM_LABELS = ['Systems', 'People', 'Ideas', 'Scale', 'Action']
+import { DIM_COLORS, DIM_LABELS } from '../data/colors'
 
 /**
  * RadarChart for 5 dimensions as a regular pentagon, point up.

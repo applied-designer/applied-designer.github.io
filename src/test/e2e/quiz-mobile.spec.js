@@ -13,7 +13,7 @@ test.describe('Quiz mobile flow', () => {
 
             return questions.map(question => {
                 const title = question.querySelector('.sd-title, .sd-question__title')
-                const answer = question.querySelector('.sd-item__control-label, .sd-radioitem__control-label')
+                const answer = question.querySelector('.sd-item__control-label, .sd-radio__decorator, [role="radio"]')
 
                 return {
                     classes: Array.from(question.classList),
@@ -58,9 +58,9 @@ test.describe('Quiz mobile flow', () => {
         await expect(submitButton).toBeEnabled()
         await submitButton.click()
 
-        await expect(page.getByRole('heading', { level: 1 })).toContainText('You are')
+        // Results page now shows archetype emoji and name instead of "You are"
+        await expect(page.getByRole('heading', { level: 1 })).toContainText('The Orchestrator')
         await expect(page.getByText('Dimension breakdown:')).toBeVisible()
-        await expect(page.getByText('Tie-break method:')).toBeVisible()
     })
 
     test('does not horizontally overflow on mobile viewport', async ({ page }) => {

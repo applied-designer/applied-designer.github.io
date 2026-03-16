@@ -2,14 +2,56 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Brand colors - primary palette */
+  --color-blue: #1975A1;
+  --color-brown: #7B392A;
+  --color-green: #D0E7BF;
+  --color-yellow: #FAA41A;
+  --color-purple: #893A69;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-light-gray: #969696;
+  
+  /* Panel colors with foreground */
+  --color-panel-blue-bg: var(--color-blue);
+  --color-panel-blue-fg: var(--color-white);
+  --color-panel-brown-bg: var(--color-brown);
+  --color-panel-brown-fg: var(--color-white);
+  --color-panel-green-bg: var(--color-green);
+  --color-panel-green-fg: var(--color-black);
+  --color-panel-yellow-bg: var(--color-yellow);
+  --color-panel-yellow-fg: var(--color-black);
+  --color-panel-purple-bg: var(--color-purple);
+  --color-panel-purple-fg: var(--color-white);
+  
+  /* Dimension aliases (for semantic naming) */
+  --color-dim-system: var(--color-blue);
+  --color-dim-people: var(--color-brown);
+  --color-dim-ideas: var(--color-green);
+  --color-dim-scale: var(--color-yellow);
+  --color-dim-action: var(--color-purple);
+  
+  /* Index aliases */
+  --color-dim-0: var(--color-dim-system);
+  --color-dim-1: var(--color-dim-people);
+  --color-dim-2: var(--color-dim-ideas);
+  --color-dim-3: var(--color-dim-scale);
+  --color-dim-4: var(--color-dim-action);
+
+  /* Typography */
+  --font-serif: 'Loretta', serif;
+  --font-sans: "urw-din", sans-serif;
+}
+
 html,
 body {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #969696;
-  font-family: 'Loretta';
+  background-color: var(--color-light-gray);
+  font-family: var(--font-serif);
 }
 
 nav {
@@ -21,18 +63,18 @@ nav {
   padding-left: 2rem;
   padding-right: 2rem;
   margin-top: 2rem;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
   font-weight: 500;
   font-size: 1.125rem;
 }
 
 a {
-  color: black;
+  color: var(--color-black);
   text-decoration: none;
 }
 
 nav a:hover {
-  color: #1975A1;
+  color: var(--color-blue);
   transition: all 0.3s ease;
 }
 
@@ -84,11 +126,11 @@ nav a:hover {
 
 /* Quiz Container */
 .quiz-container {
-  background-color: #969696;
+  background-color: var(--color-light-gray);
   min-height: 100vh;
   padding: 2rem;
-  color: black;
-  font-family: 'Loretta', sans-serif;
+  color: var(--color-black);
+  font-family: var(--font-serif);
   width: 100%;
   overflow-x: hidden;
 }
@@ -98,14 +140,14 @@ nav a:hover {
   margin-bottom: 0.75rem;
   font-size: 2.5rem;
   font-weight: 600;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .quiz-intro {
   max-width: 760px;
   margin: 0 auto 2rem;
   text-align: center;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
   font-size: 1rem;
   line-height: 1.4;
 }
@@ -160,7 +202,7 @@ nav a:hover {
 }
 
 .survey-wrapper .sd-question.quiz-panel {
-  --panel-fg: #ffffff;
+  --panel-fg: var(--color-white);
   background-color: transparent;
   color: var(--panel-fg);
   padding: 2.5rem !important;
@@ -169,28 +211,28 @@ nav a:hover {
 }
 
 .survey-wrapper .sd-question.quiz-panel-blue {
-  --panel-fg: #ffffff;
-  background-color: #1975A1;
+  --panel-fg: var(--color-white);
+  background-color: var(--color-blue);
 }
 
 .survey-wrapper .sd-question.quiz-panel-brown {
-  --panel-fg: #ffffff;
-  background-color: #7B392A;
+  --panel-fg: var(--color-white);
+  background-color: var(--color-brown);
 }
 
 .survey-wrapper .sd-question.quiz-panel-green {
-  --panel-fg: #000000;
-  background-color: #D0E7BF;
+  --panel-fg: var(--color-black);
+  background-color: var(--color-green);
 }
 
 .survey-wrapper .sd-question.quiz-panel-yellow {
-  --panel-fg: #000000;
-  background-color: #FAA41A;
+  --panel-fg: var(--color-black);
+  background-color: var(--color-yellow);
 }
 
 .survey-wrapper .sd-question.quiz-panel-purple {
-  --panel-fg: #ffffff;
-  background-color: #893A69;
+  --panel-fg: var(--color-white);
+  background-color: var(--color-purple);
 }
 
 @media (min-width: 768px) {
@@ -235,7 +277,7 @@ nav a:hover {
   border-radius: 4px;
   border: none;
   transition: all 0.2s ease;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
   line-height: 1.35;
   color: var(--panel-fg);
   display: flex;
@@ -294,15 +336,15 @@ nav a:hover {
 }
 
 .sd-item--checked .sd-item__decorator {
-  background: #969696 !important;
+  background: var(--color-light-gray) !important;
 }
 
 .sd-radio--checked .sd-radio__control:focus + .sd-radio__decorator:after {
-  background-color: #ffffff !important;
+  background-color: var(--color-white) !important;
 }
 
 .sd-item__control:focus + .sd-item__decorator {
-  box-shadow: 0 0 0 2px #969696 !important;
+  box-shadow: 0 0 0 2px var(--color-light-gray) !important;
 }
 
 .sd-question__required-text {
@@ -341,7 +383,7 @@ nav a:hover {
 
 .sd-container-modern .sd-question__required-text,
 .sd-container-modern .sd-required {
-  color: #893A69 !important;
+  color: var(--color-purple) !important;
 }
 
 .sd-row.sd-clearfix.sd-page__row {
@@ -352,22 +394,22 @@ nav a:hover {
 .submit-button {
   display: block;
   margin: 3rem auto;
-  background-color: black;
-  color: #969696;
+  background-color: var(--color-black);
+  color: var(--color-light-gray);
   border: none;
   padding: 1rem 3rem;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.3s ease;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
   min-height: 44px;
 }
 
 .submit-button:focus-visible,
 .results-button:focus-visible,
 .sd-container-modern .sd-radioitem:focus-within {
-  outline: 2px solid black;
+  outline: 2px solid var(--color-black);
   outline-offset: 2px;
 }
 
@@ -382,11 +424,11 @@ nav a:hover {
 
 /* Results Styles */
 .results-container {
-  background-color: #969696;
+  background-color: var(--color-light-gray);
   min-height: 100vh;
   padding: 2rem;
-  color: black;
-  font-family: 'Loretta', sans-serif;
+  color: var(--color-black);
+  font-family: var(--font-serif);
   width: 100%;
   overflow-x: hidden;
 }
@@ -404,7 +446,7 @@ nav a:hover {
   font-weight: 700;
   margin-bottom: 2rem;
   line-height: 1.2;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .results-subtitle {
@@ -414,7 +456,7 @@ nav a:hover {
   margin-bottom: 1rem;
   color: #333;
   line-height: 1.4;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
 }
 
 .results-notes {
@@ -425,7 +467,7 @@ nav a:hover {
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
 }
 
 .results-actions {
@@ -436,15 +478,15 @@ nav a:hover {
 }
 
 .results-button {
-  background-color: black;
-  color: #969696;
+  background-color: var(--color-black);
+  color: var(--color-light-gray);
   border: none;
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.3s ease;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
   min-height: 44px;
 }
 
@@ -454,11 +496,11 @@ nav a:hover {
 
 /* Archetype Detail Page Styles */
 .archetype-detail-container {
-  background-color: #969696;
+  background-color: var(--color-light-gray);
   min-height: 100vh;
   padding: 2rem;
-  color: black;
-  font-family: 'Loretta', sans-serif;
+  color: var(--color-black);
+  font-family: var(--font-serif);
   width: 100%;
   overflow-x: hidden;
 }
@@ -481,7 +523,7 @@ nav a:hover {
   font-weight: 700;
   margin-bottom: 1rem;
   line-height: 1.2;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .archetype-mantra {
@@ -489,7 +531,7 @@ nav a:hover {
   font-style: italic;
   color: #333;
   margin: 0;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
 }
 
 .archetype-section {
@@ -506,21 +548,21 @@ nav a:hover {
   font-size: 1.8rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .archetype-description {
   font-size: 1.1rem;
   line-height: 1.8;
   color: #222;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
 }
 
 .archetype-alive-when {
   font-size: 1.1rem;
   line-height: 1.8;
   color: #222;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
   font-style: italic;
 }
 
@@ -532,7 +574,7 @@ nav a:hover {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1.5rem;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
 }
 
 .archetype-dimensions th,
@@ -545,7 +587,7 @@ nav a:hover {
 .archetype-dimensions th {
   background-color: rgba(0, 0, 0, 0.05);
   font-weight: 600;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .dim-name {
@@ -555,7 +597,7 @@ nav a:hover {
 
 .dim-value {
   text-align: right;
-  color: #893A69;
+  color: var(--color-purple);
   font-size: 1.2rem;
   letter-spacing: 0.2em;
 }
@@ -564,7 +606,7 @@ nav a:hover {
   list-style: none;
   padding: 0;
   margin: 1rem 0;
-  font-family: 'Loretta', serif;
+  font-family: var(--font-serif);
 }
 
 .archetype-designers li {
@@ -576,7 +618,7 @@ nav a:hover {
 .archetype-designers li:before {
   content: '→ ';
   margin-right: 0.5rem;
-  color: #1975A1;
+  color: var(--color-blue);
   font-weight: bold;
 }
 
@@ -589,15 +631,15 @@ nav a:hover {
 }
 
 .archetype-button {
-  background-color: black;
-  color: #969696;
+  background-color: var(--color-black);
+  color: var(--color-light-gray);
   border: none;
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.3s ease;
-  font-family: "urw-din", sans-serif;
+  font-family: var(--font-sans);
   min-height: 44px;
 }
 

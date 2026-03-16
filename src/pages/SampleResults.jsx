@@ -10,5 +10,5 @@ export default function SampleResultsPage() {
 
     useEffect(() => {
         navigate('/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR5OjM5LGNvbGxhYm9yYXRpb246NDYsZXhwZXJpbWVudGF0aW9uOjMzLGltcGFjdDo0NA%3D%3D')
-      }, [navigate])
+    }, [navigate])
 }

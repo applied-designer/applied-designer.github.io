@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react'
 import p5 from 'p5'
 import { DIM_KEYS } from '../data/quizUtils'
+import { DIM_COLORS_HEX_HEX } from '../data/colors'
 
 // Brand colors for each dimension (order matches DIM_KEYS)
 // strategy: blue, adaptability: brown, collaboration: green, experimentation: yellow, impact: purple
-const DIM_COLORS = ['#1975A1', '#7B392A', '#D0E7BF', '#FAA41A', '#893A69']
 const DIM_LABELS = ['Strategy', 'Adaptability', 'Collaboration', 'Experimentation', 'Impact']
 
 /**
@@ -76,7 +76,7 @@ export default function Pentagon({
                         <polygon
                             key={`sector-${i}`}
                             points={`${cx},${cy} ${pt.x},${pt.y} ${next.x},${next.y}`}
-                            fill={DIM_COLORS[i]}
+                            fill={DIM_COLORS_HEX[i]}
                             opacity={0.18}
                         />
                     )
@@ -101,7 +101,7 @@ export default function Pentagon({
                         cx={x}
                         cy={y}
                         r={6}
-                        fill={DIM_COLORS[i]}
+                        fill={DIM_COLORS_HEX[i]}
                         stroke="#333"
                         strokeWidth={1.5}
                     />
@@ -170,7 +170,7 @@ export default function Pentagon({
                     for (let i = 0; i < 5; i++) {
                         const pt = pentPoints[i]
                         const next = pentPoints[(i + 1) % 5]
-                        p.fill(p.color(DIM_COLORS[i]))
+                        p.fill(p.color(DIM_COLORS_HEX[i]))
                         p.stroke('none')
                         p.opacity(0.18)
                         p.triangle(cx, cy, pt.x, pt.y, next.x, next.y)
@@ -196,7 +196,7 @@ export default function Pentagon({
                     // Dots at value points
                     for (let i = 0; i < 5; i++) {
                         const pt = valPoints[i]
-                        p.fill(p.color(DIM_COLORS[i]))
+                        p.fill(p.color(DIM_COLORS_HEX[i]))
                         p.stroke(51)
                         p.strokeWeight(2)
                         p.circle(pt.x, pt.y, 16)
