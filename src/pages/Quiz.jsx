@@ -115,6 +115,19 @@ export default function QuizPage() {
         // Fill missing keys with 0
         DIM_KEYS.forEach(k => { if (!(k in dims)) dims[k] = 0 })
         // Encode as base64 and navigate
+        const dimsRaw = 'v1:' + DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',')
+
+        // Log analytics
+        window.gtag?.('event', 'quiz_complete', {
+            dims_raw: dimsRaw,
+            strategy: dims.strategy,
+            adaptability: dims.adaptability,
+            collaboration: dims.collaboration,
+            experimentation: dims.experimentation,
+            impact: dims.impact,
+            question_answers: JSON.stringify(survey.data)
+        })
+
         const dimsB64 = encodeDimsV1(dims)
         navigate(`/results?dims=${encodeURIComponent(dimsB64)}`)
     }
