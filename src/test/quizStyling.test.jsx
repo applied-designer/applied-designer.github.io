@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import QuizPage from '../pages/Quiz'
-import '@testing-library/jest-dom'
 
 const qCount = 12;
 
