@@ -77,26 +77,30 @@ nav a:hover {
   transition: all 0.3s ease;
 }
 
-#root {
+#inside {
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center;
   min-height: 100vh;
+  transition: all 0.3s ease;
 }
 
 #designer {
   margin-left: 4rem;
-  visibility: hidden;
-  position: absolute;
-  top: 0;
-  margin-top: 25vh;
+  display: none;
+  position: relative;
   z-index: 999;
+  transition: all 0.3s ease;
+}
+
+/*The bouncing causes some stretching*/
+canvas {
+  transition: translateX 0.3s ease;
 }
 
 #name {
   font-weight: 700;
-  margin-bottom: 0;
+  margin: 0;
   padding-bottom: 0;
 }
 
@@ -109,9 +113,16 @@ nav a:hover {
 
 
 #bio {
-  max-width: 25vw;
+  max-width: 33vw;
+  text-wrap-style: balance;
 }
 
+.designer-info {
+  text-align: left;
+  margin-left: 1rem;
+}
+
+/*TODO: probably unused*/
 .modal {
   position: fixed;
   inset: 0;
@@ -729,13 +740,26 @@ nav a:hover {
     text-align: center;
   }
 
+  #inside {
+    flex-direction: column;
+    margin-top: 2rem;
+  }
+
+  #headshot {
+    max-width: 128px;
+    max-height: 128px;
+  }
+
   #designer {
     top: 0;
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    margin: 12rem auto 0;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
     padding: 0 2rem;
+  }
+
+  .designer-info {
+    margin: 0;
   }
 
   #designer > div {

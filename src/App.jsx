@@ -3,7 +3,6 @@ import MainApp from './components/MainApp'
 import QuizPage from './pages/Quiz'
 import ResultsPage from './pages/Results'
 import SampleResultsPage from './pages/SampleResults'
-import ArchetypeDetail from './pages/Archetype'
 
 function App() {
     return (
@@ -15,7 +14,11 @@ function App() {
                 {import.meta.env.DEV && (
                     <Route path="/sample-results" element={<SampleResultsPage />} />
                 )}
-                <Route path="/archetype/:name" element={<ArchetypeDetail />} />
+                {/*TODO: not implemented yet*/}
+                {/* <Route path="/archetype/:name" element={<ArchetypeDetail />} /> */}
+                
+                {/* 404 fallback to the homepage */}
+                <Route path="*" element={<MainApp />} />
             </Routes>
         </HashRouter>
     )

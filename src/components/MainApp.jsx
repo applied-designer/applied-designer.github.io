@@ -2,7 +2,6 @@ import React, {useState} from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
-import {createPortal} from "react-dom";
 import { DIM_COLORS_HEX } from '../data/colors'
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
@@ -10,21 +9,7 @@ import { DIM_COLORS_HEX } from '../data/colors'
 // Global array of 12 desired colors (for when a face is clicked)
 const brandColors = DIM_COLORS_HEX
 
-// Global messages for each face.
-const messages = {
-    0: 'You clicked Face 0!',
-    1: 'You clicked Face 1!',
-    2: 'You clicked Face 2!',
-    3: 'You clicked Face 3!',
-    4: 'You clicked Face 4!',
-    5: 'You clicked Face 5!',
-    6: 'You clicked Face 6!',
-    7: 'You clicked Face 7!',
-    8: 'You clicked Face 8!',
-    9: 'You clicked Face 9!',
-    10: 'You clicked Face 10!',
-    11: 'You clicked Face 11!'
-}
+// TODO: clean up lots of duplicated data here
 
 const archetypes = [
     'The Multidisciplinary',
@@ -93,7 +78,15 @@ class Dodecahedron extends React.Component {
         super(props)
         // Create and store the dodecahedron geometry (radius 1, detail 0).
         // This geometry automatically triangulates each pentagon into 3 triangles.
-        this.geometry = new THREE.DodecahedronGeometry(1.5, 0)
+        // 
+        
+        // TODO: handle window resize
+        let dodecScale = 1.5;
+        if (window.outerWidth > 860) {
+            dodecScale = 1.75;
+        }
+
+        this.geometry = new THREE.DodecahedronGeometry(dodecScale, 0)
         // Ensure there are groups for multi-material usage.
         if (this.geometry.groups.length === 0) {
             this.geometry.clearGroups()
@@ -188,17 +181,14 @@ class Dodecahedron extends React.Component {
 }
 
 export default function MainApp() {
-    const [message, setMessage] = React.useState('')
-    // const [headshot, setHeadshot] = React.useState('')
     const handleFaceClick = (faceIndex) => {
+        // TODO: if faceIndex is already selected, toggle it
         let msg = ''
         msg += designers[faceIndex] + ': ' || ''
         if (msg.length === 0) {
-            document.getElementById('designer').style.visibility = 'none'
+            document.getElementById('designer').style.display = 'none'
         } else {
-            document.getElementById('designer').style.visibility = 'visible'
-            // msg += archetypes[faceIndex] || ''
-            // setMessage(msg)
+            document.getElementById('designer').style.display = 'flex'
             let name = designers[faceIndex]
             if (name === 'Eike Konig') {
                 name = 'Eike König'
@@ -207,76 +197,32 @@ export default function MainApp() {
             document.getElementById('archetype').innerText = archetypes[faceIndex]
             document.getElementById('bio').innerText = bios[faceIndex]
             document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`)
-
-            createPortal(
-                // <ModalContent onClose={() => setShowModal(true)} faceIndex={faceIndex} />,
-                <h1>Hello modal!</h1>,
-                document.body
-            );
-            // MyPortal.props.faceIndex = faceIndex;
-            // createPortal(
-            //     // <ModalContent onClose={() => setShowModal(true)} faceIndex={faceIndex} />,
-            //     <ModalContent faceIndex={faceIndex} />,
-            //     document.body
-            // );
         }
     }
 
-    function ModalContent({faceIndex = null }) {
-        return (
-            <div className="modal">
-                <h1>hellooooo</h1>
-                <div className="designer-name">{faceIndex ? designers[faceIndex] : null}</div>
-                <div className="designer-archetype">{faceIndex ? archetypes[faceIndex] : null}</div>
-                <div className="designer-bio">{faceIndex ? bios[faceIndex] : null}</div>
-                <div className="designer-headshot">
-                    {faceIndex ? <img src={`/headshots/${designers[faceIndex]}.png`} alt={`designers[faceIndex] headshot`} /> : null}
-                </div>
-                <button onClick={onClose}>Close</button>
-            </div>
-        );
-    }
-
-    function Portal() {
-        const [showModal, setShowModal] = useState(false);
-        return (
-            <>
-                {/*<button onClick={() => setShowModal(true)}>*/}
-                {/*  Show modal using a portal*/}
-                {/*</button>*/}
-                {showModal && createPortal(
-                    <ModalContent onClose={() => setShowModal(false)} />,
-                    document.body
-                )}
-            </>
-        );
-    }
-
-    // const MyPortal = <Portal />;
-
+    // TODO: swap IDs with classes, yeah yeah yeah its a mess
     return (
-        <>
-            {/*<MyPortal />*/}
-            <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh' }}>
+        <div id="inside">
+            <div id="designer">
+                <img id="headshot" height="192" width="192" />
+                <div className="designer-info">
+                    <h2 id="name"></h2>
+                    <p id="archetype"></p>
+                    <p id="bio"></p>
+                </div>
+            </div>
+            
+            {/*<Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh' }}>*/}
+            <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh', "marginTop": (window.outerWidth < 860 ? "-16rem" : "inherit") }}>
                 {/* Set a gray background */}
                 <color attach="background" args={['#969696']} />
                 {/* <pointLight position={[10, 10, 10]} /> */}
+                {/*TODO: add subtle random rotation, especially once this works into mobile menu icon*/}
+                {/*TODO: can also play with color variations once ready, e.g. process book intro/outros */}
                 <Dodecahedron onFaceClick={handleFaceClick} />
                 {/*<OrbitControls enableZoom={false} />*/}
                 <OrbitControls />
             </Canvas>
-            {/* 2D overlay for displaying the message */}
-            <div
-                style={{
-                    position: 'absolute',
-                    top: 20,
-                    left: 20,
-                    fontSize: '20px',
-                    color: 'black',
-                    pointerEvents: 'none'
-                }}>
-                {message}
-            </div>
-        </>
+        </div>
     )
 }

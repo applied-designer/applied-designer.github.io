@@ -13310,11 +13310,6 @@ function useNavigateUnstable() {
   return navigate;
 }
 reactExports.createContext(null);
-function useParams() {
-  let { matches } = reactExports.useContext(RouteContext);
-  let routeMatch = matches[matches.length - 1];
-  return routeMatch ? routeMatch.params : {};
-}
 function useResolvedPath(to2, { relative } = {}) {
   let { matches } = reactExports.useContext(RouteContext);
   let { pathname: locationPathname } = useLocation();
@@ -66394,7 +66389,11 @@ const bios = [
 class Dodecahedron extends React.Component {
   constructor(props) {
     super(props);
-    this.geometry = new DodecahedronGeometry(1.5, 0);
+    let dodecScale = 1.5;
+    if (window.outerWidth > 860) {
+      dodecScale = 1.75;
+    }
+    this.geometry = new DodecahedronGeometry(dodecScale, 0);
     if (this.geometry.groups.length === 0) {
       this.geometry.clearGroups();
       for (let i = 0; i < 12; i++) {
@@ -66451,14 +66450,13 @@ class Dodecahedron extends React.Component {
   }
 }
 function MainApp() {
-  const [message, setMessage] = React.useState("");
   const handleFaceClick = (faceIndex) => {
     let msg = "";
     msg += designers[faceIndex] + ": " || "";
     if (msg.length === 0) {
-      document.getElementById("designer").style.visibility = "none";
+      document.getElementById("designer").style.display = "none";
     } else {
-      document.getElementById("designer").style.visibility = "visible";
+      document.getElementById("designer").style.display = "flex";
       let name = designers[faceIndex];
       if (name === "Eike Konig") {
         name = "Eike König";
@@ -66467,33 +66465,22 @@ function MainApp() {
       document.getElementById("archetype").innerText = archetypes[faceIndex];
       document.getElementById("bio").innerText = bios[faceIndex];
       document.getElementById("headshot").setAttribute("src", `/headshots/${designers[faceIndex]}.png`);
-      reactDomExports.createPortal(
-        // <ModalContent onClose={() => setShowModal(true)} faceIndex={faceIndex} />,
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Hello modal!" }),
-        document.body
-      );
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, style: { width: "100vw", height: "100vh" }, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "inside", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "designer", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { id: "headshot", height: "192", width: "192" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "designer-info", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { id: "name" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { id: "archetype" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { id: "bio" })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, style: { width: "100vw", height: "100vh", "marginTop": window.outerWidth < 860 ? "-16rem" : "inherit" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("color", { attach: "background", args: ["#969696"] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { onFaceClick: handleFaceClick }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(OrbitControls2, {})
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        style: {
-          position: "absolute",
-          top: 20,
-          left: 20,
-          fontSize: "20px",
-          color: "black",
-          pointerEvents: "none"
-        },
-        children: message
-      }
-    )
+    ] })
   ] });
 }
 class DomWindowHelper {
@@ -136756,107 +136743,6 @@ function QuizPage() {
         }
       )
     ] })
-  ] });
-}
-function RadarChart({ values, labels = DIM_LABELS, colors = DIM_COLORS, size = 280 }) {
-  const normalized = values.map((v) => Math.min(v / 5, 1));
-  const cx = size / 2, cy = size / 2, r2 = size * 0.38;
-  const angle = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
-  const points = Array.from({ length: 5 }, (_23, i) => [
-    cx + r2 * Math.cos(angle(i)),
-    cy + r2 * Math.sin(angle(i))
-  ]);
-  const valuePoints = normalized.map((v, i) => {
-    const vr = r2 * v;
-    return [cx + vr * Math.cos(angle(i)), cy + vr * Math.sin(angle(i))];
-  });
-  const path2 = (pts) => pts.map(([x2, y]) => `${x2},${y}`).join(" ");
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: size, height: size, viewBox: `0 0 ${size} ${size}`, style: { display: "block", margin: "0 auto" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("defs", { children: colors.map((color2, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs("linearGradient", { id: `gradient-${i}`, x1: "0%", y1: "0%", x2: "100%", y2: "100%", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "0%", style: { stopColor: color2, stopOpacity: 0.3 } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "100%", style: { stopColor: color2, stopOpacity: 0.7 } })
-    ] }, `grad-${i}`)) }),
-    [0.2, 0.4, 0.6, 0.8, 1].map((level, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "circle",
-      {
-        cx,
-        cy,
-        r: r2 * level,
-        fill: "none",
-        stroke: "#ddd",
-        strokeWidth: 1,
-        strokeDasharray: level === 1 ? "0" : "3,3",
-        opacity: 0.5
-      },
-      `grid-${i}`
-    )),
-    valuePoints.map((valuePt, i) => {
-      const nextIdx = (i + 1) % 5;
-      const nextValuePt = valuePoints[nextIdx];
-      const nextOuter = points[nextIdx];
-      const sectorPath = [
-        [cx, cy],
-        valuePt,
-        nextOuter,
-        nextValuePt
-      ];
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "polygon",
-        {
-          points: path2(sectorPath),
-          fill: colors[i],
-          opacity: 0.65,
-          stroke: colors[i],
-          strokeWidth: 0.5
-        },
-        `sector-${i}`
-      );
-    }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("polygon", { points: path2(points), fill: "none", stroke: "#222", strokeWidth: 2.5 }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "polygon",
-      {
-        points: path2(valuePoints),
-        fill: "none",
-        stroke: "#888",
-        strokeWidth: 1,
-        strokeDasharray: "4,4",
-        opacity: 0.4
-      }
-    ),
-    valuePoints.map(([x2, y], i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "circle",
-      {
-        cx: x2,
-        cy: y,
-        r: 5,
-        fill: "white",
-        stroke: colors[i],
-        strokeWidth: 2,
-        opacity: 0
-      },
-      `dot-${i}`
-    )),
-    points.map(([x2, y], i) => {
-      const labelDistance = r2 * 1.3;
-      const labelX = cx + labelDistance * Math.cos(angle(i));
-      const labelY = cy + labelDistance * Math.sin(angle(i));
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "text",
-        {
-          x: labelX,
-          y: labelY,
-          textAnchor: "middle",
-          dominantBaseline: "central",
-          fontFamily: "urw-din, sans-serif",
-          fontSize: size * 0.05,
-          fontWeight: "400",
-          fill: "#222",
-          children: labels[i]
-        },
-        `label-${i}`
-      );
-    })
   ] });
 }
 const _PI = Math.PI;
@@ -216391,81 +216277,13 @@ function ResultsPage() {
     ] })
   ] });
 }
-function ArchetypeDetail() {
-  const { name } = useParams();
-  const navigate = useNavigate();
-  const archetypeName = Object.keys(archetypeData).find(
-    (key) => key.toLowerCase().replace(/\s+/g, "-") === name?.toLowerCase()
-  );
-  if (!archetypeName) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "archetype-detail-container", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-content", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Archetype not found" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { children: [
-        'The archetype "',
-        name,
-        '" does not exist.'
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "archetype-actions", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => navigate("/"), children: "Back to Home" }) })
-    ] }) });
-  }
-  const data2 = archetypeData[archetypeName];
-  const radarValues = dimsToArray(data2.dimensions);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "archetype-detail-container", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-content", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-header", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "archetype-title", children: [
-        data2.emoji,
-        " ",
-        archetypeName
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "archetype-mantra", children: [
-        '"',
-        data2.mantra,
-        '"'
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-section", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { children: "Who They Are" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "archetype-description", children: data2.description })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-section", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { children: "Most Alive When" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "archetype-alive-when", children: data2.mostAliveWhen })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-section", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { children: "Dimension Profile" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { maxWidth: 400, margin: "2rem auto" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(RadarChart, { values: radarValues }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "archetype-dimensions", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { children: "Dimension" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { children: "Level" })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: Object.entries(data2.dimensions).map(([key, value]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "dim-name", children: key.charAt(0).toUpperCase() + key.slice(1) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { className: "dim-value", children: [
-            "★".repeat(value),
-            "☆".repeat(5 - value)
-          ] })
-        ] }, key)) })
-      ] }) })
-    ] }),
-    data2.designers && data2.designers.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-section", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { children: "Example Designers" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "archetype-designers", children: data2.designers.map((designer) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: designer }, designer)) })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "archetype-actions", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "archetype-button", onClick: () => navigate(-1), children: "Back" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "archetype-button", onClick: () => navigate("/"), children: "Home" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "archetype-button", onClick: () => navigate("/quiz"), children: "Take Quiz" })
-    ] })
-  ] }) });
-}
 function App() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/quiz", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuizPage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/results", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsPage, {}) }),
     false,
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/archetype/:name", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ArchetypeDetail, {}) })
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "*", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) })
   ] }) });
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
