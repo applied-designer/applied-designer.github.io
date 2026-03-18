@@ -2,6 +2,10 @@ src/test/fixtures
 test-results/
 playwright-report/
 
+# Omit non-js files from scripts
+scripts/*
+!scripts/*.js
+
 .DS_Store
 .idea
 # Logs
