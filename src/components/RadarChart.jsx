@@ -1,4 +1,3 @@
-import React from 'react'
 import { DIM_COLORS, DIM_LABELS } from '../data/colors'
 
 /**
@@ -116,7 +115,7 @@ export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_C
             ))}
 
             {/* Draw labels positioned outward */}
-            {points.map(([x, y], i) => {
+            {points.map(([, ], i) => {
                 const labelDistance = r * 1.3
                 const labelX = cx + labelDistance * Math.cos(angle(i))
                 const labelY = cy + labelDistance * Math.sin(angle(i))

@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -58,7 +58,7 @@ const bios = [
 
 // Hard-coded adjacency list for a dodecahedron's 12 faces.
 // Each face (index 0 to 11) is adjacent to the following 5 faces.
-const adjacency = [
+const _adjacency = [
     [1, 4, 5, 8, 10], // Face 0 adjacent to faces 1,4,5,8,10
     [0, 2, 6, 8, 11], // Face 1 adjacent to faces 0,2,6,8,11
     [1, 3, 7, 9, 11], // Face 2
@@ -149,7 +149,7 @@ class Dodecahedron extends React.Component {
 
         // Update the state for that face so its color changes.
         // We update the particular face with its desired color from our global brandColors array.
-        this.setState((prevState) => {
+        this.setState((_prevState) => {
             const newFaceState = new Array(12).fill('white')
             // newFaceState[faceIndex] = chosenColor //brandColors[faceIndex % brandColors.length]
             newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length]

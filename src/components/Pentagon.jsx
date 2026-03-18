@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import p5 from 'p5'
 import { DIM_KEYS } from '../data/quizUtils'
-import { DIM_COLORS_HEX_HEX } from '../data/colors'
 
 // Brand colors for each dimension (order matches DIM_KEYS)
 // strategy: blue, adaptability: brown, collaboration: green, experimentation: yellow, impact: purple

@@ -76,7 +76,7 @@ export default function QuizPage() {
             }
         })
     
-        surveyModel.onCurrentPageChanged.add((sender, options) => {
+        surveyModel.onCurrentPageChanged.add((sender, _options) => {
             const allAnswered = checkCompletion(sender.data)
             setIsComplete(allAnswered)
         })

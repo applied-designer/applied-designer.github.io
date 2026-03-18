@@ -22,6 +22,12 @@ export default [
       }],
       'react/jsx-indent': ['error', 4],
       'react/jsx-indent-props': ['error', 4],
+      'no-unused-vars': ['error', {
+        varsIgnorePattern: '^_',
+        argsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_'
+      }],
     },
     settings: {
       react: {

@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { archetypeData } from '../data/archetypeData'
-import RadarChart from '../components/RadarChart'
 import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
 import { exportToPNG } from '../utils/pngExport'
 import { DIM_COLORS, DIM_LABELS } from '../data/colors'
@@ -10,15 +9,11 @@ import { DIM_COLORS, DIM_LABELS } from '../data/colors'
 // Posted by Alnitak, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-03-16, License - CC BY-SA 3.0
 
-function mapRange(value, low1, high1, low2, high2) {
+const _mapRange = (value, low1, high1, low2, high2) => {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
 function ResultsChart({values}) {
-    function cleanValue(val) {
-        return mapRange(val, 0, 60, 12, 60);
-    }
-
     return(
         <div className="results-chart">
             {/*TODO: some unique keys error here*/}
@@ -70,7 +65,7 @@ export default function ResultsPage() {
         })
     }
 
-    const handleDownloadPNG = async () => {
+    const _handleDownloadPNG = async () => {
         await exportToPNG(radarValues, primaryData)
     }
   

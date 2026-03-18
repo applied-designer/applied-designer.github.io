@@ -28,7 +28,7 @@ vi.mock('survey-react-ui', async () => {
                         onClick={() => {
                             const responses = Object.entries(model.data).map(([questionId, answer]) => ({ questionId, answer }))
                             const dimsResult = Object.fromEntries(
-                                ((calculateScores(responses) || {}).dimensionScores || []).map(([k, v]) => [k, v])
+                                (calculateScores(responses)?.dimensionScores ?? []).map(([k, v]) => [k, v])
                             )
                             DIM_KEYS.forEach(k => { if (!(k in dimsResult)) dimsResult[k] = 0 })
                             
