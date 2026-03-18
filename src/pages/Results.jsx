@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { archetypeData } from '../data/archetypeData'
 import RadarChart from '../components/RadarChart'
 import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
@@ -41,6 +42,8 @@ function ResultsChart({values}) {
 export default function ResultsPage() {
     const location = useLocation()
     const navigate = useNavigate()
+    const [copyText, setCopyText] = useState("Copy Link")
+
     // Expect ?dims=base64string
     const params = new URLSearchParams(location.search)
     const dimsB64 = params.get('dims')
@@ -62,7 +65,8 @@ export default function ResultsPage() {
     const handleCopyLink = () => {
         const url = window.location.href
         navigator.clipboard.writeText(url).then(() => {
-            alert('Link copied to clipboard!')
+            setCopyText("Link Copied!")
+            setTimeout(() => setCopyText("Copy Link"), 2000)
         })
     }
 
@@ -153,7 +157,8 @@ export default function ResultsPage() {
                     className="results-button"
                     onClick={handleCopyLink}
                 >
-                    Copy Link
+                    {/*Copy Link*/}
+                    {copyText}
                 </button>
                 {/*<button 
                     className="results-button"
