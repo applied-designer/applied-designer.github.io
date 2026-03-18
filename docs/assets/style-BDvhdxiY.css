@@ -59,7 +59,7 @@ nav {
   flex-flow: row nowrap;
   display: flex;
   justify-content: space-between;
-  margin: 2rem auto 0 auto;
+  margin: 2rem auto 0;
   padding-left: 2rem;
   padding-right: 2rem;
   font-family: var(--font-sans);
@@ -93,9 +93,9 @@ nav a:hover {
   transition: all 0.3s ease;
 }
 
-/*The bouncing causes some stretching*/
+/* The bouncing causes some stretching */
 canvas {
-  transition: translateX 0.3s ease;
+  transition: translatex 0.3s ease;
 }
 
 #name {
@@ -122,7 +122,7 @@ canvas {
   margin-left: 1rem;
 }
 
-/*TODO: probably unused*/
+/* TODO: probably unused */
 .modal {
   position: fixed;
   inset: 0;
