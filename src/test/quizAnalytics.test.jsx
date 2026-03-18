@@ -65,7 +65,6 @@ describe('Quiz Analytics', () => {
 
         it('all dimensions have positive scores for complete quiz', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
 
             DIM_KEYS.forEach(key => {
                 expect(dims[key]).toBeGreaterThan(0)

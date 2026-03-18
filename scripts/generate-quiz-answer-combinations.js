@@ -31,8 +31,6 @@ console.log(`📁 Output: ${outputFile}`)
 console.log()
 
 const startTime = Date.now()
-let written = 0
-let lastLogTime = startTime
 
 const writeStream = fs.createWriteStream(outputFile)
 
