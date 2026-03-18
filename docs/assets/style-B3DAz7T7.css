@@ -454,7 +454,7 @@ nav a:hover {
   font-family: var(--font-serif);
   width: 100%;
   overflow-x: hidden;
-  border-radius: 2rem;
+  border-radius: 1rem;
   color: var(--color-white);
   display: flex;
   flex-direction: column;
@@ -751,7 +751,20 @@ nav a:hover {
 
   .quiz-container,
   .results-container {
+    margin: 4rem 2rem;
     padding: 1rem;
+  }
+
+  .results-overview {
+    max-width: 100%;
+  }
+
+  .results-breakdown {
+    margin-bottom: 1.5rem;
+  }
+
+  .results-actions {
+    margin: 1rem;
   }
 
   .quiz-title {
@@ -805,11 +818,11 @@ nav a:hover {
   }
 
   .results-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 
   .results-subtitle {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   .results-actions {

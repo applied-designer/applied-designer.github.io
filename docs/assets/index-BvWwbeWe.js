@@ -216284,6 +216284,7 @@ function ResultsChart({ values }) {
 function ResultsPage() {
   const location2 = useLocation();
   const navigate = useNavigate();
+  const [copyText, setCopyText] = reactExports.useState("Copy Link");
   const params = new URLSearchParams(location2.search);
   const dimsB64 = params.get("dims");
   const dims = dimsB64 ? decodeDims(dimsB64) : null;
@@ -216298,7 +216299,8 @@ function ResultsPage() {
   const handleCopyLink = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      alert("Link copied to clipboard!");
+      setCopyText("Link Copied!");
+      setTimeout(() => setCopyText("Copy Link"), 2e3);
     });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-container", children: [
@@ -216361,7 +216363,7 @@ function ResultsPage() {
         {
           className: "results-button",
           onClick: handleCopyLink,
-          children: "Copy Link"
+          children: copyText
         }
       )
     ] })
