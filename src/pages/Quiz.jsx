@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Model, Survey } from 'survey-react-ui'
 import { quizQuestions } from '../data/quizData'
 import { calculateScores } from '../data/scoringUtils'
-import { encodeDimsV1, buildDimsRaw, DIM_KEYS } from '../data/quizUtils'
+import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
 import { PANEL_COLORS_HEX } from '../data/colors'
 import 'survey-core/survey-core.css'
 
