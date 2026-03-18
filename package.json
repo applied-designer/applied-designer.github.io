@@ -29,6 +29,8 @@
         "eslint-plugin-react": "^7.37.5",
         "jsdom": "^28.1.0",
         "playwright": "^1.57.0",
+        "stylelint": "^17.4.0",
+        "stylelint-config-standard": "^40.0.0",
         "vite": "^7.3.1",
         "vitest": "^4.0.16"
     },
@@ -36,10 +38,12 @@
         "dev": "vite",
         "build": "vite build",
         "start": "vite build && vite preview",
+        "pretest": "bun run lint && bun run lint:css",
         "test": "vitest",
         "test:ui": "vitest --ui",
         "test:e2e": "playwright test",
         "lint": "eslint src --ext .js,.jsx --ignore-pattern src/test",
+        "lint:css": "stylelint \"src/**/*.css\"",
         "lint:fix": "eslint src --fix --ext .js,.jsx --ignore-pattern src/test"
     },
     "browserslist": [
