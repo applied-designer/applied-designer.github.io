@@ -1,4 +1,39 @@
-import '@testing-library/jest-dom'
+// Mock p5.js
+vi.mock('p5', () => {
+    return {
+        default: class MockP5 {
+            constructor() {}
+            setup() {}
+            draw() {}
+            createCanvas() { return { drawingContext: {} } }
+            background() {}
+            fill() {}
+            noFill() {}
+            stroke() {}
+            noStroke() {}
+            strokeWeight() {}
+            text() {}
+            textSize() {}
+            textStyle() {}
+            textAlign() {}
+            textFont() {}
+            beginShape() {}
+            endShape() {}
+            vertex() {}
+            circle() {}
+            triangle() {}
+            saveCanvas() {}
+            remove() {}
+            color() { return {} }
+            get COLOR() { return { CENTER: 'center' } }
+            get TOP() { return 'top' }
+            get BOTTOM() { return 'bottom' }
+            get BOLD() { return 'bold' }
+            get NORMAL() { return 'normal' }
+            get CLOSE() { return 'close' }
+        }
+    }
+})
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
