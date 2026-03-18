@@ -19,12 +19,15 @@ function ResultsChart({values}) {
     }
 
     return(
-        <div>
+        <div className="results-chart">
+            {/*TODO: some unique keys error here*/}
             {DIM_KEYS.map((k, v) => (
-                <div style={{"display": "flex", "textAlign": "left"}}>
-                    <label for={`${k}_bar`} style={{"textTransform": "capitalize", "minWidth": "30%"}}>{DIM_LABELS[v]}</label>
-                    <progress id={`${k}_bar`} max={cleanValue(60)} value={cleanValue(values[v])} style={{height: "2rem"}}>cleanValue(values[v])</progress>
-                    {/*<span>{cleanValue(values[v]) + " / " + cleanValue(60) }</span>*/}
+                <div style={{"display": "flex", "textAlign": "left", "alignItems": "center"}}>
+                    <label htmlFor={`${k}_bar`} style={{"textTransform": "capitalize", "minWidth": "30%", "fontSize": "1.2rem", "marginRight": "2rem"}}>{DIM_LABELS[v]}</label>
+                    <div className="progress-bar">
+                        <div className="progress-value" style={{"backgroundColor": DIM_COLORS[v], "width": `${values[v]/.6}%` }}>
+                        </div>
+                    </div>
                 </div>
             ))}
         </div>
@@ -69,72 +72,91 @@ export default function ResultsPage() {
   
     return (
         <div className="results-container">
-            <div className="results-content">
+            <div className="results-overview">
+                <p className="results-caption">
+                    You are the...
+                </p>
                 <h1 className="results-title">
                     {primaryData.emoji} {primary}
                 </h1>
-                <h2 className="results-subtitle">
-                    You are most alive when {primaryData.mostAliveWhen}
+                <p className="results-caption">
+                    Your mantra could be 
+                </p>
+                <h2 className="results-subtitle results-mantra">
+                    {primaryData.mantra}
                 </h2>
                 <h2 className="results-subtitle">
-                    Your mantra could be “{primaryData.mantra}”
+                    You are most alive when <span style={{textTransform: "lowercase"}}>{primaryData.mostAliveWhen}</span>
                 </h2>
-                <div>
-                    <ResultsChart values={radarValues} />
-                </div>
+                <ResultsChart values={radarValues} />
                 {/* TODO: implement Radar chart in v2 */}
                 {/*<div style={{ maxWidth: 400, margin: '0 auto 2.5rem' }}>
                     <RadarChart values={radarValues} />
                 </div>*/}
-                <div className="results-notes">
-                    <div className="results-note">
-                        <strong>Dimension breakdown:</strong>
-                        {DIM_KEYS.map(k => (
-                        // `${k} (${dims[k]}/60)`).join(', ')
-                            <p>
-                                <span style={{textTransform: "capitalize", display: "inline"}}>{k}: </span>
-                                <span style={{display: "inline"}}>{dims[k]}/60</span>
-                            </p>
-                        ))}
-                    </div>
-                    <p className="results-note">
-                        <strong>{primary}:</strong> {primaryData.description}
-                    </p>
-                    {secondaryData && (
-                        <p className="results-note">
-                            <strong>{secondary}:</strong> {secondaryData.description}
+            </div>
+            <div className="results-breakdown">
+                <h2>Dimension breakdown</h2>
+                <div className="results-note" style={{font: "var(--font-sans)"}}>
+                    {DIM_KEYS.map(k => (
+                        <p style={{fontSize: "1.25rem", "textAlign": "left", "justifyContent": "space-between", "display": "flex"}}>
+                            <span style={{textTransform: "capitalize", display: "inline", marginRight: "2rem"}}>
+                                {k}
+                            </span>
+                            <span style={{display: "inline"}}>
+                                <span style={{fontWeight: "bold"}}>{dims[k]}</span>
+                                &nbsp;/&nbsp;60
+                            </span>
                         </p>
+                    ))}
+                </div>
+                {/*TODO: float 2 cols desktop -> 1 col mobile */}
+                <div>
+                    <div>
+                        <h3>Your Primary Archetype: {primary}</h3>
+                        <p className="results-note">
+                            {primaryData.description}
+                        </p>
+                    </div>
+                    {secondaryData && (
+                        <div>
+                            <h3>Your Secondary Archetype: {secondary}</h3>
+                            <p className="results-note">
+                                {secondaryData.description}
+                            </p>
+                        </div>
+
                     )}
-                    <p className="results-note">
-                        <button 
-                            className="results-button"
-                            onClick={() => navigate(`/archetype/${primary.toLowerCase().replace(/\s+/g, '-')}`)}
-                            style={{ marginTop: '1.5rem' }}
-                        >
-                            Learn More About {primary}
-                        </button>
-                    </p>
                 </div>
-                <div className="results-actions">
+                {/* TODO: build out info pages for each archetype */}
+                {/*<p className="results-note">
                     <button 
                         className="results-button"
-                        onClick={() => navigate('/quiz')}
+                        onClick={() => navigate(`/archetype/${primary.toLowerCase().replace(/\s+/g, '-')}`)}
+                        style={{ marginTop: '1.5rem' }}
                     >
-                        Retake Quiz
+                        Learn More About {primary}
                     </button>
-                    <button 
-                        className="results-button"
-                        onClick={handleCopyLink}
-                    >
-                        Copy Link
-                    </button>
-                    {/*<button 
-                        className="results-button"
-                        onClick={handleDownloadPNG}
-                    >
-                        Download PNG
-                    </button>*/}
-                </div>
+                </p>*/}
+            </div>
+            <div className="results-actions">
+                <button 
+                    className="results-button"
+                    onClick={() => navigate('/quiz')}
+                >
+                    Retake Quiz
+                </button>
+                <button 
+                    className="results-button"
+                    onClick={handleCopyLink}
+                >
+                    Copy Link
+                </button>
+                {/*<button 
+                    className="results-button"
+                    onClick={handleDownloadPNG}
+                >
+                    Download PNG
+                </button>*/}
             </div>
         </div>
     )

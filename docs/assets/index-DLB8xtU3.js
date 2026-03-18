@@ -66306,7 +66306,29 @@ const OrbitControls2 = /* @__PURE__ */ reactExports.forwardRef(({
     enableDamping
   }, restProps));
 });
-const brandColors = ["#1975A1", "#7B392A", "#D0E7BF", "#FAA41A", "#893A69"];
+const DIM_COLORS_HEX = [
+  "#1975A1",
+  "#7B392A",
+  "#D0E7BF",
+  "#FAA41A",
+  "#893A69"
+];
+const DIM_COLORS = [
+  "var(--color-blue)",
+  "var(--color-brown)",
+  "var(--color-green)",
+  "var(--color-yellow)",
+  "var(--color-purple)"
+];
+const DIM_LABELS = ["System", "People", "Ideas", "Scale", "Action"];
+const PANEL_COLORS_HEX = {
+  "quiz-panel-blue": { bg: "#1975A1", fg: "#ffffff" },
+  "quiz-panel-brown": { bg: "#7B392A", fg: "#ffffff" },
+  "quiz-panel-green": { bg: "#D0E7BF", fg: "#000000" },
+  "quiz-panel-yellow": { bg: "#FAA41A", fg: "#000000" },
+  "quiz-panel-purple": { bg: "#893A69", fg: "#ffffff" }
+};
+const brandColors = DIM_COLORS_HEX;
 const archetypes = [
   "The Multidisciplinary",
   "The Researcher",
@@ -136274,18 +136296,11 @@ function QuizPage() {
       showProgressBar: false,
       completedHtml: "<div></div>"
     });
-    const panelColors = {
-      "quiz-panel-blue": { bg: "#1975A1", fg: "#ffffff" },
-      "quiz-panel-brown": { bg: "#7B392A", fg: "#ffffff" },
-      "quiz-panel-green": { bg: "#D0E7BF", fg: "#000000" },
-      "quiz-panel-yellow": { bg: "#FAA41A", fg: "#000000" },
-      "quiz-panel-purple": { bg: "#893A69", fg: "#ffffff" }
-    };
     const applyPanelStyle = (questionName) => {
       const questionIndex = quizQuestions.findIndex((question) => question.id === questionName);
       if (questionIndex === -1) return;
       const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
-      const colors = panelColors[panelClass];
+      const colors = PANEL_COLORS_HEX[panelClass];
       if (!colors) return;
       const questionElements = document.querySelectorAll(".sd-question");
       questionElements.forEach((el) => {
@@ -136313,7 +136328,7 @@ function QuizPage() {
       const questionIndex = quizQuestions.findIndex((question) => question.id === options2.question.name);
       if (questionIndex === -1) return;
       const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
-      const colors = panelColors[panelClass];
+      const colors = PANEL_COLORS_HEX[panelClass];
       if (!colors) return;
       options2.htmlElement.style.backgroundColor = colors.bg;
       options2.htmlElement.style.color = colors.fg;
@@ -136344,7 +136359,7 @@ function QuizPage() {
     /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "quiz-title", children: "Applied Designer Quiz" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "quiz-intro", children: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet." }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "quiz-intro", children: "Take the quiz to find out which archetype of Applied Designer you are!" }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "survey-wrapper", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Survey, { model: survey }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -136359,9 +136374,7 @@ function QuizPage() {
     ] })
   ] });
 }
-const DIM_COLORS = ["#1975A1", "#7B392A", "#D0E7BF", "#FAA41A", "#893A69"];
-const DIM_LABELS$1 = ["Systems", "People", "Ideas", "Scale", "Action"];
-function RadarChart({ values, labels = DIM_LABELS$1, colors = DIM_COLORS, size = 280 }) {
+function RadarChart({ values, labels = DIM_LABELS, colors = DIM_COLORS, size = 280 }) {
   const normalized = values.map((v) => Math.min(v / 5, 1));
   const cx = size / 2, cy = size / 2, r2 = size * 0.38;
   const angle = (i) => -Math.PI / 2 + i * 2 * Math.PI / 5;
@@ -137122,7 +137135,7 @@ function interpolate(start, end, p2) {
 function interpolateInv(start, end, value) {
   return (value - start) / (end - start);
 }
-function mapRange$1(from, to2, value) {
+function mapRange(from, to2, value) {
   if (!from || !to2 || from === to2 || from[0] === to2[0] && from[1] === to2[1] || isNaN(value) || value === null) {
     return value;
   }
@@ -137233,7 +137246,7 @@ class Type {
     if (this.type === "<percentage>") {
       toRange ??= this.percentageRange();
     }
-    return mapRange$1(fromRange, toRange, number2);
+    return mapRange(fromRange, toRange, number2);
   }
   /**
    * Serialize a number from the internal representation to a string
@@ -137243,7 +137256,7 @@ class Type {
   serialize(number2, precision) {
     let toRange = this.type === "<percentage>" ? this.percentageRange(100) : this.computedRange;
     let unit = this.unit;
-    number2 = mapRange$1(this.coordRange, toRange, number2);
+    number2 = mapRange(this.coordRange, toRange, number2);
     return serializeNumber(number2, { unit, precision });
   }
   toString() {
@@ -215900,17 +215913,10 @@ type(p5$2);
 p5$2.registerAddon(shader);
 p5$2.registerAddon(strands);
 Promise.all([waitForDocumentReady(), waitingForTranslator]).then(_globalInit);
-const DIM_LABELS = ["Systems", "People", "Ideas", "Scale", "Action"];
-function mapRange(value, low1, high1, low2, high2) {
-  return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
-}
 function ResultsChart({ values }) {
-  function cleanValue(val) {
-    return mapRange(val, 0, 60, 12, 60);
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: DIM_KEYS.map((k2, v) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { "display": "flex", "textAlign": "left" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("label", { for: `${k2}_bar`, style: { "textTransform": "capitalize", "minWidth": "30%" }, children: DIM_LABELS[v] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("progress", { id: `${k2}_bar`, max: cleanValue(60), value: cleanValue(values[v]), style: { height: "2rem" }, children: "cleanValue(values[v])" })
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "results-chart", children: DIM_KEYS.map((k2, v) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { "display": "flex", "textAlign": "left", "alignItems": "center" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: `${k2}_bar`, style: { "textTransform": "capitalize", "minWidth": "30%", "fontSize": "1.2rem", "marginRight": "2rem" }, children: DIM_LABELS[v] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "progress-bar", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "progress-value", style: { "backgroundColor": DIM_COLORS[v], "width": `${values[v] / 0.6}%` } }) })
   ] })) });
 }
 function ResultsPage() {
@@ -215933,67 +215939,47 @@ function ResultsPage() {
       alert("Link copied to clipboard!");
     });
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "results-container", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-content", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "results-title", children: [
-      primaryData.emoji,
-      " ",
-      primary
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
-      "You are most alive when ",
-      primaryData.mostAliveWhen
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
-      "Your mantra could be “",
-      primaryData.mantra,
-      "”"
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsChart, { values: radarValues }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-notes", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-note", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Dimension breakdown:" }),
-        DIM_KEYS.map((k2) => (
-          // `${k} (${dims[k]}/60)`).join(', ')
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { textTransform: "capitalize", display: "inline" }, children: [
-              k2,
-              ": "
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { display: "inline" }, children: [
-              dims[k2],
-              "/60"
-            ] })
-          ] })
-        ))
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "results-note", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
-          primary,
-          ":"
-        ] }),
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-container", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-overview", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "You are the..." }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "results-title", children: [
+        primaryData.emoji,
         " ",
-        primaryData.description
+        primary
       ] }),
-      secondaryData && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "results-note", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
-          secondary,
-          ":"
-        ] }),
-        " ",
-        secondaryData.description
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "Your mantra could be" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "results-subtitle results-mantra", children: primaryData.mantra }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
+        "You are most alive when ",
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { textTransform: "lowercase" }, children: primaryData.mostAliveWhen })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
-        {
-          className: "results-button",
-          onClick: () => navigate(`/archetype/${primary.toLowerCase().replace(/\s+/g, "-")}`),
-          style: { marginTop: "1.5rem" },
-          children: [
-            "Learn More About ",
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsChart, { values: radarValues })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-breakdown", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { children: "Dimension breakdown" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "results-note", style: { font: "var(--font-sans)" }, children: DIM_KEYS.map((k2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { style: { fontSize: "1.25rem", "textAlign": "left", "justifyContent": "space-between", "display": "flex" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { textTransform: "capitalize", display: "inline", marginRight: "2rem" }, children: k2 }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { display: "inline" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { fontWeight: "bold" }, children: dims[k2] }),
+          " / 60"
+        ] })
+      ] })) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { children: [
+            "Your Primary Archetype: ",
             primary
-          ]
-        }
-      ) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: primaryData.description })
+        ] }),
+        secondaryData && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { children: [
+            "Your Secondary Archetype: ",
+            secondary
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: secondaryData.description })
+        ] })
+      ] })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-actions", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -216013,7 +215999,7 @@ function ResultsPage() {
         }
       )
     ] })
-  ] }) });
+  ] });
 }
 function ArchetypeDetail() {
   const { name } = useParams();

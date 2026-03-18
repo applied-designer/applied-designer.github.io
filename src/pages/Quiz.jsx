@@ -4,7 +4,7 @@ import { Model, Survey } from 'survey-react-ui'
 import { quizQuestions } from '../data/quizData'
 import { calculateScores } from '../data/scoringUtils'
 import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
-import { PANEL_COLORS_HEX_HEX } from '../data/colors'
+import { PANEL_COLORS_HEX } from '../data/colors'
 import 'survey-core/survey-core.css'
 
 export default function QuizPage() {
@@ -130,7 +130,7 @@ export default function QuizPage() {
             <br />
             <br />
             <p className="quiz-intro">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+                Take the quiz to find out which archetype of Applied Designer you are!
             </p>
       
             <div className="survey-wrapper">
