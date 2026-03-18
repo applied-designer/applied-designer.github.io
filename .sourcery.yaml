@@ -1,0 +1,5 @@
+ignore:
+  - data/*
+  - "**/*.csv"
+  - "**/*.json"
+  - src/test/fixtures/*
