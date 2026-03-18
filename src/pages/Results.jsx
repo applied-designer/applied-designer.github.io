@@ -149,7 +149,7 @@ export default function ResultsPage() {
             <div className="results-actions">
                 <button 
                     className="results-button"
-                    onClick={() => navigate('/quiz')}
+                    onClick={() => navigate('/#/quiz')}
                 >
                     Retake Quiz
                 </button>

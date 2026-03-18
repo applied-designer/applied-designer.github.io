@@ -12488,30 +12488,46 @@ var PopStateEventType = "popstate";
 function isLocation(obj) {
   return typeof obj === "object" && obj != null && "pathname" in obj && "search" in obj && "hash" in obj && "state" in obj && "key" in obj;
 }
-function createBrowserHistory(options2 = {}) {
-  function createBrowserLocation(window2, globalHistory) {
-    let maskedLocation = globalHistory.state?.masked;
-    let { pathname, search, hash } = maskedLocation || window2.location;
+function createHashHistory(options2 = {}) {
+  function createHashLocation(window2, globalHistory) {
+    let {
+      pathname = "/",
+      search = "",
+      hash = ""
+    } = parsePath(window2.location.hash.substring(1));
+    if (!pathname.startsWith("/") && !pathname.startsWith(".")) {
+      pathname = "/" + pathname;
+    }
     return createLocation(
       "",
       { pathname, search, hash },
       // state defaults to `null` because `window.history.state` does
       globalHistory.state && globalHistory.state.usr || null,
-      globalHistory.state && globalHistory.state.key || "default",
-      maskedLocation ? {
-        pathname: window2.location.pathname,
-        search: window2.location.search,
-        hash: window2.location.hash
-      } : void 0
+      globalHistory.state && globalHistory.state.key || "default"
     );
   }
-  function createBrowserHref(window2, to2) {
-    return typeof to2 === "string" ? to2 : createPath(to2);
+  function createHashHref(window2, to2) {
+    let base2 = window2.document.querySelector("base");
+    let href = "";
+    if (base2 && base2.getAttribute("href")) {
+      let url = window2.location.href;
+      let hashIndex = url.indexOf("#");
+      href = hashIndex === -1 ? url : url.slice(0, hashIndex);
+    }
+    return href + "#" + (typeof to2 === "string" ? to2 : createPath(to2));
+  }
+  function validateHashLocation(location2, to2) {
+    warning(
+      location2.pathname.charAt(0) === "/",
+      `relative pathnames are not supported in hash history.push(${JSON.stringify(
+        to2
+      )})`
+    );
   }
   return getUrlBasedHistory(
-    createBrowserLocation,
-    createBrowserHref,
-    null,
+    createHashLocation,
+    createHashHref,
+    validateHashLocation,
     options2
   );
 }
@@ -12616,6 +12632,7 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options2
   function push(to2, state2) {
     action = "PUSH";
     let location2 = isLocation(to2) ? to2 : createLocation(history.location, to2, state2);
+    if (validateLocation) validateLocation(location2, to2);
     index = getIndex() + 1;
     let historyState = getHistoryState(location2, index);
     let url = history.createHref(location2.unstable_mask || location2);
@@ -12634,6 +12651,7 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options2
   function replace2(to2, state2) {
     action = "REPLACE";
     let location2 = isLocation(to2) ? to2 : createLocation(history.location, to2, state2);
+    if (validateLocation) validateLocation(location2, to2);
     index = getIndex();
     let historyState = getHistoryState(location2, index);
     let url = history.createHref(location2.unstable_mask || location2);
@@ -14406,7 +14424,7 @@ try {
   }
 } catch (e2) {
 }
-function BrowserRouter({
+function HashRouter({
   basename,
   children,
   unstable_useTransitions,
@@ -14414,7 +14432,7 @@ function BrowserRouter({
 }) {
   let historyRef = reactExports.useRef();
   if (historyRef.current == null) {
-    historyRef.current = createBrowserHistory({ window: window2, v5Compat: true });
+    historyRef.current = createHashHistory({ window: window2, v5Compat: true });
   }
   let history = historyRef.current;
   let [state2, setStateImpl] = reactExports.useState({
@@ -216358,7 +216376,7 @@ function ResultsPage() {
         "button",
         {
           className: "results-button",
-          onClick: () => navigate("/quiz"),
+          onClick: () => navigate("/#/quiz"),
           children: "Retake Quiz"
         }
       ),
@@ -216442,7 +216460,7 @@ function ArchetypeDetail() {
   ] }) });
 }
 function App() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/quiz", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuizPage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/results", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsPage, {}) }),
