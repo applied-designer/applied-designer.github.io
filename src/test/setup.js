@@ -57,5 +57,15 @@ global.ResizeObserver = class ResizeObserver {
     disconnect = vi.fn()
 }
 
+// Mock clipboard API
+const clipboard = {
+    writeText: vi.fn().mockResolvedValue(undefined),
+    readText: vi.fn().mockResolvedValue('')
+}
+Object.defineProperty(navigator, 'clipboard', {
+    value: clipboard,
+    writable: true
+})
+
 // Mock WebGL context for Three.js
 global.HTMLCanvasElement.prototype.getContext = vi.fn()
