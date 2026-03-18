@@ -10,8 +10,11 @@
  * File: src/test/fixtures/quiz_answer_combinations.csv
  */
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const QUESTIONS = 12
 const CHOICES_PER_QUESTION = 5

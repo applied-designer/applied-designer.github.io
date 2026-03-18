@@ -17,15 +17,13 @@ const ARCHETYPES = Object.keys(archetypeData)
 export const DIM_KEYS = ARCHETYPES.length > 0 ? Object.keys(archetypeData[ARCHETYPES[0]].dimensions) : []
 
 /**
- * Encode dimension scores as a base64 string with version prefix.
+ * Build the raw (non-base64) dims string for analytics.
+ * Format: v1:strategy:5,adaptability:3,...
  * @param {Object} dims - { strategy: number, ... }
- * @returns {string} base64-encoded string (e.g. v1:c2...)
+ * @returns {string} raw encoded string (e.g. "v1:strategy:5,...")
  */
 export function encodeDimsV1(dims) {
-    // Compose key:value pairs in DIM_KEYS order, e.g. strategy:5,adaptability:3,...
-    const raw = DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',')
-    const versioned = `v1:${raw}`
-    return btoa(versioned)
+    return 'v1:' + DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',')
 }
 
 /**
@@ -34,22 +32,34 @@ export function encodeDimsV1(dims) {
  * @returns {Object|null} dims object or null if invalid
  */
 export function decodeDims(b64) {
+    let result = null
+
     try {
         const decoded = atob(b64)
-        if (!decoded.startsWith('v1:')) return null
-        const raw = decoded.slice(3)
-        const dims = Object.fromEntries(
-            raw.split(',').map(pair => {
-                const [k, v] = pair.split(':')
-                return [k, parseFloat(v)]
-            })
-        )
-        // Validate all required keys
-        if (!DIM_KEYS.every(k => typeof dims[k] === 'number' && !isNaN(dims[k]))) return null
-        return dims
+        const version = decoded.match(/v(\d):/)
+
+        switch (parseInt(version?.[1], 10)) {
+            case 1: {
+                const raw = decoded.slice(3)
+                const dims = Object.fromEntries(
+                    raw.split(',').map(pair => {
+                        const [k, v] = pair.split(':')
+                        return [k, parseFloat(v)]
+                    })
+                )
+                if (DIM_KEYS.every(k => typeof dims[k] === 'number' && !isNaN(dims[k]))) {
+                    result = dims
+                }
+                break
+            }
+            default:
+                break
+        }
     } catch {
-        return null
+        // noop
     }
+    
+    return result
 }
 
 /**

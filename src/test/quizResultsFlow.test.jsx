@@ -38,15 +38,14 @@ describe('Quiz to Results Flow', () => {
 
         it('Orchestrator dimensions encode to v1 format', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const b64 = encodeDimsV1(dims)
-            const decoded = atob(b64)
+            const raw = encodeDimsV1(dims)
             
-            expect(decoded.startsWith('v1:')).toBe(true)
-            expect(decoded).toContain('strategy:')
-            expect(decoded).toContain('adaptability:')
-            expect(decoded).toContain('collaboration:')
-            expect(decoded).toContain('experimentation:')
-            expect(decoded).toContain('impact:')
+            expect(raw.startsWith('v1:')).toBe(true)
+            expect(raw).toContain('strategy:')
+            expect(raw).toContain('adaptability:')
+            expect(raw).toContain('collaboration:')
+            expect(raw).toContain('experimentation:')
+            expect(raw).toContain('impact:')
         })
     })
 
@@ -62,22 +61,21 @@ describe('Quiz to Results Flow', () => {
 
         it('Disruptor dimensions encode to v1 format', () => {
             const dims = getExpectedDimsForArchetype(DISRUPTOR)
-            const b64 = encodeDimsV1(dims)
-            const decoded = atob(b64)
+            const raw = encodeDimsV1(dims)
             
-            expect(decoded.startsWith('v1:')).toBe(true)
-            expect(decoded).toContain('strategy:')
-            expect(decoded).toContain('adaptability:')
-            expect(decoded).toContain('collaboration:')
-            expect(decoded).toContain('experimentation:')
-            expect(decoded).toContain('impact:')
+            expect(raw.startsWith('v1:')).toBe(true)
+            expect(raw).toContain('strategy:')
+            expect(raw).toContain('adaptability:')
+            expect(raw).toContain('collaboration:')
+            expect(raw).toContain('experimentation:')
+            expect(raw).toContain('impact:')
         })
     })
 
     describe('Full quiz flow with results page', () => {
         it('renders results page with encoded Orchestrator dims', async () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsB64 = encodeDimsV1(dims)
+            const dimsB64 = btoa(encodeDimsV1(dims))
 
             render(
                 <MemoryRouter initialEntries={[`/results?dims=${dimsB64}`]}>
@@ -99,7 +97,7 @@ describe('Quiz to Results Flow', () => {
 
         it('renders results page with encoded Disruptor dims', async () => {
             const dims = getExpectedDimsForArchetype(DISRUPTOR)
-            const dimsB64 = encodeDimsV1(dims)
+            const dimsB64 = btoa(encodeDimsV1(dims))
 
             render(
                 <MemoryRouter initialEntries={[`/results?dims=${dimsB64}`]}>
@@ -121,7 +119,7 @@ describe('Quiz to Results Flow', () => {
 
         it('results page displays archetype results heading', async () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsB64 = encodeDimsV1(dims)
+            const dimsB64 = btoa(encodeDimsV1(dims))
 
             render(
                 <MemoryRouter initialEntries={[`/results?dims=${dimsB64}`]}>

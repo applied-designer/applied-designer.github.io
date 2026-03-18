@@ -7,7 +7,8 @@ describe('quizUtils encoding/decoding', () => {
   const dims = { strategy: 5, adaptability: 3, collaboration: 4, experimentation: 2, impact: 3 }
 
   it('encodes and decodes dims with version', () => {
-    const b64 = encodeDimsV1(dims)
+    const raw = encodeDimsV1(dims)
+    const b64 = btoa(raw)
     const decoded = decodeDims(b64)
     expect(decoded).toEqual(dims)
   })

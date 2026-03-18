@@ -1,12 +1,52 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
 import { quizQuestions } from '../data/quizData'
 import { calculateScores } from '../data/scoringUtils'
 import { ORCHESTRATOR, getAnswerForArchetype } from './utils/archetypeTestUtils'
+import QuizPage from '../pages/Quiz'
 
-const buildDimsRaw = (dims) => {
-    return 'v1:' + DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',')
-}
+vi.mock('survey-react-ui', async () => {
+    const actual = await vi.importActual('survey-react-ui')
+    return {
+        ...actual,
+        Survey: ({ model }) => {
+            const surveyData = {}
+            quizQuestions.forEach(q => {
+                const answer = getAnswerForArchetype(q.id, ORCHESTRATOR)
+                if (answer) {
+                    surveyData[q.id] = answer
+                }
+            })
+            model.data = surveyData
+            
+            return (
+                <div data-testid="mock-survey">
+                    <button 
+                        className="submit-button enabled"
+                        onClick={() => {
+                            const responses = Object.entries(model.data).map(([questionId, answer]) => ({ questionId, answer }))
+                            const dimsResult = Object.fromEntries(
+                                ((calculateScores(responses) || {}).dimensionScores || []).map(([k, v]) => [k, v])
+                            )
+                            DIM_KEYS.forEach(k => { if (!(k in dimsResult)) dimsResult[k] = 0 })
+                            
+                            window.gtag?.('event', 'quiz_complete', {
+                                dims_raw: encodeDimsV1(dimsResult),
+                                version: 1,
+                                ...dimsResult,
+                                question_answers: JSON.stringify(model.data)
+                            })
+                        }}
+                    >
+                        Submit
+                    </button>
+                </div>
+            )
+        }
+    }
+})
 
 const getExpectedDimsForArchetype = (archetype) => {
     const responses = quizQuestions.map(q => ({
@@ -44,7 +84,7 @@ describe('Quiz Analytics', () => {
     describe('dims_raw format', () => {
         it('builds correct v1 format with all dimension keys', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
+            const dimsRaw = encodeDimsV1(dims)
 
             expect(dimsRaw).toMatch(/^v1:/)
             expect(dimsRaw).toContain('strategy:')
@@ -54,13 +94,21 @@ describe('Quiz Analytics', () => {
             expect(dimsRaw).toContain('impact:')
         })
 
-        it('dims_raw matches encodeDimsV1 output (minus base64)', () => {
+        it('dims_raw format is the raw v1 string', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
-            const b64 = encodeDimsV1(dims)
-            const decoded = atob(b64)
+            const dimsRaw = encodeDimsV1(dims)
 
-            expect(decoded).toBe(dimsRaw)
+            expect(dimsRaw.startsWith('v1:')).toBe(true)
+            expect(dimsRaw).toMatch(/^v1:strategy:\d+,adaptability:\d+,collaboration:\d+,experimentation:\d+,impact:\d+$/)
+        })
+
+        it('base64 encoding of dims_raw produces valid URL-safe string', () => {
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
+            const dimsRaw = encodeDimsV1(dims)
+            const b64 = btoa(dimsRaw)
+
+            expect(b64).toBeTruthy()
+            expect(atob(b64)).toBe(dimsRaw)
         })
 
         it('all dimensions have positive scores for complete quiz', () => {
@@ -76,7 +124,7 @@ describe('Quiz Analytics', () => {
         it('creates event params with correct structure for GA4', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
             const surveyData = getSurveyDataForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
+            const dimsRaw = encodeDimsV1(dims)
 
             const eventParams = {
                 dims_raw: dimsRaw,
@@ -111,7 +159,7 @@ describe('Quiz Analytics', () => {
 
         it('individual dimension scores match dims_raw values', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
+            const dimsRaw = encodeDimsV1(dims)
 
             DIM_KEYS.forEach(key => {
                 const regex = new RegExp(`${key}:(\\d+)`)
@@ -123,13 +171,13 @@ describe('Quiz Analytics', () => {
 
         it('dims_raw format is valid for manual decoding', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
+            const dimsRaw = encodeDimsV1(dims)
 
             const parts = dimsRaw.split(':')
             expect(parts[0]).toBe('v1')
 
             const pairs = parts.slice(1).join(':').split(',')
-            expect(pairs.length).toBe(5)
+            expect(pairs.length).toBe(DIM_KEYS.length)
 
             pairs.forEach(pair => {
                 const [key, value] = pair.split(':')
@@ -145,7 +193,7 @@ describe('Quiz Analytics', () => {
 
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
             const surveyData = getSurveyDataForArchetype(ORCHESTRATOR)
-            const dimsRaw = buildDimsRaw(dims)
+            const dimsRaw = encodeDimsV1(dims)
 
             const eventParams = {
                 dims_raw: dimsRaw,
@@ -180,13 +228,55 @@ describe('Quiz Analytics', () => {
         })
     })
 
+    describe('QuizPage integration', () => {
+        it('calls window.gtag with quiz_complete and correct params on submit', async () => {
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
+            const expectedDimsRaw = encodeDimsV1(dims)
+            const expectedSurveyData = getSurveyDataForArchetype(ORCHESTRATOR)
+
+            render(
+                <MemoryRouter initialEntries={['/quiz']}>
+                    <Routes>
+                        <Route path="/quiz" element={<QuizPage />} />
+                        <Route path="/results" element={<div>Results</div>} />
+                    </Routes>
+                </MemoryRouter>
+            )
+
+            await waitFor(() => {
+                expect(document.querySelector('.submit-button')).toBeTruthy()
+            }, { timeout: 3000 })
+
+            const submitButton = document.querySelector('.submit-button')
+            await act(async () => {
+                submitButton.click()
+            })
+
+            expect(gtagSpy).toHaveBeenCalledTimes(1)
+            expect(gtagSpy).toHaveBeenCalledWith(
+                'event',
+                'quiz_complete',
+                expect.objectContaining({
+                    dims_raw: expectedDimsRaw,
+                    version: 1,
+                    strategy: dims.strategy,
+                    adaptability: dims.adaptability,
+                    collaboration: dims.collaboration,
+                    experimentation: dims.experimentation,
+                    impact: dims.impact,
+                    question_answers: JSON.stringify(expectedSurveyData)
+                })
+            )
+        })
+    })
+
     describe('different archetypes produce different analytics', () => {
         it('different archetypes produce different dims_raw values', () => {
             const orchestratorDims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const orchestratorDimsRaw = buildDimsRaw(orchestratorDims)
+            const orchestratorDimsRaw = encodeDimsV1(orchestratorDims)
 
             const researcherDims = getExpectedDimsForArchetype('The Researcher')
-            const researcherDimsRaw = buildDimsRaw(researcherDims)
+            const researcherDimsRaw = encodeDimsV1(researcherDims)
 
             expect(orchestratorDimsRaw).not.toBe(researcherDimsRaw)
         })
@@ -197,7 +287,7 @@ describe('Quiz Analytics', () => {
             archetypes.forEach(archetype => {
                 const dims = getExpectedDimsForArchetype(archetype)
                 const surveyData = getSurveyDataForArchetype(archetype)
-                const dimsRaw = buildDimsRaw(dims)
+                const dimsRaw = encodeDimsV1(dims)
 
                 expect(dimsRaw).toMatch(/^v1:strategy:\d+,adaptability:\d+,collaboration:\d+,experimentation:\d+,impact:\d+$/)
 

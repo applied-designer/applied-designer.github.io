@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Model, Survey } from 'survey-react-ui'
 import { quizQuestions } from '../data/quizData'
 import { calculateScores } from '../data/scoringUtils'
-import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
+import { encodeDimsV1, buildDimsRaw, DIM_KEYS } from '../data/quizUtils'
 import { PANEL_COLORS_HEX } from '../data/colors'
 import 'survey-core/survey-core.css'
 
@@ -114,12 +114,14 @@ export default function QuizPage() {
         )
         // Fill missing keys with 0
         DIM_KEYS.forEach(k => { if (!(k in dims)) dims[k] = 0 })
-        // Encode as base64 and navigate
-        const dimsRaw = 'v1:' + DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',')
+
+        const dimsRaw = encodeDimsV1(dims)
+        const dimsB64 = btoa(dimsRaw)
 
         // Log analytics
         window.gtag?.('event', 'quiz_complete', {
             dims_raw: dimsRaw,
+            version: 1,
             strategy: dims.strategy,
             adaptability: dims.adaptability,
             collaboration: dims.collaboration,
@@ -128,7 +130,6 @@ export default function QuizPage() {
             question_answers: JSON.stringify(survey.data)
         })
 
-        const dimsB64 = encodeDimsV1(dims)
         navigate(`/results?dims=${encodeURIComponent(dimsB64)}`)
     }
   
