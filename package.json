@@ -44,7 +44,7 @@
         "test:e2e": "playwright test",
         "lint": "eslint src --ext .js,.jsx --ignore-pattern src/test",
         "lint:css": "stylelint \"src/**/*.css\"",
-        "lint:fix": "eslint src --fix --ext .js,.jsx --ignore-pattern src/test"
+        "lint:fix": "eslint src --fix --ext .js,.jsx --ignore-pattern src/test && stylelint --fix \"src/**/*.css\""
     },
     "browserslist": [
         ">0.2%",
