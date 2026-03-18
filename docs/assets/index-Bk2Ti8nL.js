@@ -66321,7 +66321,7 @@ const DIM_COLORS = [
   "var(--color-yellow)",
   "var(--color-purple)"
 ];
-const DIM_LABELS = ["System", "People", "Ideas", "Scale", "Action"];
+const DIM_LABELS = ["Systems", "People", "Ideas", "Scale", "Action"];
 const PANEL_COLORS_HEX = {
   "quiz-panel-blue": { bg: "#1975A1", fg: "#ffffff" },
   "quiz-panel-brown": { bg: "#7B392A", fg: "#ffffff" },

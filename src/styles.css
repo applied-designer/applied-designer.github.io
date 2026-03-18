@@ -449,7 +449,7 @@ nav a:hover {
 .results-container {
   background-color:  var(--color-dark-gray);
   min-height: 100vh;
-  margin: 4rem;
+  margin: 2rem; /* match desktop nav margin */
   padding: 2rem;
   font-family: var(--font-serif);
   width: 100%;

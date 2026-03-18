@@ -16,7 +16,7 @@ export const DIM_COLORS = [
     'var(--color-purple)'
 ]
 
-export const DIM_LABELS = ['System', 'People', 'Ideas', 'Scale', 'Action']
+export const DIM_LABELS = ['Systems', 'People', 'Ideas', 'Scale', 'Action']
 
 export const PANEL_COLORS = {
     'quiz-panel-blue': { bg: 'var(--color-blue)', fg: 'var(--color-white)' },

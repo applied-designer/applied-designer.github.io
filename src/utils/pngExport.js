@@ -4,6 +4,7 @@
  */
 
 import p5 from 'p5'
+import {DIM_COLORS_HEX} from '../data/colors'
 
 /**
  * Create p5.js sketch for 1080x1920 PNG export
@@ -12,7 +13,8 @@ import p5 from 'p5'
  * @returns {Object} p5 sketch function
  */
 export function createExportSketch(values, archetypeData) {
-    const DIM_COLORS = ['#1975A1', '#7B392A', '#D0E7BF', '#FAA41A', '#893A69']
+    // TODO: lots of hard-coded stuff here that doesn't have to be
+    const DIM_COLORS = DIM_COLORS_HEX; // ['#1975A1', '#7B392A', '#D0E7BF', '#FAA41A', '#893A69']
     const DIM_LABELS = ['Strategy', 'Adaptability', 'Collaboration', 'Experimentation', 'Impact']
 
     const getPentagonPoints = (centerX, centerY, radius) => {
