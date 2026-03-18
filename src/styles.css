@@ -125,7 +125,7 @@ nav a:hover {
 .quiz-container {
   background-color: var(--color-light-gray);
   min-height: 100vh;
-  padding: 2rem;
+  padding: 4rem;
   color: var(--color-black);
   font-family: var(--font-serif);
   width: 100%;
@@ -462,14 +462,20 @@ nav a:hover {
 
 .results-caption {
   font-size: 1rem;
+  margin: 0;
 }
 
 .results-overview {
   display: flex;
   flex-direction: column;
+  max-width: 50vw;
+  align-items: center;
+  margin: 0 auto;
+  text-wrap-style: balance;
 }
 
 .results-chart {
+  margin-top: 2rem;
   align-self: center;
   gap: 1rem;
   display: flex;
@@ -482,19 +488,23 @@ nav a:hover {
   min-width: 150px;
   width:  100%;
   display: block;
+  border-radius: 4px !important;
 }
 
 .progress-value {
   background-color: var(--color-blue);
   height: 100%;
   display: block;
+  border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
 }
 
 .results-title {
   text-align: center;
   font-size: 3rem;
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 3rem;
   line-height: 1.2;
   font-family: var(--font-sans);
   color: var(--color-white);
@@ -504,6 +514,7 @@ nav a:hover {
   text-align: center;
   font-size: 1.5rem;
   font-weight: 500;
+  margin-top: 1rem;
   margin-bottom: 1rem;
   line-height: 1.4;
   font-family: var(--font-serif);

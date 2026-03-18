@@ -72,6 +72,9 @@ export default function ResultsPage() {
   
     return (
         <div className="results-container">
+            <h1>Your Results</h1>
+            <br />
+            <br />
             <div className="results-overview">
                 <p className="results-caption">
                     You are the...
@@ -80,7 +83,7 @@ export default function ResultsPage() {
                     {primaryData.emoji} {primary}
                 </h1>
                 <p className="results-caption">
-                    Your mantra could be 
+                    Your mantra could be... 
                 </p>
                 <h2 className="results-subtitle results-mantra">
                     {primaryData.mantra}
@@ -112,14 +115,15 @@ export default function ResultsPage() {
                 {/*TODO: float 2 cols desktop -> 1 col mobile */}
                 <div>
                     <div>
-                        <h3>Your Primary Archetype: {primary}</h3>
+                        <h2>{primary} (Primary Archetype)</h2>
                         <p className="results-note">
                             {primaryData.description}
                         </p>
                     </div>
+                    <br />
                     {secondaryData && (
                         <div>
-                            <h3>Your Secondary Archetype: {secondary}</h3>
+                            <h2>{secondary} (Secondary Archetype)</h2>
                             <p className="results-note">
                                 {secondaryData.description}
                             </p>

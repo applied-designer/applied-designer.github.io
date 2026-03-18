@@ -56799,7 +56799,8 @@ class WebGLRenderer {
           generateMipmaps: true,
           type: hasHalfFloatSupport ? HalfFloatType : UnsignedByteType,
           minFilter: LinearMipmapLinearFilter,
-          samples: capabilities.samples,
+          samples: Math.max(4, capabilities.samples),
+          // to avoid feedback loops, the transmission render target requires a resolve, see #26177
           stencilBuffer: stencil,
           resolveDepthBuffer: false,
           resolveStencilBuffer: false,
@@ -66601,6 +66602,1148 @@ class DomDocumentHelper {
     document.removeEventListener(type2, listener);
   }
 }
+const document$1 = typeof globalThis !== "undefined" ? globalThis.document : (void 0).document;
+const defaultEnvironment = !!document$1 ? {
+  root: document$1,
+  _rootElement: DomDocumentHelper.getBody(),
+  get rootElement() {
+    var _a2;
+    return (_a2 = this._rootElement) !== null && _a2 !== void 0 ? _a2 : DomDocumentHelper.getBody();
+  },
+  set rootElement(rootElement) {
+    this._rootElement = rootElement;
+  },
+  _popupMountContainer: DomDocumentHelper.getBody(),
+  get popupMountContainer() {
+    var _a2;
+    return (_a2 = this._popupMountContainer) !== null && _a2 !== void 0 ? _a2 : DomDocumentHelper.getBody();
+  },
+  set popupMountContainer(popupMountContainer) {
+    this._popupMountContainer = popupMountContainer;
+  },
+  svgMountContainer: document$1.head,
+  stylesSheetsMountContainer: document$1.head
+} : void 0;
+const columnWidthsByType = {
+  "file": { minWidth: "240px" },
+  "comment": { minWidth: "200px" }
+};
+var settings = {
+  version: "",
+  /**
+   * An object that configures survey appearance when the survey is being designed in Survey Creator.
+   *
+   * Nested properties:
+   *
+   * - `showEmptyDescriptions`: `boolean`\
+   * Specifies whether to display an empty description for pages and panels. Default value: `true`.
+   *
+   * - `showEmptyTitles`: `boolean`\
+   * Specifies whether to display an empty title for pages and panels. Default value: `true`.
+   */
+  designMode: {
+    showEmptyDescriptions: true,
+    showEmptyTitles: true
+  },
+  //#region designMode section, Obsolete properties
+  get allowShowEmptyDescriptionInDesignMode() {
+    return this.designMode.showEmptyDescriptions;
+  },
+  set allowShowEmptyDescriptionInDesignMode(val) {
+    this.designMode.showEmptyDescriptions = val;
+  },
+  get allowShowEmptyTitleInDesignMode() {
+    return this.designMode.showEmptyTitles;
+  },
+  set allowShowEmptyTitleInDesignMode(val) {
+    this.designMode.showEmptyTitles = val;
+  },
+  //#endregion
+  /**
+   * An object that contains properties related to localization.
+   *
+   * Nested properties:
+   *
+   * - `defaultLocaleName`: `string`\
+   * A property key that stores a translation for the default locale. Default value: `"default"`.
+   *
+   * - `storeDuplicatedTranslations`: `boolean`\
+   * Specifies whether surveys should store translation strings that equal the translation strings in the default locale. Default value: `false`.
+   *
+   * - `useLocalTimeZone`: `boolean`\
+   * Obsolete. Use the [`storeUtcDates`](https://surveyjs.io/form-library/documentation/api-reference/settings#storeUtcDates) setting instead.
+   */
+  localization: {
+    /**
+     * @deprecated Use the [`storeUtcDates`](https://surveyjs.io/form-library/documentation/api-reference/settings#storeUtcDates) property instead.
+     */
+    useLocalTimeZone: true,
+    storeDuplicatedTranslations: false,
+    defaultLocaleName: "default"
+  },
+  //#region localization section, obsolete properties
+  get useLocalTimeZone() {
+    return this.localization.useLocalTimeZone;
+  },
+  set useLocalTimeZone(val) {
+    this.localization.useLocalTimeZone = val;
+  },
+  get storeDuplicatedTranslations() {
+    return this.localization.storeDuplicatedTranslations;
+  },
+  set storeDuplicatedTranslations(val) {
+    this.localization.storeDuplicatedTranslations = val;
+  },
+  get defaultLocaleName() {
+    return this.localization.defaultLocaleName;
+  },
+  set defaultLocaleName(val) {
+    this.localization.defaultLocaleName = val;
+  },
+  //#endregion
+  /**
+   * An object with properties that configure surveys when they work with a web service.
+   *
+   * Nested properties:
+   *
+   * - `encodeUrlParams`: `boolean`\
+   * Specifies whether to encode URL parameters when you access a web service. Default value: `true`.
+   *
+   * - `cacheLoadedChoices`: `boolean`\
+   * Specifies whether to cache [choices loaded from a web service](https://surveyjs.io/form-library/documentation/api-reference/questionselectbase#choicesByUrl). Default value: `true`.
+   *
+   * - `disableQuestionWhileLoadingChoices`: `boolean`\
+   * Disables a question while its choices are being loaded from a web service. Default value: `false`.
+   *
+   * - `surveyServiceUrl`: `string`\
+   * Obsolete. Self-hosted Form Library [no longer supports integration with SurveyJS Demo Service](https://surveyjs.io/stay-updated/release-notes/v2.0.0#form-library-removes-apis-for-integration-with-surveyjs-demo-service).
+   *
+   * - `onBeforeRequestChoices`: `(sender: ChoicesRestful, options: { url: string, request?: XMLHttpRequest, fetchOptions?: RequestInit })`\
+   * An event that is raised before a request for choices is sent. Applies to questions with a specified [`choiceByUrl`](https://surveyjs.io/form-library/documentation/api-reference/questionselectbase#choicesByUrl) property. Use the `options` parameter to access and modify the request to be sent. The `options.fetchOptions` object is defined only when the Form Library is run on a Node.js server; `options.request` is defined in the rest of cases. The following example shows how you can add authentication headers to a request for choices:
+   *
+   *     ```js
+   *     import { settings } from "survey-core";
+   *
+   *     settings.web.onBeforeRequestChoices = (_, options) => {
+   *       if (options.request) {
+   *         options.request.setRequestHeader("RequestVerificationToken", requestVerificationToken);
+   *       }
+   *       if (options.fetchOptions) {
+   *         options.fetchOptions.headers.append("RequestVerificationToken", requestVerificationToken);
+   *       }
+   *     };
+   *     ```
+   */
+  web: {
+    onBeforeRequestChoices: (sender, options2) => {
+    },
+    encodeUrlParams: true,
+    cacheLoadedChoices: true,
+    disableQuestionWhileLoadingChoices: false
+  },
+  //#region web section, obsolete properties
+  get webserviceEncodeParameters() {
+    return this.web.encodeUrlParams;
+  },
+  set webserviceEncodeParameters(val) {
+    this.web.encodeUrlParams = val;
+  },
+  get useCachingForChoicesRestful() {
+    return this.web.cacheLoadedChoices;
+  },
+  set useCachingForChoicesRestful(val) {
+    this.web.cacheLoadedChoices = val;
+  },
+  get useCachingForChoicesRestfull() {
+    return this.web.cacheLoadedChoices;
+  },
+  set useCachingForChoicesRestfull(val) {
+    this.web.cacheLoadedChoices = val;
+  },
+  get disableOnGettingChoicesFromWeb() {
+    return this.web.disableQuestionWhileLoadingChoices;
+  },
+  set disableOnGettingChoicesFromWeb(val) {
+    this.web.disableQuestionWhileLoadingChoices = val;
+  },
+  //#endregion
+  /**
+   * An object that contains properties related to [triggers](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#conditional-survey-logic-triggers).
+   *
+   * Nested properties:
+   *
+   * - `changeNavigationButtonsOnComplete`: `boolean`\
+   * Specifies whether to re-evaluate an expression associated with the [Complete trigger](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#complete) immediately when a question value changes. If the expression evaluates to `true`, the trigger is executed. Default value: `false`.\
+   * Keep this property set to `false` if you want to re-evaluate the Complete trigger's expression only when the respondents navigate to another page.
+   *
+   * - `executeCompleteOnValueChanged`: `boolean`\
+   * Specifies whether to replace the Next button with the Complete button when the [Complete trigger](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#complete) is going to be executed. Default value: `true`.
+   *
+   * - `executeSkipOnValueChanged`: `boolean`\
+   * Specifies whether to re-evaluate an expression associated with the [Skip trigger](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#skip) immediately when a question value changes. If the expression evaluates to `true`, the trigger is executed. Default value: `true`.\
+   * Disable this property if you want to re-evaluate the Skip trigger's expression only when respondents navigate to another page.
+   */
+  triggers: {
+    changeNavigationButtonsOnComplete: true,
+    executeCompleteOnValueChanged: false,
+    executeSkipOnValueChanged: true
+  },
+  //#region triggers section, Obsolete properties
+  get executeCompleteTriggerOnValueChanged() {
+    return this.triggers.executeCompleteOnValueChanged;
+  },
+  set executeCompleteTriggerOnValueChanged(val) {
+    this.triggers.executeCompleteOnValueChanged = val;
+  },
+  get changeNavigationButtonsOnCompleteTrigger() {
+    return this.triggers.changeNavigationButtonsOnComplete;
+  },
+  set changeNavigationButtonsOnCompleteTrigger(val) {
+    this.triggers.changeNavigationButtonsOnComplete = val;
+  },
+  get executeSkipTriggerOnValueChanged() {
+    return this.triggers.executeSkipOnValueChanged;
+  },
+  set executeSkipTriggerOnValueChanged(val) {
+    this.triggers.executeSkipOnValueChanged = val;
+  },
+  //#endregion
+  /**
+   * An object that contains properties related to JSON serialization.
+   *
+   * Nested properties:
+   *
+   * - `itemValueSerializeAsObject`: `boolean`\
+   * Enable this property if you want to serialize [`ItemValue`](https://surveyjs.io/form-library/documentation/api-reference/itemvalue) instances (choice options, matrix rows, columns in a [Single-Select Matrix](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-question-model)) as objects even when they include only the `value` property. Default value: `false`.
+   *
+   * - `itemValueSerializeDisplayText`: `boolean`\
+   * Enable this property if you want to serialize the `text` property of [`ItemValue`](https://surveyjs.io/form-library/documentation/api-reference/itemvalue) objects even when it is empty or equal to the `value` property. Default value: `false`.
+   *
+   * - `localizableStringSerializeAsObject`: `boolean`\
+   * Enable this property if you want to serialize [`LocalizableString`](https://surveyjs.io/form-library/documentation/api-reference/localizablestring) instances as objects even when they include only a translation string for the default locale. For example, `"Custom String"` will be serialized as `{ default: "Custom String" }`. Default value: `false`.
+   *
+   * - `matrixDropdownColumnSerializeTitle`: `boolean`\
+   * Enable this property if you want to serialize the `title` property of [`MatrixDropdownColumn`](https://surveyjs.io/form-library/documentation/api-reference/multi-select-matrix-column-values) objects even when it is empty or equal to the `name` property. Default value: `false`.
+   * @see [settings.parseNumber](https://surveyjs.io/form-library/documentation/api-reference/settings#parseNumber)
+   */
+  serialization: {
+    itemValueSerializeAsObject: false,
+    itemValueSerializeDisplayText: false,
+    localizableStringSerializeAsObject: false,
+    matrixDropdownColumnSerializeTitle: false
+  },
+  //#region serialization section, Obsolete properties
+  get itemValueAlwaysSerializeAsObject() {
+    return this.serialization.itemValueSerializeAsObject;
+  },
+  set itemValueAlwaysSerializeAsObject(val) {
+    this.serialization.itemValueSerializeAsObject = val;
+  },
+  get itemValueAlwaysSerializeText() {
+    return this.serialization.itemValueSerializeDisplayText;
+  },
+  set itemValueAlwaysSerializeText(val) {
+    this.serialization.itemValueSerializeDisplayText = val;
+  },
+  get serializeLocalizableStringAsObject() {
+    return this.serialization.localizableStringSerializeAsObject;
+  },
+  set serializeLocalizableStringAsObject(val) {
+    this.serialization.localizableStringSerializeAsObject = val;
+  },
+  //#endregion
+  /**
+   * An object that configures lazy rendering.
+   *
+   * Nested properties:
+   *
+   * - `enabled`: `boolean`\
+   * Specifies whether to add questions to the DOM only when they get into the viewport. Default value: `false`.
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/survey-lazy/ (linkStyle))
+   * @see [SurveyModel.lazyRenderEnabled](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#lazyRenderEnabled)
+   */
+  lazyRender: {
+    enabled: false,
+    firstBatchSize: 3
+  },
+  //#region lazyRender section, Obsolete properties
+  get lazyRowsRendering() {
+    return this.lazyRender.enabled;
+  },
+  set lazyRowsRendering(val) {
+    this.lazyRender.enabled = val;
+  },
+  get lazyRowsRenderingStartRow() {
+    return this.lazyRender.firstBatchSize;
+  },
+  set lazyRowsRenderingStartRow(val) {
+    this.lazyRender.firstBatchSize = val;
+  },
+  //#endregion
+  /**
+   * An object with properties that apply to [Single-Choice](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-question-model), [Multiple-Choice](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-with-dropdown-list), and [Dynamic Matrix](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model) questions.
+   *
+   * Nested properties:
+   *
+   * - `defaultRowName`: `string`\
+   * A property key that stores an object with default cell values. Default value: "default".
+   *
+   * - `defaultCellType`: `string`\
+   * The default type of matrix cells. Default value: `"dropdown"`.\
+   * You can specify this setting for individual questions or matrix columns: [`cellType`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model#cellType). Refer to the `cellType` property description for information on possible values.
+   *
+   * - `totalsSuffix`: `string`\
+   * A suffix added to the name of the property that stores total values. The resulting property name consists of the matrix name and the suffix. Default value: `"-total"`.
+   *
+   * - `maxRowCount`: `number`\
+   * A maximum number of rows in a Dynamic Matrix. Default value: 1000.\
+   * You can specify this setting for an individual Dynamic Matrix: [`maxRowCount`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model#maxRowCount).
+   *
+   * - `maxRowCountInCondition`: `number`\
+   * A maximum number of matrix rows included in the Condition drop-down menu in Survey Creator. This menu is used to configure conditional survey logic. Default value: 1.\
+   * If you set this property to 0, the Condition menu does not include any matrix rows. Users still can specify conditions that use matrix rows but only with Manual Entry.
+   *
+   * - `renderRemoveAsIcon`: `boolean`\
+   * Disable this property if you want to render the Remove action in Dynamic Matrix as a button. Otherwise, the action is rendered as an icon. Default value: `true`.
+   *
+   * - `columnWidthsByType`: `object`\
+   * An object that specifies fixed and minimum column width based on the column type.\
+   * Example: `settings.matrix.columnWidthsByType = { "tagbox": { minWidth: "240px", width: "300px" } }`
+   *
+   * - `rateSize`: `"small"` (default) | `"normal"`\
+   * Specifies the size of rate values. Applies to [Rating Scale](https://surveyjs.io/form-library/examples/rating-scale/) questions within matrixes.
+   */
+  matrix: {
+    defaultCellType: "dropdown",
+    defaultRowName: "default",
+    totalsSuffix: "-total",
+    maxRowCount: 1e3,
+    maxRowCountInCondition: 1,
+    renderRemoveAsIcon: true,
+    columnWidthsByType,
+    rateSize: "small"
+  },
+  //#region matrix section, Obsolete properties
+  get matrixDefaultRowName() {
+    return this.matrix.defaultRowName;
+  },
+  set matrixDefaultRowName(val) {
+    this.matrix.defaultRowName = val;
+  },
+  get matrixDefaultCellType() {
+    return this.matrix.defaultCellType;
+  },
+  set matrixDefaultCellType(val) {
+    this.matrix.defaultCellType = val;
+  },
+  get matrixTotalValuePostFix() {
+    return this.matrix.totalsSuffix;
+  },
+  set matrixTotalValuePostFix(val) {
+    this.matrix.totalsSuffix = val;
+  },
+  get matrixMaximumRowCount() {
+    return this.matrix.maxRowCount;
+  },
+  set matrixMaximumRowCount(val) {
+    this.matrix.maxRowCount = val;
+  },
+  get matrixMaxRowCountInCondition() {
+    return this.matrix.maxRowCountInCondition;
+  },
+  set matrixMaxRowCountInCondition(val) {
+    this.matrix.maxRowCountInCondition = val;
+  },
+  get matrixRenderRemoveAsIcon() {
+    return this.matrix.renderRemoveAsIcon;
+  },
+  set matrixRenderRemoveAsIcon(val) {
+    this.matrix.renderRemoveAsIcon = val;
+  },
+  //#endregion
+  /**
+   * An object with properties that apply to [Dynamic Panel](https://surveyjs.io/form-library/documentation/api-reference/dynamic-panel-model) questions.
+   *
+   * Nested properties:
+   *
+   * - `maxPanelCount`: `number`\
+   * A maximum number of panels in Dynamic Panel. Default value: 100.\
+   * You can specify this setting for an individual Dynamic Panel: [`maxPanelCount`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-panel-model#maxPanelCount).
+   *
+   * - `maxPanelCountInCondition`: `number`\
+   * A maximum number of Dynamic Panel panels included in the Condition drop-down menu in Survey Creator. This menu is used to configure conditional survey logic. Default value: 1.\
+   * If you set this property to 0, the Condition menu does not include any panel questions. Users still can specify conditions that use panel questions but only with Manual Entry.
+   */
+  panel: {
+    maxPanelCount: 100,
+    maxPanelCountInCondition: 1
+  },
+  //#region panel section, Obsolete properties
+  get panelDynamicMaxPanelCountInCondition() {
+    return this.panel.maxPanelCountInCondition;
+  },
+  set panelDynamicMaxPanelCountInCondition(val) {
+    this.panel.maxPanelCountInCondition = val;
+  },
+  get panelMaximumPanelCount() {
+    return this.panel.maxPanelCount;
+  },
+  set panelMaximumPanelCount(val) {
+    this.panel.maxPanelCount = val;
+  },
+  //#endregion
+  /**
+   * An object with properties that configure questions in read-only mode.
+   *
+   * Nested properties:
+   *
+   * - `commentRenderMode`: `"textarea"` (default) | `"div"`\
+   * Specifies how to render the input field of [Comment](https://surveyjs.io/form-library/documentation/api-reference/comment-field-model) questions in [read-only](https://surveyjs.io/form-library/documentation/api-reference/comment-field-model#readOnly) mode: as a disabled `<textarea>` element or as a `<div>` element with a non-editable question value within it.
+   *
+   * - `textRenderMode`: `"input"` (default) | `"div"`\
+   * Specifies how to render the input field of [Text](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model) questions in [read-only](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#readOnly) mode: as a disabled `<input>` element or as a `<div>` element with a non-editable question value within it.
+   */
+  readOnly: {
+    enableValidation: false,
+    commentRenderMode: "textarea",
+    textRenderMode: "input"
+  },
+  //#region readOnly section, Obsolete properties
+  get readOnlyCommentRenderMode() {
+    return this.readOnly.commentRenderMode;
+  },
+  set readOnlyCommentRenderMode(val) {
+    this.readOnly.commentRenderMode = val;
+  },
+  get readOnlyTextRenderMode() {
+    return this.readOnly.textRenderMode;
+  },
+  set readOnlyTextRenderMode(val) {
+    this.readOnly.textRenderMode = val;
+  },
+  //#endregion
+  /**
+   * An object with properties that configure question numbering.
+   *
+   * Nested properties:
+   *
+   * - `includeQuestionsWithHiddenNumber`: `boolean`\
+   * Specifies whether to number questions whose [`showNumber`](https://surveyjs.io/form-library/documentation/api-reference/question#showNumber) property is disabled. Default value: `false`.
+   *
+   * - `includeQuestionsWithHiddenTitle`: `boolean`\
+   * Specifies whether to number questions whose [`titleLocation`](https://surveyjs.io/form-library/documentation/api-reference/question#titleLocation) property is set to `"hidden"`. Default value: `false`.
+   */
+  numbering: {
+    includeQuestionsWithHiddenNumber: false,
+    includeQuestionsWithHiddenTitle: false
+  },
+  //#region numbering section, Obsolete properties
+  get setQuestionVisibleIndexForHiddenTitle() {
+    return this.numbering.includeQuestionsWithHiddenTitle;
+  },
+  set setQuestionVisibleIndexForHiddenTitle(val) {
+    this.numbering.includeQuestionsWithHiddenTitle = val;
+  },
+  get setQuestionVisibleIndexForHiddenNumber() {
+    return this.numbering.includeQuestionsWithHiddenNumber;
+  },
+  set setQuestionVisibleIndexForHiddenNumber(val) {
+    this.numbering.includeQuestionsWithHiddenNumber = val;
+  },
+  //#endregion
+  /**
+   * Specifies an action to perform when users press the Enter key within a survey.
+   *
+   * Possible values:
+   *
+   * - `"moveToNextEditor"` - Moves focus to the next editor.
+   * - `"loseFocus"` - Removes focus from the current editor.
+   * - `"default"` - Behaves as a standard `<input>` element.
+   */
+  enterKeyAction: "default",
+  /**
+   * An object that configures string comparison.
+   *
+   * Nested properties:
+   *
+   * - `trimStrings`: `boolean`\
+   * Specifies whether to remove whitespace from both ends of a string before the comparison. Default value: `true`.
+   *
+   * - `caseSensitive`: `boolean`\
+   * Specifies whether to differentiate between capital and lower-case letters. Default value: `false`.
+   */
+  comparator: {
+    trimStrings: true,
+    caseSensitive: false,
+    normalizeTextCallback: (str, reason) => {
+      return str;
+    }
+  },
+  expressionDisableConversionChar: "#",
+  /**
+   * An object with `start` and `end` string properties that specify the delimiters for referencing variables in [expressions](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#expressions) and [dynamic texts](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#dynamic-texts).
+   *
+   * Default value: `{ start: "{", end: "}" }`
+   *
+   * Examples:
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * // {{variableName}}
+   * settings.expressionVariableDelimiters = { start: "{{", end: "}}" };
+   * // {% variableName %}
+   * settings.expressionVariableDelimiters = { start: "{% ", end: " %}" };
+   * // %variableName%
+   * settings.expressionVariableDelimiters = { start: "%", end: "%" };
+   * ```
+   */
+  expressionVariableDelimiters: {
+    start: "{",
+    end: "}"
+  },
+  /**
+   * A prefix used to [access element property values](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#element-properties) in expressions and dynamic texts.
+   *
+   * Default value: `"$"`
+   */
+  expressionElementPropertyPrefix: "$",
+  get commentPrefix() {
+    return settings.commentSuffix;
+  },
+  set commentPrefix(val) {
+    settings.commentSuffix = val;
+  },
+  /**
+   * A suffix added to the name of the property that stores comments.
+   *
+   * Default value: "-Comment"
+   *
+   * You can specify this setting for an individual survey: [`commentSuffix`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#commentSuffix).
+   */
+  commentSuffix: "-Comment",
+  /**
+   * A separator used in a shorthand notation that specifies a value and display text for an [`ItemValue`](https://surveyjs.io/form-library/documentation/api-reference/itemvalue) object: `"value|text"`.
+   *
+   * Default value: `"|"`
+   * @see [settings.choicesSeparator](https://surveyjs.io/form-library/documentation/api-reference/settings#choicesSeparator)
+   */
+  itemValueSeparator: "|",
+  /**
+   * A maximum number of rate values in a [Rating](https://surveyjs.io/form-library/documentation/api-reference/rating-scale-question-model) question.
+   *
+   * Default value: 20
+   */
+  ratingMaximumRateValueCount: 20,
+  /**
+   * Specifies whether to close the drop-down menu of a [Multi-Select Dropdown (Tag Box)](https://surveyjs.io/form-library/examples/how-to-create-multiselect-tag-box/) question after a user selects a value.
+   *
+   * This setting applies to all Multi-Select Dropdown questions on a web page. You can use the [`closeOnSelect`](https://surveyjs.io/form-library/documentation/api-reference/dropdown-tag-box-model#closeOnSelect) property to specify the same setting for an individual Multi-Select Dropdown question.
+   */
+  tagboxCloseOnSelect: false,
+  /**
+   * A time interval in milliseconds between the last entered character and the beginning of search in [Single-](https://surveyjs.io/form-library/examples/create-dropdown-menu-in-javascript/) and [Multi-Select Dropdown](https://surveyjs.io/form-library/examples/how-to-create-multiselect-tag-box/) questions. Applies only to questions with the [`choicesLazyLoadEnabled`](https://surveyjs.io/form-library/documentation/api-reference/dropdown-menu-model#choicesLazyLoadEnabled) property set to `true`.
+   *
+   * Default value: 500
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/lazy-loading-dropdown/ (linkStyle))
+   */
+  dropdownSearchDelay: 500,
+  /**
+   * Specifies whether [Single-](https://surveyjs.io/form-library/examples/create-dropdown-menu-in-javascript/) and [Multi-Select Dropdown](https://surveyjs.io/form-library/examples/how-to-create-multiselect-tag-box/) questions save the currently focused value when the user clicks outside the editor. Applies only in desktop environments.
+   *
+   * Default value: `false`
+   *
+   * If [custom choices are enabled](https://surveyjs.io/form-library/documentation/api-reference/dropdown-menu-model#allowCustomChoices), and this property is set to `true`, clicking outside the editor also saves the entered custom value.
+   */
+  dropdownSaveOnOutsideClick: false,
+  /**
+   * A function used to display a custom confirmation dialog.
+   *
+   * This function is `undefined` by default. To enable a custom dialog, assign a function that returns `true` if the user confirms the action or `false` otherwise. For example, the following code uses the built-in `window.confirm()` method to open a confirmation dialog window:
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * settings.confirmActionAsync = (message) => {
+   *   return window.confirm(message);
+   * };
+   * ```
+   * @param message A message to display in the confirmation dialog.
+   */
+  confirmActionFunc: void 0,
+  /**
+   * A function that activates a proprietary SurveyJS confirmation dialog.
+   *
+   * Use the following code to execute this function:
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * settings.confirmActionAsync("Are you sure?", (confirmed) => {
+   *   if (confirmed) {
+   *     // ...
+   *     // Proceed with the action
+   *     // ...
+   *   } else {
+   *     // ...
+   *     // Cancel the action
+   *     // ...
+   *   }
+   * });
+   * ```
+   *
+   * You can override the `confirmActionAsync` function if you want to display a custom dialog window asynchronously:
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * async function confirmDialog(message) {
+   *   return new Promise((resolve) => {
+   *     // Implement an async dialog window here
+   *   });
+   * }
+   *
+   * settings.confirmActionAsync = (message, callback) => {
+   *   confirmDialog(message).then((result) => {
+   *     callback(result);
+   *   });
+   * };
+   * ```
+   * @param message A message to display in the confirmation dialog.
+   * @param callback A callback function that should be called with `true` if a user confirms an action or `false` otherwise.
+   */
+  confirmActionAsync: void 0,
+  /**
+   * A minimum width value for all survey elements.
+   *
+   * Default value: `"300px"`
+   *
+   * You can override this setting for individual elements: [`minWidth`](https://surveyjs.io/form-library/documentation/api-reference/surveyelement#minWidth).
+   */
+  minWidth: "300px",
+  /**
+   * A maximum width value for all survey elements.
+   *
+   * Default value: `"100%"`
+   *
+   * You can override this setting for individual elements: [`maxWidth`](https://surveyjs.io/form-library/documentation/api-reference/surveyelement#maxWidth).
+   */
+  maxWidth: "100%",
+  /**
+   * Specifies how many times surveys can re-evaluate expressions when a question value changes. This limit helps avoid recursions in expressions.
+   *
+   * Default value: 10
+   */
+  maxConditionRunCountOnValueChanged: 10,
+  /**
+   * An object that configures notifications.
+   *
+   * Nested properties:
+   *
+   * - `lifetime`: `number`\
+   * Specifies a time period during which a notification is displayed; measured in milliseconds. Default value: 2000.
+   */
+  notifications: {
+    lifetime: 2e3
+  },
+  /**
+   * Specifies how many milliseconds a survey should wait before it automatically switches to the next page. Applies only when [auto-advance](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#autoAdvanceEnabled) is enabled.
+   *
+   * Default value: 300
+   */
+  autoAdvanceDelay: 300,
+  /**
+   * Specifies the direction in which to lay out Checkbox and Radio Button Group items. This setting affects the resulting UI when items are arranged in [more than one column](https://surveyjs.io/form-library/documentation/api-reference/checkbox-question-model#colCount).
+   *
+   * Possible values:
+   *
+   * - `"column"` (default) - Items fill the current column, then move on to the next column.
+   * - `"row"` - Items fill the current row, then move on to the next row.
+   */
+  itemFlowDirection: "column",
+  /**
+   * @deprecated Use the [`itemFlowDirection`](https://surveyjs.io/form-library/documentation/api-reference/settings#itemFlowDirection) property instead.
+   */
+  get showItemsInOrder() {
+    return settings.itemFlowDirection;
+  },
+  set showItemsInOrder(val) {
+    settings.itemFlowDirection = val;
+  },
+  /**
+   * A value to save in survey results when respondents select the "None" choice item.
+   *
+   * Default value: `"none"`
+   */
+  noneItemValue: "none",
+  /**
+   * A value to save in survey results when respondents select the "Refuse to answer" choice item.
+   *
+   * Default value: `"refused"`
+   */
+  refuseItemValue: "refused",
+  /**
+   * A value to save in survey results when respondents select the "Don't know" choice item.
+   *
+   * Default value: `"dontknow"`
+   */
+  dontKnowItemValue: "dontknow",
+  /**
+   * An object whose properties specify the order of the special choice items ("None", "Other", "Select All", "Refuse to answer", "Don't know") in select-based questions.
+   *
+   * Default value: `{ selectAllItem: [-1], noneItem: [1], refuseItem: [2], dontKnowItem: [3], otherItem: [4] }`
+   *
+   * Use this object to reorder special choices. Each property accepts an array of integer numbers. Negative numbers place a special choice item above regular choice items, positive numbers place it below them. For instance, the code below specifies the following order of choices: None, Select All, regular choices, Other.
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * settings.specialChoicesOrder.noneItem = [-2];
+   * settings.specialChoicesOrder.selectAllItem = [-1];
+   * settings.specialChoicesOrder.otherItem = [1];
+   * ```
+   *
+   * If you want to duplicate a special choice item above and below other choices, add two numbers to the corresponding array:
+   *
+   * ```js
+   * settings.specialChoicesOrder.selectAllItem = [-1, 3] // Displays Select All above and below other choices
+   * ```
+   */
+  specialChoicesOrder: {
+    selectAllItem: [-1],
+    noneItem: [1],
+    refuseItem: [2],
+    dontKnowItem: [3],
+    otherItem: [4]
+  },
+  /**
+   * One or several characters used to separate choice options in a list.
+   *
+   * Default value: `", "`
+   * @see [settings.itemValueSeparator](https://surveyjs.io/form-library/documentation/api-reference/settings#itemValueSeparator)
+   */
+  choicesSeparator: ", ",
+  /**
+   * A list of supported validators by question type.
+   */
+  supportedValidators: {
+    question: ["expression"],
+    comment: ["text", "regex"],
+    text: ["numeric", "text", "regex", "email"],
+    checkbox: ["answercount"],
+    imagepicker: ["answercount"]
+  },
+  expressionVariables: {
+    survey: "survey",
+    self: "self",
+    parent: "parent",
+    matrix: "matrix",
+    composite: "composite",
+    item: "item",
+    choice: "choice",
+    column: "column",
+    row: "row",
+    prevRow: "prevRow",
+    nextRow: "nextRow",
+    totalRow: "totalRow",
+    rowIndex: "rowIndex",
+    visibleRowIndex: "visibleRowIndex",
+    rowValue: "rowValue",
+    rowName: "rowName",
+    rowTitle: "rowTitle",
+    panel: "panel",
+    prevPanel: "prevPanel",
+    nextPanel: "nextPanel",
+    parentPanel: "parentPanel",
+    panelIndex: "panelIndex",
+    visiblePanelIndex: "visiblePanelIndex",
+    unwrapPostfix: "-unwrapped"
+  },
+  /**
+   * Specifies a minimum date that users can enter into a [Text](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model) question with [`inputType`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#inputType) set to `"date"` or `"datetime-local"`. Set this property to a string with the folllowing format: `"yyyy-mm-dd"`.
+   */
+  minDate: "",
+  /**
+   * Specifies a maximum date that users can enter into a [Text](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model) question with [`inputType`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#inputType) set to `"date"` or `"datetime-local"`. Set this property to a string with the folllowing format: `"yyyy-mm-dd"`.
+   */
+  maxDate: "2999-12-31",
+  /**
+   * A method that displays a modal dialog.
+   *
+   * Parameters:
+   *
+   * - `options`: [`IDialogOptions`](https://surveyjs.io/form-library/documentation/api-reference/idialogoptions)\
+   * An object that configures the dialog's content and behavior.
+   *
+   * - `rootElement?`: `HTMLElement`\
+   * A DOM element where the dialog should be rendered. If not specified, the dialog is rendered into `document.body`.
+   *
+   * [View Demo](https://surveyjs.io/survey-creator/examples/add-modal-property-editor-to-property-grid/ (linkStyle))
+   */
+  showDialog: void 0,
+  showDefaultItemsInCreator: true,
+  /**
+   * An object that specifies icon replacements. Object keys are built-in icon names. To use a custom icon, assign its name to the key of the icon you want to replace:
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * settings.customIcons["icon-redo"] = "custom-redo-icon";
+   * ```
+   *
+   * For more information about icons in SurveyJS, refer to the following help topic: [UI Icons](https://surveyjs.io/form-library/documentation/icons).
+   */
+  customIcons: {},
+  /**
+   * Specifies which part of a choice item responds to a drag gesture in Ranking questions.
+   *
+   * Possible values:
+   *
+   * - `"entireItem"` (default) - Users can use the entire choice item as a drag handle.
+   * - `"icon"` - Users can only use the choice item icon as a drag handle.
+   */
+  rankingDragHandleArea: "entireItem",
+  environment: defaultEnvironment,
+  /**
+   * Allows you to hide the maximum length indicator in text input questions.
+   *
+   * If you specify a question's [`maxLength`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#maxLength) property or a survey's [`maxTextLength`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#maxTextLength) property, text input questions indicate the number of entered characters and the character limit. Assign `false` to the `settings.showMaxLengthIndicator` property if you want to hide this indicator.
+   *
+   * Default value: `true`
+   */
+  showMaxLengthIndicator: true,
+  /**
+   * Specifies whether to animate survey elements.
+   *
+   * Default value: `true`
+  */
+  animationEnabled: true,
+  /**
+   * An object that specifies HTML tags to use when rendering survey, page, panel, and question titles.
+   *
+   * Default value: `{ survey: "div", page: "div", panel: "div", question: "div" }`
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/change-heading-levels/ (linkStyle))
+   *
+   * If you want to modify HTML tags for individual titles, handle `SurveyModel`'s [`onGetTitleTagName`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#onGetTitleTagName) event.
+   */
+  titleTags: {
+    survey: "div",
+    page: "div",
+    panel: "div",
+    question: "div"
+  },
+  questions: {
+    inputTypes: [
+      "color",
+      "date",
+      "datetime-local",
+      "email",
+      "month",
+      "number",
+      "password",
+      "range",
+      "tel",
+      "text",
+      "time",
+      "url",
+      "week"
+    ],
+    dataList: [
+      "",
+      "name",
+      "honorific-prefix",
+      "given-name",
+      "additional-name",
+      "family-name",
+      "honorific-suffix",
+      "nickname",
+      "organization-title",
+      "username",
+      "new-password",
+      "current-password",
+      "organization",
+      "street-address",
+      "address-line1",
+      "address-line2",
+      "address-line3",
+      "address-level4",
+      "address-level3",
+      "address-level2",
+      "address-level1",
+      "country",
+      "country-name",
+      "postal-code",
+      "cc-name",
+      "cc-given-name",
+      "cc-additional-name",
+      "cc-family-name",
+      "cc-number",
+      "cc-exp",
+      "cc-exp-month",
+      "cc-exp-year",
+      "cc-csc",
+      "cc-type",
+      "transaction-currency",
+      "transaction-amount",
+      "language",
+      "bday",
+      "bday-day",
+      "bday-month",
+      "bday-year",
+      "sex",
+      "url",
+      "photo",
+      "tel",
+      "tel-country-code",
+      "tel-national",
+      "tel-area-code",
+      "tel-local",
+      "tel-local-prefix",
+      "tel-local-suffix",
+      "tel-extension",
+      "email",
+      "impp"
+    ]
+  },
+  legacyProgressBarView: false,
+  /**
+   * An object with properties that configure input masks.
+   *
+   * Nested properties:
+   *
+   * - `patternPlaceholderChar`: `string`\
+   * A symbol used as a placeholder for characters to be entered in [pattern masks](https://surveyjs.io/form-library/documentation/api-reference/inputmaskpattern). Default value: `"_"`.
+   *
+   * - `patternEscapeChar`: `string`\
+   * A symbol used to insert literal representations of special characters in [pattern masks](https://surveyjs.io/form-library/documentation/api-reference/inputmaskpattern). Default value: `"\\"`.
+   *
+   * - `patternDefinitions`: `<{ [key: string]: RegExp }>`\
+   * An object that maps placeholder symbols to regular expressions in [pattern masks](https://surveyjs.io/form-library/documentation/api-reference/inputmaskpattern). Default value: `{ "9": /[0-9]/, "a": /[a-zA-Z]/, "#": /[a-zA-Z0-9]/ }`.
+   */
+  maskSettings: {
+    patternPlaceholderChar: "_",
+    patternEscapeChar: "\\",
+    patternDefinitions: {
+      "9": /[0-9]/,
+      "a": /[a-zA-Z]/,
+      "#": /[a-zA-Z0-9]/
+    }
+  },
+  /**
+   * Specifies whether to store date-time values in the following format: `"YYYY-MM-DDThh:mm:ss.sssZ"`. Applies only to form fields with [`inputType`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#inputType) set to `"datetime-local"`.
+   *
+   * Default value: `false`
+   *
+   * If you enable this setting, date-time values are converted from local time to UTC when they are saved to the survey's [`data`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#data) object, while the question values remain in local time. Therefore, when you specify default values using a question's [`defaultValue`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#defaultValue) property, you need to use local time, but if you specify them using the `data` object, use a UTC date-time value in the following format: `"YYYY-MM-DDThh:mm:ss.sssZ"`.
+   *
+   * ```js
+   * const surveyJson = {
+   *   "elements": [{
+   *     "name": "datetime",
+   *     "type": "text",
+   *     "title": "Select a date and time",
+   *     "inputType": "datetime-local",
+   *     "defaultValue": "2024-07-16T12:15:00" // Local date-time value
+   *   }]
+   * }
+   * ```
+   *
+   * ```js
+   * import { Model } from "survey-core";
+   * const surveyJson = { ... }
+   * const survey = new Model(surveyJson);
+   *
+   * survey.data = {
+   *   datetime: "2024-07-16T12:15:00.000Z" // UTC date-time value
+   * }
+   * ```
+   */
+  storeUtcDates: false,
+  // @param reason "function-[functionname]", "question-[questionname]", "expression-operand"
+  onDateCreated: (newDate, reason, val) => {
+    return newDate;
+  },
+  /**
+   * A function that allows you to define custom parsing rules for numbers represented as string values.
+   *
+   * The following code shows a template that you can use to implement the `parseNumber` function:
+   *
+   * ```js
+   * import { settings } from "survey-core";
+   *
+   * settings.parseNumber = (stringValue, numericValue) => {
+   *   if (typeof stringValue !== "string" || !stringValue)
+   *     return numericValue;
+   *   let parsedNumber = numericValue;
+   *   // ...
+   *   // Parsing the number according to custom parsing rules
+   *   // ...
+   *   return parsedNumber;
+   * };
+   * ```
+   * @param stringValue A number represented as a string value.
+   * @param numericValue A number parsed using a default parsing function. `NaN` if the original string is not a number.
+   * @returns A number that results from parsing the string value.
+   * @see [settings.serialization](https://surveyjs.io/form-library/documentation/api-reference/settings#serialization)
+   */
+  parseNumber: (stringValue, numericValue) => {
+    return numericValue;
+  },
+  /**
+   * Defines the file type categories used by the [`acceptedCategories`](https://surveyjs.io/form-library/documentation/api-reference/file-model#acceptedCategories) property of [File Upload](https://surveyjs.io/form-library/examples/file-upload/) questions.
+   *
+   * This property is an object whose keys are category names and whose values are arrays of file extensions. The default structure is shown below:
+   *
+   * ```js
+   * {
+   *   image: [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".svg"],
+   *   video: [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"],
+   *   audio: [".mp3", ".wav", ".aac", ".ogg", ".wma", ".flac"],
+   *   document: [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".rtf", ".odt"],
+   *   archive: [".zip", ".rar", ".7z", ".tar", ".gz"]
+   * }
+   * ```
+   */
+  acceptedFileCategories: {
+    image: [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".svg"],
+    video: [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"],
+    audio: [".mp3", ".wav", ".aac", ".ogg", ".wma", ".flac"],
+    document: [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".rtf", ".odt"],
+    archive: [".zip", ".rar", ".7z", ".tar", ".gz"]
+  },
+  customFileCategoryName: "custom"
+};
+function getRenderedSize(val) {
+  if (typeof val == "string") {
+    if (!isNaN(Number(val))) {
+      return Number(val);
+    } else if (val.includes("px")) {
+      return parseFloat(val);
+    }
+  }
+  if (typeof val == "number") {
+    return val;
+  }
+  return void 0;
+}
+function getRenderedStyleSize(val) {
+  if (getRenderedSize(val) !== void 0) {
+    return void 0;
+  }
+  return val;
+}
+function mergeValues$1(src, dest) {
+  if (!dest || !src)
+    return;
+  if (typeof dest !== "object")
+    return;
+  for (var key in src) {
+    var value = src[key];
+    if (!Array.isArray(value) && value && typeof value === "object") {
+      if (!dest[key] || typeof dest[key] !== "object")
+        dest[key] = {};
+      mergeValues$1(value, dest[key]);
+    } else {
+      dest[key] = value;
+    }
+  }
+}
+function compareArrays(oldValue, newValue, getKey) {
+  const oldItemsMap = /* @__PURE__ */ new Map();
+  const newItemsMap = /* @__PURE__ */ new Map();
+  const commonItemsInNewMap = /* @__PURE__ */ new Map();
+  const commonItemsInOldMap = /* @__PURE__ */ new Map();
+  oldValue.forEach((item) => {
+    const itemKey = getKey(item);
+    if (!oldItemsMap.has(itemKey)) {
+      oldItemsMap.set(getKey(item), item);
+    } else {
+      throw new Error("keys must be unique");
+    }
+  });
+  newValue.forEach((item) => {
+    const itemKey = getKey(item);
+    if (!newItemsMap.has(itemKey)) {
+      newItemsMap.set(itemKey, item);
+    } else {
+      throw new Error("keys must be unique");
+    }
+  });
+  const addedItems = [];
+  const deletedItems = [];
+  newItemsMap.forEach((item, key) => {
+    if (!oldItemsMap.has(key)) {
+      addedItems.push(item);
+    } else {
+      commonItemsInNewMap.set(key, commonItemsInNewMap.size);
+    }
+  });
+  oldItemsMap.forEach((item, key) => {
+    if (!newItemsMap.has(key)) {
+      deletedItems.push(item);
+    } else {
+      commonItemsInOldMap.set(key, commonItemsInOldMap.size);
+    }
+  });
+  const reorderedItems = [];
+  commonItemsInNewMap.forEach((index, key) => {
+    const oldIndex = commonItemsInOldMap.get(key);
+    const item = newItemsMap.get(key);
+    if (oldIndex !== index)
+      reorderedItems.push({ item, movedForward: oldIndex < index });
+  });
+  const oldItemsWithCorrectOrder = new Array(oldValue.length);
+  let commonItemsIndex = 0;
+  const commonItemsKeysOrder = Array.from(commonItemsInNewMap.keys());
+  oldValue.forEach((item, index) => {
+    if (commonItemsInNewMap.has(getKey(item))) {
+      oldItemsWithCorrectOrder[index] = newItemsMap.get(commonItemsKeysOrder[commonItemsIndex]);
+      commonItemsIndex++;
+    } else {
+      oldItemsWithCorrectOrder[index] = item;
+    }
+  });
+  const valuesToInsertBeforeKey = /* @__PURE__ */ new Map();
+  let tempValuesArray = [];
+  oldItemsWithCorrectOrder.forEach((item) => {
+    const itemKey = getKey(item);
+    if (newItemsMap.has(itemKey)) {
+      if (tempValuesArray.length > 0) {
+        valuesToInsertBeforeKey.set(itemKey, tempValuesArray);
+        tempValuesArray = [];
+      }
+    } else {
+      tempValuesArray.push(item);
+    }
+  });
+  const mergedItems = new Array();
+  newItemsMap.forEach((item, key) => {
+    if (valuesToInsertBeforeKey.has(key)) {
+      valuesToInsertBeforeKey.get(key).forEach((item2) => {
+        mergedItems.push(item2);
+      });
+    }
+    mergedItems.push(item);
+  });
+  tempValuesArray.forEach((item) => {
+    mergedItems.push(item);
+  });
+  return { reorderedItems, deletedItems, addedItems, mergedItems };
+}
+function floorTo2Decimals(number2) {
+  return Math.floor(number2 * 100) / 100;
+}
+function mulberry32(seed) {
+  return function() {
+    var t2 = seed += 1831565813;
+    t2 = Math.imul(t2 ^ t2 >>> 15, t2 | 1);
+    t2 ^= t2 + Math.imul(t2 ^ t2 >>> 7, t2 | 61);
+    return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
+  };
+}
 function createDate(reason, val) {
   if (!val) {
     return settings.onDateCreated(/* @__PURE__ */ new Date(), reason, val);
@@ -66785,13 +67928,31 @@ class Helpers {
     return this.checkIfValuesEqual(x2, y, { ignoreOrder, caseSensitive, trimStrings });
   }
   static randomizeArray(array2, seed) {
-    array2.sort((a2, b2) => a2.uniqueId - b2.uniqueId);
-    const random2 = mulberry32(seed || Date.now());
-    for (var i = array2.length - 1; i > 0; i--) {
-      var j2 = Math.floor(random2() * (i + 1));
-      var temp = array2[i];
-      array2[i] = array2[j2];
-      array2[j2] = temp;
+    const shuffle = (array3) => {
+      array3.sort((a2, b2) => a2.uniqueId - b2.uniqueId);
+      const random2 = mulberry32(seed || Date.now());
+      for (var i = array3.length - 1; i > 0; i--) {
+        var j2 = Math.floor(random2() * (i + 1));
+        [array3[i], array3[j2]] = [array3[j2], array3[i]];
+      }
+    };
+    const categories = {};
+    for (let i = 0; i < array2.length; i++) {
+      const item = array2[i];
+      if (item.randomize === false)
+        continue;
+      const key = item.randomizeCategory || "";
+      if (!categories[key])
+        categories[key] = { indices: [], items: [] };
+      categories[key].indices.push(i);
+      categories[key].items.push(item);
+    }
+    for (const key in categories) {
+      const { indices, items } = categories[key];
+      shuffle(items);
+      for (let i = 0; i < indices.length; i++) {
+        array2[indices[i]] = items[i];
+      }
     }
     return array2;
   }
@@ -67128,6 +68289,16 @@ if (!String.prototype["format"]) {
     });
   };
 }
+function __decorate(decorators, target, key, desc) {
+  var c4 = arguments.length, r2 = c4 < 3 ? target : desc, d2;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r2 = Reflect.decorate(decorators, target, key, desc);
+  else for (var i = decorators.length - 1; i >= 0; i--) if (d2 = decorators[i]) r2 = (c4 < 3 ? d2(r2) : c4 > 3 ? d2(target, key, r2) : d2(target, key)) || r2;
+  return c4 > 3 && r2 && Object.defineProperty(target, key, r2), r2;
+}
+typeof SuppressedError === "function" ? SuppressedError : function(error3, suppressed, message) {
+  var e2 = new Error(message);
+  return e2.name = "SuppressedError", e2.error = error3, e2.suppressed = suppressed, e2;
+};
 var englishStrings = {
   pagePrevText: "Previous",
   pageNextText: "Next",
@@ -67376,129 +68547,627 @@ function getLocaleString(strName, locale = null) {
 }
 surveyLocalization.locales["en"] = englishStrings;
 surveyLocalization.localeNames["en"] = "english";
-function getLocalizablePropertyName(propertyName) {
-  return "loc" + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
-}
-function property(options2 = {}) {
-  return function(target, key) {
-    let processComputedUpdater = (obj, val) => {
-      if (!!val && typeof val === "object" && val.type === ComputedUpdater.ComputedUpdaterType) {
-        Base.startCollectDependencies(() => obj[key] = val.updater(), obj, key);
-        const result = val.updater();
-        const dependencies = Base.finishCollectDependencies();
-        val.setDependencies(dependencies);
-        if (obj.dependencies[key]) {
-          obj.dependencies[key].dispose();
-        }
-        obj.dependencies[key] = val;
-        return result;
-      }
-      return val;
-    };
-    if (!options2 || !options2.localizable) {
-      Object.defineProperty(target, key, {
-        get: function() {
-          let defaultVal = null;
-          let returnValue = void 0;
-          let calcFunc = void 0;
-          if (!!options2) {
-            returnValue = options2.returnValue;
-            if (options2.calcFunc) {
-              calcFunc = () => options2.calcFunc(this);
-            }
-            if (typeof options2.getDefaultValue === "function") {
-              defaultVal = options2.getDefaultValue(this);
-            }
-            if (options2.defaultValue !== void 0) {
-              defaultVal = options2.defaultValue;
-            }
-          }
-          const res = this.getPropertyValue(key, defaultVal, calcFunc);
-          return returnValue !== void 0 && res === void 0 ? returnValue : res;
-        },
-        set: function(val) {
-          let newValue = processComputedUpdater(this, val);
-          const prevValue = this.getPropertyValue(key);
-          if (!!options2) {
-            if (options2.isLowerCase) {
-              if (!newValue || typeof newValue !== "string")
-                return;
-              newValue = newValue.toLowerCase();
-            }
-            if (!!options2.onSetting) {
-              newValue = options2.onSetting(newValue, this, prevValue);
-            }
-          }
-          if (newValue !== prevValue) {
-            this.setPropertyValue(key, newValue);
-            if (!!options2 && options2.onSet) {
-              options2.onSet(newValue, this, prevValue);
-            }
-          }
-        }
-      });
-    } else {
-      const localizable = typeof options2.localizable === "object" ? options2.localizable : null;
-      const locName = localizable && !!localizable.name ? localizable.name : getLocalizablePropertyName(key);
-      const defaultStr = localizable && localizable.defaultStr ? localizable.defaultStr : false;
-      const supportsMarkdown = localizable && localizable.markdown === true;
-      Object.defineProperty(target, key, {
-        get: function() {
-          return this.getLocStringText(this[locName]);
-        },
-        set: function(val) {
-          val = processComputedUpdater(this, val);
-          this.setLocStringText(this[locName], val);
-          if (!!options2 && options2.onSet) {
-            options2.onSet(val, this);
-          }
-        }
-      });
-      Object.defineProperty(target, locName, {
-        get: function() {
-          return this.getOrCreateLocStr(key, supportsMarkdown, defaultStr, (locStr) => {
-            if (localizable && typeof localizable.onCreate === "function") {
-              localizable.onCreate(this, locStr);
-            }
-          });
-        }
-      });
+let Event$1 = class Event2 {
+  get isEmpty() {
+    return this.length === 0;
+  }
+  get length() {
+    return !!this.callbacks ? this.callbacks.length : 0;
+  }
+  fireByCreatingOptions(sender, createOptions) {
+    if (!this.callbacks)
+      return;
+    for (var i = 0; i < this.callbacks.length; i++) {
+      this.callbacks[i](sender, createOptions());
+      if (!this.callbacks)
+        return;
     }
-  };
+  }
+  fire(sender, options2) {
+    if (!this.callbacks)
+      return;
+    const callbacks = [].concat(this.callbacks);
+    for (var i = 0; i < callbacks.length; i++) {
+      callbacks[i](sender, options2);
+      if (!this.callbacks)
+        return;
+    }
+  }
+  clear() {
+    this.callbacks = void 0;
+  }
+  add(func) {
+    if (this.hasFunc(func))
+      return;
+    if (!this.callbacks) {
+      this.callbacks = new Array();
+    }
+    this.callbacks.push(func);
+    this.fireCallbackChanged();
+  }
+  remove(func) {
+    if (this.hasFunc(func)) {
+      var index = this.callbacks.indexOf(func, 0);
+      this.callbacks.splice(index, 1);
+      this.fireCallbackChanged();
+    }
+  }
+  hasFunc(func) {
+    if (this.callbacks == null)
+      return false;
+    return this.callbacks.indexOf(func, 0) > -1;
+  }
+  fireCallbackChanged() {
+    if (!!this.onCallbacksChanged) {
+      this.onCallbacksChanged();
+    }
+  }
+};
+class EventBase extends Event$1 {
 }
-function ensureArray(target, options2, key) {
-  target.ensureArray(key, (item, index) => {
-    const handler = !!options2 ? options2.onPush : null;
-    handler && handler(item, index, target);
-  }, (item, index) => {
-    const handler = !!options2 ? options2.onRemove : null;
-    handler && handler(item, index, target);
-  });
-}
-function propertyArray(options2) {
-  return function(target, key) {
-    Object.defineProperty(target, key, {
-      get: function() {
-        ensureArray(this, options2, key);
-        return this.getPropertyValue(key);
-      },
-      set: function(val) {
-        ensureArray(this, options2, key);
-        const arr2 = this.getPropertyValue(key);
-        if (val === arr2) {
-          return;
-        }
-        if (arr2) {
-          arr2.splice(0, arr2.length, ...val || []);
+class LocalizableString {
+  static get defaultLocale() {
+    return settings.localization.defaultLocaleName;
+  }
+  static set defaultLocale(val) {
+    settings.localization.defaultLocaleName = val;
+  }
+  get localizationName() {
+    return this._localizationName;
+  }
+  set localizationName(val) {
+    if (this._localizationName != val) {
+      this._localizationName = val;
+      this.strChanged();
+    }
+  }
+  get allowLineBreaks() {
+    var _a2, _b2, _c;
+    if (this._allowLineBreaks === void 0) {
+      this._allowLineBreaks = (_c = (_b2 = (_a2 = this.owner) === null || _a2 === void 0 ? void 0 : _a2.getAllowLineBreaks) === null || _b2 === void 0 ? void 0 : _b2.call(_a2, this.name)) !== null && _c !== void 0 ? _c : false;
+    }
+    return this._allowLineBreaks;
+  }
+  constructor(owner, useMarkdown = false, name, locName) {
+    this.owner = owner;
+    this.useMarkdown = useMarkdown;
+    this.name = name;
+    this.values = {};
+    this.htmlValues = {};
+    this.onStringChanged = new EventBase();
+    this._localizationName = locName;
+  }
+  getIsMultiple() {
+    return false;
+  }
+  getStringViewerClassName(textClass) {
+    if (textClass !== void 0)
+      return textClass;
+    return "sv-string-viewer" + (this.allowLineBreaks ? " sv-string-viewer--multiline" : "");
+  }
+  get locale() {
+    if (this.owner && this.owner.getLocale) {
+      const res = this.owner.getLocale();
+      if (!!res || !this.sharedData)
+        return res;
+    }
+    if (!!this.sharedData)
+      return this.sharedData.locale;
+    return "";
+  }
+  get isDefautlLocale() {
+    const loc = this.locale;
+    return !loc || loc === settings.defaultLocaleName;
+  }
+  strChanged() {
+    if (!this.isTextRequested)
+      return;
+    this.searchableText = void 0;
+    if (this.renderedText === void 0 && this.isEmpty && !this.onGetTextCallback && !this.localizationName)
+      return;
+    this.calculatedTextValue = this.calcText();
+    if (this.renderedText !== this.calculatedTextValue) {
+      this.renderedText = void 0;
+      this.calculatedTextValue = void 0;
+    }
+    this.htmlValues = {};
+    this.onChanged();
+    this.onStringChanged.fire(this, {});
+  }
+  get text() {
+    return this.pureText;
+  }
+  set text(value) {
+    this.setLocaleText(this.locale, value);
+  }
+  get calculatedText() {
+    this.renderedText = this.calculatedTextValue !== void 0 ? this.calculatedTextValue : this.calcText();
+    this.calculatedTextValue = void 0;
+    return this.renderedText;
+  }
+  getPlaceholder() {
+    let res = "";
+    if (!this.isDefautlLocale) {
+      const dialectLocale = this.getRootDialect(this.locale);
+      res = this.getLocaleText(dialectLocale || settings.defaultLocaleName);
+    }
+    if (!res && this.onGetTextCallback) {
+      res = this.onGetTextCallback("", "");
+    }
+    return res;
+  }
+  calcText() {
+    const pureText = this.pureText;
+    let res = pureText;
+    if (res && this.owner && this.owner.getProcessedText && res.indexOf("{") > -1) {
+      res = this.owner.getProcessedText(res);
+    }
+    if (this.onGetTextCallback)
+      res = this.onGetTextCallback(res, pureText);
+    return res;
+  }
+  get pureText() {
+    this.isTextRequested = true;
+    var loc = this.locale;
+    if (!loc)
+      loc = this.defaultLoc;
+    var res = this.getValue(loc);
+    if (this.isValueEmpty(res) && loc === this.defaultLoc) {
+      res = this.getValue(surveyLocalization.defaultLocale);
+    }
+    if (this.isValueEmpty(res)) {
+      const dialect = this.getRootDialect(loc);
+      if (!!dialect) {
+        res = this.getValue(dialect);
+      }
+    }
+    if (this.isValueEmpty(res) && loc !== this.defaultLoc) {
+      res = this.getValue(this.defaultLoc);
+    }
+    if (this.isValueEmpty(res) && !!this.getLocalizationName()) {
+      res = this.getLocalizationStr();
+    }
+    if (!res)
+      res = this.defaultValue || "";
+    return res;
+  }
+  getRootDialect(loc) {
+    if (!loc)
+      return loc;
+    const index = loc.indexOf("-");
+    return index > -1 ? loc.substring(0, index) : "";
+  }
+  getLocalizationName() {
+    return !!this.sharedData ? this.sharedData.localizationName : this.localizationName;
+  }
+  getLocalizationStr() {
+    const name = this.getLocalizationName();
+    return !!name ? getLocaleString(name, this.locale) : "";
+  }
+  get hasHtml() {
+    return this.hasHtmlValue();
+  }
+  get html() {
+    if (!this.hasHtml)
+      return "";
+    return this.getHtmlValue();
+  }
+  get isEmpty() {
+    return this.getValuesKeys().length == 0;
+  }
+  get textOrHtml() {
+    return this.hasHtml ? this.getHtmlValue() : this.calculatedText;
+  }
+  get renderedHtml() {
+    return this.textOrHtml;
+  }
+  getLocaleText(loc) {
+    const res = this.getLocaleTextCore(loc);
+    return res ? res : "";
+  }
+  getLocaleTextCore(loc) {
+    if (!loc)
+      loc = this.defaultLoc;
+    return this.getValue(loc);
+  }
+  isLocaleTextEqualsWithDefault(loc, val) {
+    let res = this.getLocaleTextCore(loc);
+    if (res === val)
+      return true;
+    return this.isValueEmpty(res) && this.isValueEmpty(val);
+  }
+  clear() {
+    this.setJson(void 0);
+  }
+  clearLocale(loc) {
+    this.setLocaleText(loc, void 0);
+  }
+  setLocaleText(loc, value) {
+    loc = this.getValueLoc(loc);
+    this.lastChangedLoc = loc;
+    if (!!loc && value === void 0) {
+      const oldValue2 = this.getValue(loc);
+      if (oldValue2 !== void 0) {
+        this.deleteValue(loc);
+        this.fireStrChanged(loc, oldValue2);
+      }
+      return;
+    }
+    if (!this.storeDefaultText && this.isLocaleTextEqualsWithDefault(loc, value)) {
+      if (!this.isValueEmpty(value) || !!loc && loc !== this.defaultLoc)
+        return;
+      let dl = surveyLocalization.defaultLocale;
+      let oldValue2 = this.getValue(dl);
+      if (!!dl && !this.isValueEmpty(oldValue2)) {
+        this.setValue(dl, value);
+        this.fireStrChanged(dl, oldValue2);
+      }
+      return;
+    }
+    if (!settings.localization.storeDuplicatedTranslations && !this.isValueEmpty(value) && loc && loc != this.defaultLoc && !this.getValue(loc) && value == this.getLocaleText(this.defaultLoc))
+      return;
+    var curLoc = this.curLocale;
+    if (!loc)
+      loc = this.defaultLoc;
+    var oldValue = this.onStrChanged && loc === curLoc ? this.pureText : void 0;
+    delete this.htmlValues[loc];
+    if (this.isValueEmpty(value)) {
+      this.deleteValue(loc);
+    } else {
+      if (typeof value === "string") {
+        if (this.canRemoveLocValue(loc, value)) {
+          this.setLocaleText(loc, null);
         } else {
-          this.setPropertyValue(key, val);
-        }
-        if (!!options2 && options2.onSet) {
-          options2.onSet(val, this);
+          this.setValue(loc, value);
+          if (loc == this.defaultLoc) {
+            this.deleteValuesEqualsToDefault(value);
+          }
         }
       }
-    });
-  };
+    }
+    this.fireStrChanged(loc, oldValue);
+  }
+  isValueEmpty(val) {
+    if (val === void 0 || val === null)
+      return true;
+    if (this.localizationName)
+      return false;
+    return val === "";
+  }
+  get curLocale() {
+    return !!this.locale ? this.locale : this.defaultLoc;
+  }
+  canRemoveLocValue(loc, val) {
+    if (settings.localization.storeDuplicatedTranslations)
+      return false;
+    if (loc === this.defaultLoc)
+      return false;
+    const dialect = this.getRootDialect(loc);
+    if (!!dialect) {
+      const dialectVal = this.getLocaleText(dialect);
+      if (!!dialectVal)
+        return dialectVal == val;
+      return this.canRemoveLocValue(dialect, val);
+    } else {
+      return val == this.getLocaleText(this.defaultLoc);
+    }
+  }
+  fireStrChanged(loc, oldValue) {
+    this.strChanged();
+    if (!this.onStrChanged)
+      return;
+    const value = this.pureText;
+    if (loc !== this.curLocale || oldValue !== value) {
+      this.onStrChanged(oldValue, value);
+    }
+  }
+  hasNonDefaultText() {
+    var keys = this.getValuesKeys();
+    if (keys.length == 0)
+      return false;
+    return keys.length > 1 || keys[0] != this.defaultLoc;
+  }
+  getLocales() {
+    var keys = this.getValuesKeys();
+    if (keys.length == 0)
+      return [];
+    return keys;
+  }
+  getJson(options2) {
+    if (!!this.sharedData)
+      return this.sharedData.getJson(options2);
+    const keys = this.getValuesKeys();
+    const selectedLocales = (options2 === null || options2 === void 0 ? void 0 : options2.locales) || [];
+    const hasSelected = selectedLocales.length > 0;
+    if (hasSelected) {
+      for (let i = keys.length - 1; i >= 0; i--) {
+        if (selectedLocales.indexOf(keys[i]) < 0) {
+          keys.splice(i, 1);
+        }
+      }
+    }
+    if (keys.length == 0) {
+      if (!hasSelected && this.serializeCallBackText) {
+        const text2 = this.calcText();
+        if (!!text2)
+          return text2;
+      }
+      return null;
+    }
+    if (keys.length == 1 && (hasSelected || keys[0] == settings.localization.defaultLocaleName) && !settings.serialization.localizableStringSerializeAsObject)
+      return this.values[keys[0]];
+    const res = {};
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      res[key] = this.values[key];
+    }
+    return res;
+  }
+  setJson(value, isLoading) {
+    if (!!this.sharedData) {
+      this.sharedData.setJson(value, isLoading);
+      return;
+    }
+    this.lastChangedLoc = void 0;
+    this.values = {};
+    this.htmlValues = {};
+    if (value === null || value === void 0)
+      return;
+    if (isLoading) {
+      if (typeof value === "string") {
+        this.values[settings.defaultLocaleName] = value;
+      } else {
+        this.values = value;
+        delete this.values["pos"];
+      }
+    } else {
+      if (typeof value === "string") {
+        this.setLocaleText(null, value);
+      } else {
+        for (var key in value) {
+          this.setLocaleText(key, value[key]);
+        }
+      }
+      this.strChanged();
+    }
+  }
+  mergeWith(locStr, locales) {
+    if (!!this.sharedData) {
+      this.sharedData.mergeWith(locStr);
+      return;
+    }
+    const str_locs = locStr.getLocales();
+    if (Array.isArray(locales) && locales.length === 1 && str_locs.length === 1 && str_locs[0] === this.defaultLoc) {
+      this.setLocaleText(locales[0], locStr.getLocaleText(this.defaultLoc));
+    } else {
+      locales = locales || str_locs;
+      for (let i = 0; i < locales.length; i++) {
+        const loc = locales[i];
+        const val = locStr.getLocaleText(loc);
+        this.setLocaleText(loc, val);
+      }
+    }
+  }
+  get renderAs() {
+    if (!this.owner || typeof this.owner.getRenderer !== "function") {
+      return LocalizableString.defaultRenderer;
+    }
+    return this.owner.getRenderer(this.name) || LocalizableString.defaultRenderer;
+  }
+  get renderAsData() {
+    if (!this.owner || typeof this.owner.getRendererContext !== "function") {
+      return this;
+    }
+    return this.owner.getRendererContext(this) || this;
+  }
+  equals(obj) {
+    if (!!this.sharedData)
+      return this.sharedData.equals(obj);
+    if (!obj || !obj.values)
+      return false;
+    return Helpers.isTwoValueEquals(this.values, obj.values, false, true, false);
+  }
+  setFindText(text2) {
+    if (this.searchText == text2)
+      return;
+    this.searchText = text2;
+    if (!this.searchableText) {
+      let textOrHtml = this.textOrHtml;
+      this.searchableText = !!textOrHtml ? textOrHtml.toLowerCase() : "";
+    }
+    var str = this.searchableText;
+    var index = !!str && !!text2 ? str.indexOf(text2) : void 0;
+    if (index < 0)
+      index = void 0;
+    if (index != void 0 || this.searchIndex != index) {
+      this.searchIndex = index;
+      if (!!this.onSearchChanged) {
+        this.onSearchChanged();
+      }
+    }
+    return this.searchIndex != void 0;
+  }
+  onChanged() {
+  }
+  hasHtmlValue() {
+    if (!this.owner || !this.useMarkdown)
+      return false;
+    let loc = this.locale;
+    if (!loc)
+      loc = this.defaultLoc;
+    if (this.htmlValues[loc] !== void 0)
+      return !!this.htmlValues[loc];
+    let renderedText = this.calculatedText;
+    if (!renderedText) {
+      this.setHtmlValue(loc, "");
+      return false;
+    }
+    if (!!this.getLocalizationName() && renderedText === this.getLocalizationStr()) {
+      this.setHtmlValue(loc, "");
+      return false;
+    }
+    const res = this.owner.getMarkdownHtml(renderedText, this.name);
+    this.setHtmlValue(loc, res);
+    return !!res;
+  }
+  setHtmlValue(loc, val) {
+    this.htmlValues[loc] = val;
+  }
+  getHtmlValue() {
+    var loc = this.locale;
+    if (!loc)
+      loc = this.defaultLoc;
+    return this.htmlValues[loc];
+  }
+  deleteValuesEqualsToDefault(defaultValue) {
+    if (settings.localization.storeDuplicatedTranslations)
+      return;
+    var keys = this.getValuesKeys();
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i] == this.defaultLoc)
+        continue;
+      if (this.getValue(keys[i]) == defaultValue) {
+        this.deleteValue(keys[i]);
+      }
+    }
+  }
+  getValue(loc) {
+    if (!!this.sharedData)
+      return this.sharedData.getValue(loc);
+    return this.values[this.getValueLoc(loc)];
+  }
+  setValue(loc, value) {
+    if (!!this.sharedData)
+      this.sharedData.setValue(loc, value);
+    else
+      this.values[this.getValueLoc(loc)] = value;
+  }
+  deleteValue(loc) {
+    if (!!this.sharedData)
+      this.sharedData.deleteValue(loc);
+    else
+      delete this.values[this.getValueLoc(loc)];
+  }
+  getValueLoc(loc) {
+    if (this.disableLocalization)
+      return settings.localization.defaultLocaleName;
+    return loc;
+  }
+  getValuesKeys() {
+    if (!!this.sharedData)
+      return this.sharedData.getValuesKeys();
+    return Object.keys(this.values);
+  }
+  get defaultLoc() {
+    return settings.localization.defaultLocaleName;
+  }
+}
+LocalizableString.SerializeAsObject = false;
+LocalizableString.defaultRenderer = "sv-string-viewer";
+LocalizableString.editableRenderer = "sv-string-editor";
+class LocalizableStrings {
+  constructor(owner) {
+    this.owner = owner;
+    this.values = {};
+  }
+  getIsMultiple() {
+    return true;
+  }
+  get locale() {
+    return this.owner && this.owner.getLocale ? this.owner.getLocale() : "";
+  }
+  get value() {
+    return this.getValue("");
+  }
+  set value(val) {
+    this.setValue("", val);
+  }
+  get text() {
+    return Array.isArray(this.value) ? this.value.join("\n") : "";
+  }
+  set text(val) {
+    this.value = !!val ? val.split("\n") : [];
+  }
+  getLocaleText(loc) {
+    var res = this.getValueCore(loc, !loc || loc === this.locale);
+    if (!res || !Array.isArray(res) || res.length == 0)
+      return "";
+    return res.join("\n");
+  }
+  setLocaleText(loc, newValue) {
+    var val = !!newValue ? newValue.split("\n") : null;
+    this.setValue(loc, val);
+  }
+  getValue(loc) {
+    return this.getValueCore(loc);
+  }
+  getValueCore(loc, useDefault = true) {
+    loc = this.getLocale(loc);
+    if (this.values[loc])
+      return this.values[loc];
+    if (useDefault) {
+      var defLoc = settings.localization.defaultLocaleName;
+      if (loc !== defLoc && this.values[defLoc])
+        return this.values[defLoc];
+    }
+    return [];
+  }
+  setValue(loc, val) {
+    loc = this.getLocale(loc);
+    const oldValue = Helpers.createCopy(this.values);
+    if (!val || val.length == 0) {
+      delete this.values[loc];
+    } else {
+      this.values[loc] = val;
+    }
+    if (!!this.onValueChanged) {
+      this.onValueChanged(oldValue, this.values);
+    }
+  }
+  hasValue(loc = "") {
+    return !this.isEmpty && this.getValue(loc).length > 0;
+  }
+  get isEmpty() {
+    return this.getValuesKeys().length == 0;
+  }
+  getLocale(loc) {
+    if (!!loc)
+      return loc;
+    loc = this.locale;
+    return !!loc ? loc : settings.localization.defaultLocaleName;
+  }
+  getLocales() {
+    var keys = this.getValuesKeys();
+    if (keys.length == 0)
+      return [];
+    return keys;
+  }
+  getJson() {
+    var keys = this.getValuesKeys();
+    if (keys.length == 0)
+      return null;
+    if (keys.length == 1 && keys[0] == settings.localization.defaultLocaleName && !settings.serialization.localizableStringSerializeAsObject)
+      return this.values[keys[0]];
+    return Helpers.createCopy(this.values);
+  }
+  setJson(value) {
+    this.values = {};
+    if (!value)
+      return;
+    if (Array.isArray(value)) {
+      this.setValue(null, value);
+    } else {
+      for (var key in value) {
+        this.setValue(key, value[key]);
+      }
+    }
+  }
+  getValuesKeys() {
+    return Object.keys(this.values);
+  }
+}
+function getLocalizablePropertyName$1(propertyName) {
+  return "loc" + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
 }
 class JsonObjectProperty {
   constructor(classInfo, name, isRequired = false) {
@@ -68235,7 +69904,7 @@ class JsonMetadataClass {
         prop.onSettingValue = propInfo.onSettingValue;
       }
       if (propInfo.isLocalizable && !propInfo.serializationProperty) {
-        propInfo.serializationProperty = getLocalizablePropertyName(prop.name);
+        propInfo.serializationProperty = getLocalizablePropertyName$1(prop.name);
       }
       if (propInfo.serializationProperty) {
         prop.serializationProperty = propInfo.serializationProperty;
@@ -69390,7 +71059,8 @@ class ValueGetter {
     if (!context2)
       return void 0;
     let path2 = this.getPath(name);
-    const isProperty = path2.length > 0 && path2[0].name[0] === "$";
+    const propPrefix = settings.expressionElementPropertyPrefix;
+    const isProperty = !!propPrefix && path2.length > 0 && path2[0].name[0] === propPrefix;
     if (isProperty) {
       path2[0].name = path2[0].name.substring(1);
     }
@@ -69622,7 +71292,7 @@ class ProcessValue {
       const cRes = this.getValueInfoByContext(valueInfo.name);
       if (cRes.isFound) {
         const obj = this.context.getObj ? this.context.getObj() : null;
-        if (!!obj && !!cRes.propObj && cRes.propObj instanceof Base) {
+        if (!!obj && !!cRes.propObj) {
           obj.addPropertyDependency(cRes.propObj, cRes.propName);
         }
       }
@@ -69632,6 +71302,75 @@ class ProcessValue {
       return;
     }
     return { hasValue: false };
+  }
+}
+var createExpressionExecutor;
+function setCreateExpressionExecutor(func) {
+  createExpressionExecutor = func;
+}
+class ExpressionRunnerBase {
+  constructor(expression) {
+    this.expression = expression;
+  }
+  get expression() {
+    return !!this.expressionExecutor ? this.expressionExecutor.expression : "";
+  }
+  set expression(value) {
+    if (!!this.expressionExecutor && value === this.expression)
+      return;
+    this.expressionExecutor = createExpressionExecutor(value);
+    this.expressionExecutor.onComplete = (res, id) => {
+      this.doOnComplete(res, id);
+    };
+    this.variables = void 0;
+    this.containsFunc = void 0;
+  }
+  getVariables() {
+    if (this.variables === void 0) {
+      this.variables = this.expressionExecutor.getVariables();
+    }
+    return this.variables;
+  }
+  hasFunction() {
+    if (this.containsFunc === void 0) {
+      this.containsFunc = this.expressionExecutor.hasFunction();
+    }
+    return this.containsFunc;
+  }
+  get isAsync() {
+    return this.expressionExecutor.isAsync;
+  }
+  canRun() {
+    return this.expressionExecutor.canRun();
+  }
+  runContextCore(context2, properties) {
+    const id = ExpressionRunnerBase.IdRunnerCounter++;
+    if (this.onBeforeAsyncRun && this.isAsync) {
+      this.onBeforeAsyncRun(id);
+    }
+    return this.expressionExecutor.runContext(context2, properties, id);
+  }
+  validate(context2, options2, isCondition) {
+    return this.expressionExecutor.validate(context2, isCondition, options2);
+  }
+  doOnComplete(res, id) {
+    if (this.onAfterAsyncRun && this.isAsync) {
+      this.onAfterAsyncRun(id);
+    }
+  }
+}
+ExpressionRunnerBase.IdRunnerCounter = 1;
+class ExpressionRunner extends ExpressionRunnerBase {
+  runValues(values, properties) {
+    return this.runContext(new VariableGetterContextEx(values, properties === null || properties === void 0 ? void 0 : properties.context), properties);
+  }
+  runContext(context2, properties) {
+    return this.runContextCore(context2, properties);
+  }
+  doOnComplete(res, id) {
+    if (!!this.onRunComplete)
+      this.onRunComplete(res);
+    super.doOnComplete(res, id);
   }
 }
 class ConsoleWarnings {
@@ -69647,6 +71386,35 @@ class ConsoleWarnings {
   }
   static error(text2) {
     console.error(text2);
+  }
+}
+var ExpressionErrorType;
+(function(ExpressionErrorType2) {
+  ExpressionErrorType2[ExpressionErrorType2["SyntaxError"] = 0] = "SyntaxError";
+  ExpressionErrorType2[ExpressionErrorType2["UnknownFunction"] = 1] = "UnknownFunction";
+  ExpressionErrorType2[ExpressionErrorType2["UnknownVariable"] = 2] = "UnknownVariable";
+  ExpressionErrorType2[ExpressionErrorType2["SemanticError"] = 3] = "SemanticError";
+})(ExpressionErrorType || (ExpressionErrorType = {}));
+function getQuestionErrorText(properties) {
+  if (!!properties) {
+    const question = properties["question"];
+    if (!!question && !!question.name) {
+      return " It is used in the question: '" + question.name + "'.";
+    }
+  }
+  return "";
+}
+class ConditionRunner extends ExpressionRunnerBase {
+  runValues(values, properties) {
+    return this.runContext(new VariableGetterContextEx(values, properties === null || properties === void 0 ? void 0 : properties.context), properties);
+  }
+  runContext(context2, properties) {
+    return this.runContextCore(context2, properties) == true;
+  }
+  doOnComplete(res, id) {
+    if (!!this.onRunComplete)
+      this.onRunComplete(res == true);
+    super.doOnComplete(res, id);
   }
 }
 class FunctionFactory {
@@ -69751,6 +71519,8 @@ class FunctionFactory {
       return;
     const surveyValues = properties.surveyCachedValues;
     const objectValues = properties.objsCachedValues;
+    if (!Array.isArray(surveyValues) || !Array.isArray(objectValues))
+      return;
     if (params.length === 0 && surveyValues.length === 0 && objectValues.length === 0)
       return;
     let cachedList = this.functionCache[funcInfo.name];
@@ -69818,7 +71588,7 @@ class FunctionFactory {
     return false;
   }
   getUnknownFunctionErrorText(name, properties) {
-    return "Unknown function name: '" + name + "'." + ExpressionExecutor.getQuestionErrorText(properties);
+    return "Unknown function name: '" + name + "'." + getQuestionErrorText(properties);
   }
 }
 FunctionFactory.Instance = new FunctionFactory();
@@ -70304,6 +72074,11294 @@ function getComment(params) {
   return question.getCommentValue(question.otherItem) || question.comment;
 }
 FunctionFactory.Instance.register("getComment", getComment);
+function expressionSurveyCachedValue(name, value, isVariable) {
+  FunctionFactory.Instance.addSurveyCachedValue(name, value, isVariable);
+}
+function expressionObjectCachedValue(obj, name, value) {
+  FunctionFactory.Instance.addObjectCachedValue(obj, name, value);
+}
+class Bindings {
+  constructor(obj) {
+    this.obj = obj;
+    this.properties = null;
+    this.values = null;
+  }
+  getType() {
+    return "bindings";
+  }
+  get isSurveyObj() {
+    return true;
+  }
+  getNames() {
+    var res = [];
+    this.fillProperties();
+    for (var i = 0; i < this.properties.length; i++) {
+      if (this.properties[i].isVisible("", this.obj)) {
+        res.push(this.properties[i].name);
+      }
+    }
+    return res;
+  }
+  getProperties() {
+    var res = [];
+    this.fillProperties();
+    for (var i = 0; i < this.properties.length; i++) {
+      res.push(this.properties[i]);
+    }
+    return res;
+  }
+  setBinding(propertyName, valueName) {
+    if (!this.values)
+      this.values = {};
+    const oldValue = this.getJson();
+    if (oldValue === valueName)
+      return;
+    if (!!valueName) {
+      this.values[propertyName] = valueName;
+    } else {
+      delete this.values[propertyName];
+      if (Object.keys(this.values).length == 0) {
+        this.values = null;
+      }
+    }
+    this.onChangedJSON(oldValue);
+  }
+  clearBinding(propertyName) {
+    this.setBinding(propertyName, "");
+  }
+  isEmpty() {
+    if (!this.values)
+      return true;
+    for (var key in this.values)
+      return false;
+    return true;
+  }
+  getValueNameByPropertyName(propertyName) {
+    if (!this.values)
+      return void 0;
+    return this.values[propertyName];
+  }
+  getPropertiesByValueName(valueName) {
+    if (!this.values)
+      return [];
+    var res = [];
+    for (var key in this.values) {
+      if (this.values[key] == valueName) {
+        res.push(key);
+      }
+    }
+    return res;
+  }
+  getJson() {
+    if (this.isEmpty())
+      return void 0;
+    const res = {};
+    this.getNames().forEach((key) => {
+      if (this.values[key] !== void 0) {
+        res[key] = this.values[key];
+      }
+    });
+    return res;
+  }
+  setJson(value, isLoading) {
+    const oldValue = this.getJson();
+    this.values = null;
+    if (!!value) {
+      this.getNames().forEach((key) => {
+        if (value[key] !== void 0) {
+          if (!this.values)
+            this.values = {};
+          this.values[key] = value[key];
+        }
+      });
+    }
+    if (!isLoading && !Helpers.isTwoValueEquals(oldValue, this.values)) {
+      this.onChangedJSON(oldValue);
+    }
+  }
+  fillProperties() {
+    if (this.properties !== null)
+      return;
+    this.properties = [];
+    var objProperties = Serializer.getPropertiesByObj(this.obj);
+    for (var i = 0; i < objProperties.length; i++) {
+      if (objProperties[i].isBindable) {
+        this.properties.push(objProperties[i]);
+      }
+    }
+  }
+  onChangedJSON(oldValue) {
+    if (this.obj) {
+      this.obj.onBindingChanged(oldValue, this.getJson());
+    }
+  }
+}
+class Dependencies {
+  constructor(currentDependency, target, property2) {
+    this.currentDependency = currentDependency;
+    this.target = target;
+    this.property = property2;
+    this.dependencies = [];
+    this.id = "" + ++Dependencies.DependenciesCount;
+  }
+  addDependency(target, property2) {
+    if (this.target === target && this.property === property2)
+      return;
+    if (this.dependencies.some((dependency) => dependency.obj === target && dependency.prop === property2))
+      return;
+    this.dependencies.push({
+      obj: target,
+      prop: property2,
+      id: this.id
+    });
+    target.registerPropertyChangedHandlers([property2], this.currentDependency, this.id);
+  }
+  dispose() {
+    this.dependencies.forEach((dependency) => {
+      dependency.obj.unregisterPropertyChangedHandlers([dependency.prop], dependency.id);
+    });
+  }
+}
+Dependencies.DependenciesCount = 0;
+class ComputedUpdater {
+  constructor(_updater) {
+    this._updater = _updater;
+    this.dependencies = void 0;
+    this.type = ComputedUpdater.ComputedUpdaterType;
+  }
+  get updater() {
+    return this._updater;
+  }
+  setDependencies(dependencies) {
+    this.clearDependencies();
+    this.dependencies = dependencies;
+  }
+  getDependencies() {
+    return this.dependencies;
+  }
+  clearDependencies() {
+    if (this.dependencies) {
+      this.dependencies.dispose();
+      this.dependencies = void 0;
+    }
+  }
+  dispose() {
+    this.clearDependencies();
+    this._updater = void 0;
+  }
+}
+ComputedUpdater.ComputedUpdaterType = "__dependency_computed";
+class Base {
+  static finishCollectDependencies() {
+    const deps = Base.currentDependencis;
+    Base.currentDependencis = void 0;
+    return deps;
+  }
+  static startCollectDependencies(updater, target, property2) {
+    if (Base.currentDependencis !== void 0) {
+      throw new Error("Attempt to collect nested dependencies. Nested dependencies are not supported.");
+    }
+    Base.currentDependencis = new Dependencies(updater, target, property2);
+  }
+  static collectDependency(target, property2) {
+    if (Base.currentDependencis === void 0)
+      return;
+    Base.currentDependencis.addDependency(target, property2);
+  }
+  static get commentSuffix() {
+    return settings.commentSuffix;
+  }
+  static set commentSuffix(val) {
+    settings.commentSuffix = val;
+  }
+  static get commentPrefix() {
+    return Base.commentSuffix;
+  }
+  static set commentPrefix(val) {
+    Base.commentSuffix = val;
+  }
+  /**
+   * Returns `true` if a passed `value` is an empty string, array, or object or if it equals to `undefined` or `null`.
+   *
+   * @param value A value to be checked.
+   * @param trimString *(Optional)* When this parameter is `true`, the method ignores whitespace characters at the beginning and end of a string value. Pass `false` to disable this functionality.
+   */
+  isValueEmpty(value, trimString = true) {
+    if (trimString) {
+      value = this.trimValue(value);
+    }
+    return Helpers.isValueEmpty(value);
+  }
+  equals(obj) {
+    if (!obj)
+      return false;
+    if (this.isDisposed || obj.isDisposed)
+      return false;
+    if (this.getType() != obj.getType())
+      return false;
+    return this.equalsCore(obj);
+  }
+  equalsCore(obj) {
+    if (this.name !== obj.name)
+      return false;
+    return Helpers.isTwoValueEquals(this.toJSON(), obj.toJSON(), false, true, false);
+  }
+  trimValue(value) {
+    if (!!value && (typeof value === "string" || value instanceof String))
+      return value.trim();
+    return value;
+  }
+  static createPropertiesHash() {
+    return {};
+  }
+  constructor() {
+    this.uniqueIdValue = Base.UniqueId++;
+    this.dependencies = {};
+    this.expressionDependencies = {};
+    this.propertyHash = Base.createPropertiesHash();
+    this.eventList = [];
+    this.isLoadingFromJsonValue = false;
+    this.loadingOwner = null;
+    this.onPropertyChanged = this.addEvent();
+    this.onNestedPropertyChanged = this.addEvent();
+    this.onItemValuePropertyChanged = this.addEvent();
+    this.isCreating = true;
+    this.animationAllowedLock = 0;
+    this.supportOnElementRerenderedEvent = true;
+    this.onElementRerenderedEventEnabled = false;
+    this._onElementRerendered = new EventBase();
+    CustomPropertiesCollection.createProperties(this);
+    this.onBaseCreating();
+    this.isCreating = false;
+  }
+  dispose() {
+    for (var i = 0; i < this.eventList.length; i++) {
+      this.eventList[i].clear();
+    }
+    this.onPropertyValueChangedCallback = void 0;
+    this.isDisposedValue = true;
+    Object.keys(this.dependencies).forEach((key) => this.dependencies[key].dispose());
+    Object.keys(this.expressionDependencies).forEach((key) => {
+      const item = this.expressionDependencies[key];
+      if (!item.obj.isDisposed) {
+        item.obj.unRegisterFunctionOnPropertyValueChanged(item.propertyName, key);
+      }
+    });
+    this.expressionDependencies = {};
+    Object.keys(this.propertyHash).forEach((key) => {
+      const propVal = this.getPropertyValueCore(this.propertyHash, key);
+      if (!!propVal && propVal.type == ComputedUpdater.ComputedUpdaterType) {
+        propVal.dispose();
+      }
+    });
+  }
+  get isDisposed() {
+    return this.isDisposedValue === true;
+  }
+  get uniqueId() {
+    return this.uniqueIdValue;
+  }
+  get isSurveyObj() {
+    return true;
+  }
+  addEvent(onCallbacksChanged) {
+    const res = new EventBase();
+    this.eventList.push(res);
+    res.onCallbacksChanged = onCallbacksChanged;
+    return res;
+  }
+  addAsyncEvent() {
+    const res = new EventAsync();
+    this.eventList.push(res);
+    return res;
+  }
+  onBaseCreating() {
+  }
+  /**
+   * Returns the object type as it is used in the JSON schema.
+   */
+  getType() {
+    return "base";
+  }
+  /**
+   * Returns the survey element that owns this element. Returns `undefined` if called on a `SurveyModel` instance.
+   * @returns The owner survey element, or `undefined` if none exists.
+   */
+  getOwner() {
+    return void 0;
+  }
+  /**
+   * Returns `true` if the survey element is a page.
+   *
+   * This property returns `false` for [`PageModel`](https://surveyjs.io/form-library/documentation/api-reference/page-model) objects in the following cases:
+   *
+   * - `SurveyModel`'s [`questionsOnPageMode`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#questionsOnPageMode) is set to `"singlePage"`.
+   * - The page is included in a [preview of given answers](https://surveyjs.io/form-library/documentation/design-survey/create-a-multi-page-survey#preview-page).
+   *
+   * In those cases, the survey creates an internal `PageModel` object to show all questions on one page, and all regular pages become panels.
+   */
+  get isPage() {
+    return false;
+  }
+  /**
+   * Returns `true` if the survey element is a panel or acts as one.
+   *
+   * This property returns `true` for `PageModel` objects in the following cases:
+   *
+   * - `SurveyModel`'s [`questionsOnPageMode`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#questionsOnPageMode) is set to `"singlePage"`.
+   * - The page is included in a [preview of given answers](https://surveyjs.io/form-library/documentation/design-survey/create-a-multi-page-survey#preview-page).
+   *
+   * In those cases, the survey creates an internal `PageModel` object to show all questions on one page, and all regular pages become panels.
+   */
+  get isPanel() {
+    return false;
+  }
+  /**
+   * Returns `true` if the survey element is a question.
+   */
+  get isQuestion() {
+    return false;
+  }
+  /**
+   * Returns `true` if the element is a survey.
+   */
+  get isSurvey() {
+    return false;
+  }
+  /**
+   * Use this method to find out if the current object is of a given `typeName` or inherited from it.
+   *
+   * @param typeName One of the values listed in the [getType()](https://surveyjs.io/form-library/documentation/question#getType) description.
+   * @returns `true` if the current object is of a given `typeName` or inherited from it.
+   * @see getType
+   */
+  isDescendantOf(typeName) {
+    return Serializer.isDescendantOf(this.getType(), typeName);
+  }
+  getSurvey(isLive = false) {
+    return null;
+  }
+  getValueGetterContext() {
+    const survey = this.getSurvey();
+    return !!survey ? survey.getValueGetterContext() : new VariableGetterContext({});
+  }
+  /**
+   * Returns `true` if the survey is being designed in Survey Creator.
+   */
+  get isDesignMode() {
+    const survey = this.getSurvey();
+    return !!survey && survey.isDesignMode;
+  }
+  /**
+   * Returns `true` if the object is included in a survey.
+   *
+   * This property may return `false`, for example, when you [create a survey model dynamically](https://surveyjs.io/form-library/documentation/design-survey-create-a-simple-survey#create-or-change-a-survey-model-dynamically).
+   */
+  get inSurvey() {
+    return !!this.getSurvey(true);
+  }
+  get bindings() {
+    if (!this.bindingsValue) {
+      this.bindingsValue = new Bindings(this);
+    }
+    return this.bindingsValue;
+  }
+  isBindingEmpty() {
+    return !this.bindingsValue || this.bindingsValue.isEmpty();
+  }
+  checkBindings(valueName, value) {
+  }
+  canUpdateBindings() {
+    return true;
+  }
+  updateBindings(propertyName, value) {
+    if (!this.bindingsValue || !this.canUpdateBindings())
+      return;
+    var valueName = this.bindings.getValueNameByPropertyName(propertyName);
+    if (!!valueName) {
+      this.updateBindingValue(valueName, value);
+    }
+  }
+  updateBindingValue(valueName, value) {
+  }
+  getTemplate() {
+    return this.getType();
+  }
+  /**
+   * Returns `true` if the object configuration is being loaded from JSON.
+   */
+  get isLoadingFromJson() {
+    return this.isLoadingFromJsonValue || this.getIsLoadingFromJson();
+  }
+  getIsLoadingFromJson() {
+    if (!!this.loadingOwner && this.loadingOwner.isLoadingFromJson)
+      return true;
+    return this.isLoadingFromJsonValue;
+  }
+  startLoadingFromJson(json) {
+    this.isLoadingFromJsonValue = true;
+    this.jsonObj = json;
+  }
+  endLoadingFromJson() {
+    this.isLoadingFromJsonValue = false;
+  }
+  mergeLocalizationObj(obj, locales) {
+    this.mergeLocalizationInObjectCore(obj, locales);
+    this.mergeLocalizationInArrays(obj, locales);
+    const orgObj = obj.getOriginalObj();
+    const org = this.getOriginalObj();
+    if (orgObj !== obj && org !== this) {
+      org.mergeLocalizationObj(orgObj, locales);
+    }
+  }
+  mergeLocalizationInObjectCore(obj, locales) {
+    if (!this.canMergeObj(obj))
+      return;
+    const locStrs = obj.localizableStrings;
+    if (!locStrs)
+      return;
+    for (const key in locStrs) {
+      const prop = this.getPropertyByName(key);
+      if (!!prop) {
+        const name = prop.serializationProperty || prop.name;
+        const locStr = this[name];
+        if (!!locStr) {
+          locStr.mergeWith(locStrs[key], locales);
+        }
+      }
+    }
+  }
+  canMergeObj(obj) {
+    if (!obj || typeof obj.mergeLocalizationObj !== "function")
+      return false;
+    const self2 = this;
+    if (obj["name"] && self2.name !== obj["name"])
+      return false;
+    return true;
+  }
+  mergeLocalizationInArrays(obj, locales) {
+    const arraysInfo = obj.arraysInfo;
+    if (!arraysInfo)
+      return;
+    for (const key in arraysInfo) {
+      const prop = this.getPropertyByName(key);
+      if (!!prop && prop.isArray) {
+        const src = obj[key];
+        const dest = this[key];
+        if (Array.isArray(src) && Array.isArray(dest)) {
+          for (let i = 0; i < Math.min(src.length, dest.length); i++) {
+            dest[i].mergeLocalizationObj(src[i], locales);
+          }
+        }
+      }
+    }
+  }
+  /**
+   * Returns a JSON schema that corresponds to the current survey element.
+   * @param options An [`ISaveToJSONOptions`](https://surveyjs.io/form-library/documentation/api-reference/isavetojsonoptions) object with configuration options.
+   * @returns A JSON schema of the survey element.
+   * @see fromJSON
+   */
+  toJSON(options2) {
+    return new JsonObject().toJsonObject(this, options2);
+  }
+  /**
+   * Returns a JSON schema that contains only locale strings and the minimal set of properties required to identify survey elements.
+   *
+   * This method is syntactic sugar for calling the [`toJSON()`](#toJSON) method with the `storeLocaleStrings` option set to `"stringsOnly"`.
+   *
+   * To apply a locale-strings-only schema to a survey model, call the [`mergeLocalizationJSON(json, locales)`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#mergeLocalizationJSON) method.
+   * @param locales *(Optional)* An array of locale identifiers to include in the JSON schema.
+   * @returns A locale-strings-only JSON schema.
+   */
+  getLocalizationJSON(locales) {
+    return this.toJSON({ storeLocaleStrings: "stringsOnly", locales });
+  }
+  /**
+   * Assigns a new JSON schema to the current survey element.
+   *
+   * The JSON schema should contain only serializable properties of this survey element. Event handlers and properties that do not belong to the survey element are ignored.
+   *
+   * @param json A JSON schema that you want to apply to the current survey element.
+   * @param options An object with configuration options.
+   * @param {boolean} options.validatePropertyValues Pass `true` if you want to validate property values. Use the [`jsonErrors`](#jsonErrors) array to access validation errors.
+   * @see toJSON
+   */
+  fromJSON(json, options2) {
+    new JsonObject().toObject(json, this, options2);
+    this.onSurveyLoad();
+  }
+  onSurveyLoad() {
+  }
+  /**
+   * Creates a new object that has the same type and properties as the current SurveyJS object.
+   */
+  clone() {
+    var clonedObj = Serializer.createClass(this.getType());
+    clonedObj.fromJSON(this.toJSON());
+    return clonedObj;
+  }
+  /**
+   * Returns a `JsonObjectProperty` object with metadata about a serializable property that belongs to the current SurveyJS object.
+   *
+   * If the property is not found, this method returns `null`.
+   * @param propName A property name.
+   */
+  getPropertyByName(propName) {
+    const type2 = this.getType();
+    if (!this.classMetaData || this.classMetaData.name !== type2) {
+      this.classMetaData = Serializer.findClass(type2);
+    }
+    return !!this.classMetaData ? this.classMetaData.findProperty(propName) : null;
+  }
+  isPropertyVisible(propName) {
+    const prop = this.getPropertyByName(propName);
+    return !!prop ? prop.isVisible("", this) : false;
+  }
+  static createProgressInfo() {
+    return {
+      questionCount: 0,
+      answeredQuestionCount: 0,
+      requiredQuestionCount: 0,
+      requiredAnsweredQuestionCount: 0
+    };
+  }
+  getProgressInfo() {
+    return Base.createProgressInfo();
+  }
+  localeChanged() {
+  }
+  locStrsChanged() {
+    if (!!this.arraysInfo) {
+      for (let key in this.arraysInfo) {
+        let item = this.arraysInfo[key];
+        if (item && item.isItemValues) {
+          var arr2 = this.getPropertyValue(key);
+          if (arr2 && !!Base.itemValueLocStrChanged)
+            Base.itemValueLocStrChanged(arr2);
+        }
+      }
+    }
+    if (!!this.localizableStrings) {
+      for (let key in this.localizableStrings) {
+        let item = this.getLocalizableString(key);
+        if (item)
+          item.strChanged();
+      }
+    }
+  }
+  getValueAsString(value) {
+    if (value === void 0 || value === null)
+      return "";
+    return typeof value === "object" ? JSON.stringify(value) : value.toString();
+  }
+  /**
+   * Returns the value of a property with a specified name.
+   *
+   * If the property is not found or does not have a value, this method returns either `undefined`, `defaultValue` specified in the property configuration, or a value passed as the `defaultValue` parameter.
+   *
+   * @param name A property name.
+   * @param defaultValue *(Optional)* A value to return if the property is not found or does not have a value.
+   */
+  getPropertyValue(name, defaultValue, calcFunc) {
+    const res = this.getPropertyValueWithoutDefault(name);
+    if (!!calcFunc && this.isDisposedValue) {
+      calcFunc = void 0;
+    }
+    if (!!calcFunc && Array.isArray(res) && res.length === 0 && res.isReset === true) {
+      delete res.isReset;
+      this.setArrayPropertyDirectly(name, calcFunc(), false);
+      return res;
+    }
+    if (this.isValueUndefined(res)) {
+      const locStr = this.localizableStrings ? this.localizableStrings[name] : void 0;
+      if (locStr)
+        return locStr.text;
+      if (!this.isValueUndefined(defaultValue))
+        return defaultValue;
+      if (!!calcFunc) {
+        const newVal = calcFunc();
+        if (newVal !== void 0) {
+          if (Array.isArray(newVal)) {
+            const array2 = this.createNewArray(name);
+            array2.splice(0, 0, ...newVal);
+            return array2;
+          } else {
+            this.setPropertyValueDirectly(name, newVal, true);
+            return newVal;
+          }
+        }
+      }
+      const propDefaultValue = this.getDefaultPropertyValue(name);
+      if (propDefaultValue !== void 0)
+        return propDefaultValue;
+    }
+    return res;
+  }
+  isValueUndefined(value) {
+    return Helpers.isValueUndefined(value);
+  }
+  getDefaultPropertyValue(name) {
+    const prop = this.getPropertyByName(name);
+    if (!prop || prop.isCustom && this.isCreating)
+      return void 0;
+    if (!!prop.defaultValueFunc)
+      return prop.defaultValueFunc(this);
+    const dValue = prop.getDefaultValue(this);
+    if (!this.isValueUndefined(dValue) && !Array.isArray(dValue))
+      return dValue;
+    const locStr = this.localizableStrings ? this.localizableStrings[name] : void 0;
+    if (locStr && locStr.localizationName)
+      return this.getLocalizationString(locStr.localizationName);
+    if (prop.type == "boolean" || prop.type == "switch")
+      return false;
+    if (prop.isCustom && !!prop.onGetValue)
+      return prop.onGetValue(this);
+    return void 0;
+  }
+  hasDefaultPropertyValue(name) {
+    return this.getDefaultPropertyValue(name) !== void 0;
+  }
+  resetPropertyValue(name) {
+    const locStr = this.localizableStrings ? this.localizableStrings[name] : void 0;
+    if (locStr) {
+      this.setLocalizableStringText(name, void 0);
+      locStr.clear();
+    } else {
+      this.setPropertyValue(name, void 0);
+    }
+  }
+  doNotSerializeEmptyProperty(prop) {
+    return this.isPropertyStoredInHash(prop.name);
+  }
+  isPropertyStoredInHash(name) {
+    return false;
+  }
+  getIsSerializablePropertyEmpty(prop) {
+    const orgObj = this.getOriginalByProperty(prop.name);
+    if (prop.isLocalizable && !prop.isMultipleText)
+      return !orgObj.getLocalizableString(prop.name);
+    if (orgObj === this && this.doNotSerializeEmptyProperty(prop))
+      return this.getPropertyValueWithoutDefault(prop.name) == void 0;
+    return false;
+  }
+  getOriginalObj() {
+    return this;
+  }
+  getOriginalByProperty(propName) {
+    const obj = this.getOriginalObj();
+    if (obj === this)
+      return this;
+    return !!obj.getPropertyByName(propName) ? obj : this;
+  }
+  getPropertyValueWithoutDefault(name) {
+    const res = this.getPropertyValueCore(this.propertyHash, name);
+    expressionObjectCachedValue(this, name, res);
+    return res;
+  }
+  getPropertyValueCore(propertiesHash, name) {
+    if (!this.isLoadingFromJson) {
+      Base.collectDependency(this, name);
+    }
+    if (this.getPropertyValueCoreHandler)
+      return this.getPropertyValueCoreHandler(propertiesHash, name);
+    else
+      return propertiesHash[name];
+  }
+  geValueFromHash() {
+    return this.propertyHash["value"];
+  }
+  setPropertyValueCore(propertiesHash, name, val, isCalcValue) {
+    let reportError2 = false;
+    if (this.setPropertyValueCoreHandler) {
+      reportError2 = this.isDisposedValue;
+      if (!reportError2) {
+        this.setPropertyValueCoreHandler(propertiesHash, name, val);
+      }
+    } else {
+      if (propertiesHash[name] !== val) {
+        propertiesHash[name] = val;
+        if (!isCalcValue && !!this.onPropertyValueCoreChanged) {
+          reportError2 = this.isDisposedValue;
+          if (!reportError2) {
+            this.onPropertyValueCoreChanged.fire(this, { name, newValue: val });
+          }
+        }
+      }
+    }
+    if (reportError2) {
+      ConsoleWarnings.disposedObjectChangedProperty(name, this.getType());
+    }
+  }
+  getItemValuesPropertyValue(name) {
+    let res = this.getPropertyValue(name);
+    if (!Array.isArray(res)) {
+      res = this.createItemValues(name);
+      this.setPropertyValueDirectly(name, res);
+    }
+    return res;
+  }
+  getArrayPropertyValue(name, onPush, onRemove) {
+    let res = this.getPropertyValue(name);
+    if (!Array.isArray(res)) {
+      res = this.createNewArray(name, onPush, onRemove);
+      this.setPropertyValueDirectly(name, res);
+    }
+    return res;
+  }
+  setArrayPropertyValue(name, val) {
+    const arr2 = this[name];
+    const arrayInfo = this.arraysInfo[name];
+    if (!arrayInfo || this.isTwoValueEquals(arr2, val))
+      return;
+    this.setArray(name, arr2, val, arrayInfo.isItemValues, arrayInfo.onPush);
+  }
+  get isEditingSurveyElement() {
+    var survey = this.getSurvey();
+    return !!survey && survey.isEditingSurveyElement;
+  }
+  iteratePropertiesHash(func) {
+    var keys = [];
+    for (var key in this.propertyHash) {
+      keys.push(key);
+    }
+    keys.forEach((key2) => func(this.propertyHash, key2));
+  }
+  /**
+   * Assigns a new value to a specified property.
+   * @param name A property name.
+   * @param val A new value for the property.
+   */
+  setPropertyValue(name, val) {
+    if (this.isDisposedValue)
+      return;
+    if (!this.isLoadingFromJson) {
+      const prop = this.getPropertyByName(name);
+      if (!!prop) {
+        val = prop.settingValue(this, val);
+      }
+    }
+    var oldValue = this.getPropertyValue(name);
+    if (oldValue && Array.isArray(oldValue) && !!this.arraysInfo && (!val || Array.isArray(val))) {
+      if (!this.isTwoValueEquals(oldValue, val)) {
+        this.setArrayPropertyDirectly(name, val);
+      } else if (val === void 0 && Array.isArray(oldValue)) {
+        oldValue.isReset = true;
+      }
+    } else {
+      if (val !== oldValue) {
+        this.setPropertyValueDirectly(name, val);
+        if (!this.isTwoValueEquals(oldValue, val)) {
+          this.propertyValueChanged(name, oldValue, val);
+        }
+      }
+    }
+  }
+  setArrayPropertyDirectly(name, val, sendNotification = true) {
+    var arrayInfo = this.arraysInfo[name];
+    this.setArray(name, this.getPropertyValue(name), val, arrayInfo ? arrayInfo.isItemValues : false, arrayInfo ? sendNotification && arrayInfo.onPush : null);
+  }
+  setPropertyValueDirectly(name, val, isCalcValue) {
+    this.setPropertyValueCore(this.propertyHash, name, val, isCalcValue);
+  }
+  clearPropertyValue(name) {
+    this.setPropertyValueCore(this.propertyHash, name, null);
+    delete this.propertyHash[name];
+  }
+  onPropertyValueChangedCallback(name, oldValue, newValue, sender, arrayChanges) {
+  }
+  itemValuePropertyChanged(item, name, oldValue, newValue) {
+    this.onItemValuePropertyChanged.fire(this, {
+      obj: item,
+      name,
+      oldValue,
+      newValue,
+      propertyName: item.ownerPropertyName
+    });
+  }
+  executeOnSyncPropertiesChanged(func) {
+    if (!this.isFuncExecuting) {
+      this.isFuncExecuting = true;
+      func();
+      this.isFuncExecuting = false;
+    }
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+  }
+  propertyValueChanged(name, oldValue, newValue, arrayChanges, target) {
+    if (this.isLoadingFromJson)
+      return;
+    this.updateBindings(name, newValue);
+    this.onPropertyValueChanged(name, oldValue, newValue);
+    this.onPropertyChanged.fire(this, {
+      name,
+      oldValue,
+      newValue,
+      arrayChanges,
+      target
+    });
+    this.doPropertyValueChangedCallback(name, oldValue, newValue, arrayChanges, this);
+    this.checkConditionPropertyChanged(name);
+    if (!this.onPropChangeFunctions)
+      return;
+    for (var i = 0; i < this.onPropChangeFunctions.length; i++) {
+      if (this.onPropChangeFunctions[i].name == name)
+        this.onPropChangeFunctions[i].func(newValue, arrayChanges);
+    }
+  }
+  onBindingChanged(oldValue, newValue) {
+    if (this.isLoadingFromJson)
+      return;
+    this.doPropertyValueChangedCallback("bindings", oldValue, newValue);
+  }
+  get isInternal() {
+    return false;
+  }
+  doPropertyValueChangedCallback(name, oldValue, newValue, arrayChanges, target) {
+    const fireCallback = (obj) => {
+      if (!!obj && !!obj.onPropertyValueChangedCallback) {
+        obj.onPropertyValueChangedCallback(name, oldValue, newValue, target, arrayChanges);
+      }
+    };
+    if (this.isInternal) {
+      fireCallback(this);
+      return;
+    }
+    if (!target)
+      target = this;
+    var notifier = this.getSurvey();
+    if (!notifier)
+      notifier = this;
+    fireCallback(notifier);
+    if (notifier !== this) {
+      fireCallback(this);
+    }
+  }
+  addExpressionProperty(name, onExecute, canRun) {
+    if (!this.expressionInfo) {
+      this.expressionInfo = {};
+    }
+    this.expressionInfo[name] = { onExecute, canRun };
+  }
+  validateExpression(name, expression, options2) {
+    if (!expression)
+      return;
+    const prop = this.getPropertyByName(name);
+    const isCondition = !!prop && prop.type == "condition";
+    const runner = this.createExpressionRunner(expression);
+    const errors = runner.validate(this.getValueGetterContext(), options2, isCondition);
+    return errors.length ? { obj: this, propertyName: name, errors } : void 0;
+  }
+  /**
+   * Validates expressions used in the survey.
+   *
+   * This method detects the following types of errors:
+   *
+   * - Unknown variable\
+   * The expression references an undefined variable or an unknown question, panel, or page name.
+   *
+   * - Unknown function\
+   * The expression references an unregistered function.
+   *
+   * - Semantic error\
+   * The expression is syntactically valid but has no meaningful effect because it always evaluates to the same value.
+   *
+   * - Syntax error\
+   * The expression contains invalid syntax, such as unmatched parentheses, missing operands, or invalid operators.
+   *
+   * You can disable checks for unknown variables, unknown functions, and semantic errors by passing an `options` object with the `variables`, `functions`, or `semantics` property set to `false`. Syntax errors are always validated.
+   *
+   * ```js
+   * // ...
+   * // Omitted: `SurveyModel` creation
+   * // ...
+   *
+   * // Validate syntax errors only
+   * const res = survey.validateExpressions({
+   *   variables: false,
+   *   functions: false,
+   *   semantics: false
+   * });
+   * ```
+   * @param options Configuration options that control which validation checks are performed.
+   * @param {boolean} options.variables Pass `false` to disable validation of unknown variables.
+   * @param {boolean} options.functions Pass `false` to disable validation of unknown functions.
+   * @param {boolean} options.semantics Pass `false` to disable validation of semantic errors.
+   * @returns An [`IExpressionValidationResult`](https://surveyjs.io/form-library/documentation/api-reference/IExpressionValidationResult) array.
+   */
+  validateExpressions(options2 = { functions: true, variables: true, semantics: true }) {
+    const result = [];
+    Serializer.getPropertiesByObj(this).forEach((prop) => {
+      if (prop.isExpression) {
+        const errors = this.validateExpression(prop.name, this[prop.name], options2);
+        if (errors) {
+          result.push(errors);
+        }
+      }
+    });
+    for (let child of this.getAllChildren()) {
+      const errors = child.validateExpressions(options2);
+      if (errors && errors.length > 0) {
+        result.push(...errors);
+      }
+    }
+    return result;
+  }
+  getAllChildren() {
+    return [];
+  }
+  getDataFilteredProperties() {
+    return {};
+  }
+  runConditionCore(properties) {
+    if (!this.expressionInfo)
+      return;
+    for (var key in this.expressionInfo) {
+      this.runConditionItemCore(key, properties);
+    }
+  }
+  canRunConditions() {
+    return !this.isDesignMode;
+  }
+  checkConditionPropertyChanged(propName) {
+    if (!this.expressionInfo || !this.expressionInfo[propName])
+      return;
+    if (!this.canRunConditions())
+      return;
+    this.runConditionItemCore(propName, this.getDataFilteredProperties());
+  }
+  runConditionItemCore(propName, properties) {
+    const info = this.expressionInfo[propName];
+    const expression = this.getPropertyValue(propName);
+    if (!expression)
+      return;
+    if (!!info.canRun && !info.canRun(this))
+      return;
+    this.runExpressionByProperty(propName, properties, (res) => {
+      info.onExecute(this, res);
+    });
+  }
+  doBeforeAsynRun(id) {
+    if (!this.asynExpressionHash)
+      this.asynExpressionHash = {};
+    const isChanged = !this.isAsyncExpressionRunning;
+    this.asynExpressionHash[id] = true;
+    if (isChanged) {
+      this.onAsyncRunningChanged();
+    }
+  }
+  doAfterAsynRun(id) {
+    if (!!this.asynExpressionHash) {
+      delete this.asynExpressionHash[id];
+      if (!this.isAsyncExpressionRunning) {
+        this.onAsyncRunningChanged();
+      }
+    }
+  }
+  onAsyncRunningChanged() {
+  }
+  get isAsyncExpressionRunning() {
+    return !!this.asynExpressionHash && Object.keys(this.asynExpressionHash).length > 0;
+  }
+  createExpressionRunner(expression) {
+    const res = new ExpressionRunner(expression);
+    res.onBeforeAsyncRun = (id) => {
+      this.doBeforeAsynRun(id);
+    };
+    res.onAfterAsyncRun = (id) => {
+      this.doAfterAsynRun(id);
+    };
+    return res;
+  }
+  getExpressionFromSurvey(propName) {
+    let expression = this[propName];
+    if (!expression)
+      return "";
+    const survey = this.getSurvey();
+    return !!survey ? survey.beforeExpressionRunning(this, propName, expression) : expression;
+  }
+  runExpressionByProperty(propName, properties, onExecute, canRun) {
+    if (!this[propName])
+      return false;
+    const expression = this.getExpressionFromSurvey(propName);
+    if (!!expression) {
+      const info = this.getExpressionInfoByProperty(propName, expression);
+      const runner = info.runner;
+      if (!info.isRunning && (!canRun || canRun(runner))) {
+        info.isRunning = true;
+        runner.onRunComplete = (value) => {
+          onExecute(value);
+          info.isRunning = false;
+        };
+        runner.runContext(this.getValueGetterContext(), this.getPropertiesCopy(properties, propName));
+      }
+    }
+    return true;
+  }
+  getPropertiesCopy(properties, propName) {
+    const copy2 = {};
+    for (const key in properties) {
+      copy2[key] = properties[key];
+    }
+    if (propName) {
+      copy2.propertyName = propName;
+    }
+    return copy2;
+  }
+  getExpressionByProperty(propName) {
+    const expression = this.getExpressionFromSurvey(propName);
+    if (!expression)
+      return null;
+    return this.getExpressionInfoByProperty(propName, expression).runner;
+  }
+  getExpressionInfoByProperty(propName, expression) {
+    if (!this.runExpressionHash) {
+      this.runExpressionHash = {};
+    }
+    let info = this.runExpressionHash[propName];
+    if (!info) {
+      info = { runner: this.createExpressionRunner(expression) };
+      this.runExpressionHash[propName] = info;
+    } else {
+      info.runner.expression = expression;
+    }
+    return info;
+  }
+  /**
+   * Registers a single value change handler for one or multiple properties.
+   *
+   * The `registerPropertyChangedHandlers` and [`unregisterPropertyChangedHandlers`](#unregisterPropertyChangedHandlers) methods allow you to manage property change event handlers dynamically. If you only need to attach an event handler without removing it afterwards, you can use the [`onPropertyChanged`](#onPropertyChanged) event instead.
+   * @param propertyNames An array of one or multiple property names.
+   * @param handler A function to call when one of the listed properties change. Accepts a new property value as an argument.
+   * @param key *(Optional)* A key that identifies the current registration. If a function for one of the properties is already registered with the same key, the function will be overwritten. You can also use the key to subsequently unregister handlers.
+   * @see unregisterPropertyChangedHandlers
+   */
+  registerPropertyChangedHandlers(propertyNames, handler, key = null) {
+    for (var i = 0; i < propertyNames.length; i++) {
+      this.registerFunctionOnPropertyValueChanged(propertyNames[i], handler, key);
+    }
+  }
+  /**
+   * Unregisters value change event handlers for the specified properties.
+   * @param propertyNames An array of one or multiple property names.
+   * @param key *(Optional)* A key of the registration that you want to cancel.
+   * @see registerPropertyChangedHandlers
+   */
+  unregisterPropertyChangedHandlers(propertyNames, key = null) {
+    for (var i = 0; i < propertyNames.length; i++) {
+      this.unRegisterFunctionOnPropertyValueChanged(propertyNames[i], key);
+    }
+  }
+  registerFunctionOnPropertyValueChanged(name, func, key = null) {
+    if (!this.onPropChangeFunctions) {
+      this.onPropChangeFunctions = [];
+    }
+    if (key) {
+      for (var i = 0; i < this.onPropChangeFunctions.length; i++) {
+        var item = this.onPropChangeFunctions[i];
+        if (item.name == name && item.key == key) {
+          item.func = func;
+          return;
+        }
+      }
+    }
+    this.onPropChangeFunctions.push({ name, func, key });
+  }
+  registerFunctionOnPropertiesValueChanged(names, func, key = null) {
+    this.registerPropertyChangedHandlers(names, func, key);
+  }
+  unRegisterFunctionOnPropertyValueChanged(name, key = null) {
+    if (!this.onPropChangeFunctions)
+      return;
+    for (var i = 0; i < this.onPropChangeFunctions.length; i++) {
+      var item = this.onPropChangeFunctions[i];
+      if (item.name == name && item.key == key) {
+        return this.onPropChangeFunctions.splice(i, 1);
+      }
+    }
+  }
+  unRegisterFunctionOnPropertiesValueChanged(names, key = null) {
+    this.unregisterPropertyChangedHandlers(names, key);
+  }
+  addPropertyDependency(obj, propertyName) {
+    if (!obj || !propertyName || !(obj instanceof Base))
+      return;
+    const id = this.uniqueId + "_" + propertyName;
+    if (!this.expressionDependencies[id]) {
+      obj.registerFunctionOnPropertyValueChanged(propertyName, () => {
+        this.onDependencyValueChanged(obj, propertyName);
+      }, id);
+      this.expressionDependencies[id] = { obj, propertyName };
+    }
+  }
+  onDependencyValueChanged(obj, propertyName) {
+    this.runConditionCore(this.getDataFilteredProperties());
+    this.locStrsChanged();
+  }
+  createCustomLocalizableObj(name) {
+    const locStr = this.getLocalizableString(name);
+    if (locStr)
+      return locStr;
+    return this.createLocalizableString(name, this, false, true);
+  }
+  getLocale() {
+    const locOwner = this.getSurvey();
+    return !!locOwner ? locOwner.getLocale() : "";
+  }
+  getLocalizationString(strName) {
+    return getLocaleString(strName, this.getLocale());
+  }
+  getLocalizationFormatString(strName, ...args) {
+    const str = this.getLocalizationString(strName);
+    if (!str || !str.format)
+      return "";
+    return str.format(...args);
+  }
+  createLocString(params) {
+    if (params.hasTranslation && !params.translationKey) {
+      params.translationKey = params.name;
+    }
+    return this.createLocalizableString(params.name, params.owner, params.supportsMarkdown, params.translationKey);
+  }
+  createLocalizableString(name, owner, supportsMarkdown = false, defaultStr = false) {
+    if (!owner) {
+      owner = this;
+    }
+    let locName = void 0;
+    if (defaultStr) {
+      locName = defaultStr === true ? name : defaultStr;
+    }
+    const locStr = this.createLocalizableStringCore(owner, name, supportsMarkdown, locName);
+    const prop = this.getPropertyByName(name);
+    locStr.disableLocalization = prop && prop.isLocalizable === false;
+    return locStr;
+  }
+  createLocalizableStringCore(owner, name, supportsMarkdown, locName) {
+    const locStr = new LocalizableString(owner, supportsMarkdown, name, locName);
+    if (!!name) {
+      locStr.onStrChanged = (oldValue, newValue) => {
+        this.propertyValueChanged(name, oldValue, newValue);
+      };
+    }
+    if (!this.localizableStrings) {
+      this.localizableStrings = {};
+    }
+    this.localizableStrings[name] = locStr;
+    return locStr;
+  }
+  removeLocalizableString(name) {
+    if (this.localizableStrings) {
+      delete this.localizableStrings[name];
+    }
+  }
+  getLocalizableString(name) {
+    const ls = this.localizableStrings;
+    return !!ls ? ls[name] : null;
+  }
+  getOrCreateLocStr(name, supportsMarkdown = false, defaultStr = false, onCreate) {
+    let locStr = this.getLocalizableString(name);
+    if (!locStr) {
+      locStr = this.createLocalizableString(name, void 0, supportsMarkdown, defaultStr);
+      if (onCreate) {
+        onCreate(locStr);
+      }
+    }
+    return locStr;
+  }
+  locStrChanged(name) {
+    const locStr = this.getLocalizableString(name);
+    if (locStr) {
+      locStr.strChanged();
+    }
+  }
+  isLocStrEmpty(name) {
+    const locStr = this.getLocalizableString(name);
+    return !locStr || locStr.isEmpty;
+  }
+  getLocalizableStringText(name, defaultStr = "") {
+    return this.getLocStringText(this.getLocalizableString(name), defaultStr);
+  }
+  setLocalizableStringText(name, value) {
+    this.setLocStringText(this.getLocalizableString(name), value);
+  }
+  getLocStringText(locStr, defaultStr = "") {
+    if (!!(locStr === null || locStr === void 0 ? void 0 : locStr.name)) {
+      Base.collectDependency(this, locStr.name);
+    }
+    return (locStr === null || locStr === void 0 ? void 0 : locStr.text) || defaultStr;
+  }
+  setLocStringText(locStr, value) {
+    if (!locStr)
+      return;
+    let oldValue = locStr.text;
+    if (oldValue != value) {
+      locStr.text = value;
+    }
+  }
+  addUsedLocales(locales) {
+    if (!!this.localizableStrings) {
+      for (let key in this.localizableStrings) {
+        let item = this.getLocalizableString(key);
+        if (item)
+          this.addLocStringToUsedLocales(item, locales);
+      }
+    }
+    if (!!this.arraysInfo) {
+      for (let key in this.arraysInfo) {
+        const prop = this.getPropertyByName(key);
+        if (!prop || !prop.isPropertySerializable(this))
+          continue;
+        let items = this.getPropertyValue(key);
+        if (!items || !items.length)
+          continue;
+        for (let i = 0; i < items.length; i++) {
+          let item = items[i];
+          if (item && item.addUsedLocales) {
+            item.addUsedLocales(locales);
+          }
+        }
+      }
+    }
+  }
+  searchText(text2, founded) {
+    var strs = [];
+    this.getSearchableLocalizedStrings(strs);
+    for (var i = 0; i < strs.length; i++) {
+      if (strs[i].setFindText(text2)) {
+        founded.push({ element: this, str: strs[i] });
+      }
+    }
+  }
+  getSearchableLocalizedStrings(arr2) {
+    if (!!this.localizableStrings) {
+      let keys2 = [];
+      this.getSearchableLocKeys(keys2);
+      for (var i = 0; i < keys2.length; i++) {
+        let item = this.getLocalizableString(keys2[i]);
+        if (item)
+          arr2.push(item);
+      }
+    }
+    if (!this.arraysInfo)
+      return;
+    let keys = [];
+    this.getSearchableItemValueKeys(keys);
+    for (var i = 0; i < keys.length; i++) {
+      var items = this.getPropertyValue(keys[i]);
+      if (!items)
+        continue;
+      for (var j2 = 0; j2 < items.length; j2++) {
+        arr2.push(items[j2].locText);
+      }
+    }
+  }
+  getSearchableLocKeys(keys) {
+  }
+  getSearchableItemValueKeys(keys) {
+  }
+  addLocStringToUsedLocales(locStr, locales) {
+    var locs = locStr.getLocales();
+    for (var i = 0; i < locs.length; i++) {
+      if (locales.indexOf(locs[i]) < 0) {
+        locales.push(locs[i]);
+      }
+    }
+  }
+  createItemValues(name) {
+    var self2 = this;
+    var result = this.createNewArray(name, function(item) {
+      item.locOwner = self2;
+      item.ownerPropertyName = name;
+      if (typeof item.getSurvey == "function") {
+        const survey = item.getSurvey();
+        if (!!survey && typeof survey.makeReactive == "function") {
+          survey.makeReactive(item);
+        }
+      }
+    });
+    this.arraysInfo[name].isItemValues = true;
+    return result;
+  }
+  addOnArrayChangedCallback(callback) {
+    if (!this.onArrayChanged) {
+      this.onArrayChanged = new EventBase();
+    }
+    this.onArrayChanged.add(callback);
+  }
+  removeOnArrayChangedCallback(callback) {
+    if (!!this.onArrayChanged) {
+      this.onArrayChanged.remove(callback);
+      if (this.onArrayChanged.isEmpty) {
+        this.onArrayChanged = void 0;
+      }
+    }
+  }
+  notifyArrayChanged(name, ar, arrayChanges) {
+    !!this.onArrayChanged && this.onArrayChanged.fire(this, { arrayChanges, name, newValue: ar, valueFromHash: this.propertyHash[name] });
+  }
+  addOnPropertyValueChangedCallback(callback) {
+    if (!this.onPropertyValueCoreChanged) {
+      this.onPropertyValueCoreChanged = new EventBase();
+    }
+    this.onPropertyValueCoreChanged.add(callback);
+  }
+  removeOnPropertyValueChangedCallback(callback) {
+    if (!!this.onPropertyValueCoreChanged) {
+      this.onPropertyValueCoreChanged.remove(callback);
+      if (this.onPropertyValueCoreChanged.isEmpty) {
+        this.onPropertyValueCoreChanged = void 0;
+      }
+    }
+  }
+  get hasActiveUISubscribers() {
+    return !!this.onPropertyValueCoreChanged;
+  }
+  createNewArrayCore(name) {
+    var res = null;
+    if (!!this.createArrayCoreHandler) {
+      res = this.createArrayCoreHandler(this.propertyHash, name);
+    }
+    if (!res) {
+      res = new Array();
+      this.setPropertyValueCore(this.propertyHash, name, res);
+    }
+    return res;
+  }
+  ensureArray(name, onPush = null, onRemove = null) {
+    if (this.arraysInfo && this.arraysInfo[name]) {
+      return;
+    }
+    return this.createNewArray(name, onPush, onRemove);
+  }
+  createNewArray(name, onPush = null, onRemove = null) {
+    var newArray = this.createNewArrayCore(name);
+    if (!this.arraysInfo) {
+      this.arraysInfo = {};
+    }
+    this.arraysInfo[name] = { onPush, isItemValues: false };
+    var self2 = this;
+    newArray.push = function(value) {
+      var result = Object.getPrototypeOf(newArray).push.call(newArray, value);
+      if (!self2.isDisposedValue) {
+        if (onPush)
+          onPush(value, newArray.length - 1);
+        const arrayChanges = new ArrayChanges(newArray.length - 1, 0, [value], []);
+        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
+        self2.notifyArrayChanged(name, newArray, arrayChanges);
+      }
+      return result;
+    };
+    newArray.shift = function() {
+      var result = Object.getPrototypeOf(newArray).shift.call(newArray);
+      if (!self2.isDisposedValue && result) {
+        if (onRemove)
+          onRemove(result);
+        const arrayChanges = new ArrayChanges(newArray.length - 1, 1, [], []);
+        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
+        self2.notifyArrayChanged(name, newArray, arrayChanges);
+      }
+      return result;
+    };
+    newArray.unshift = function(value) {
+      var result = Object.getPrototypeOf(newArray).unshift.call(newArray, value);
+      if (!self2.isDisposedValue) {
+        if (onPush)
+          onPush(value, newArray.length - 1);
+        const arrayChanges = new ArrayChanges(0, 0, [value], []);
+        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
+        self2.notifyArrayChanged(name, newArray, arrayChanges);
+      }
+      return result;
+    };
+    newArray.pop = function() {
+      var result = Object.getPrototypeOf(newArray).pop.call(newArray);
+      if (!self2.isDisposedValue) {
+        if (onRemove)
+          onRemove(result);
+        const arrayChanges = new ArrayChanges(newArray.length - 1, 1, [], []);
+        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
+        self2.notifyArrayChanged(name, newArray, arrayChanges);
+      }
+      return result;
+    };
+    newArray.splice = function(start, deleteCount, ...items) {
+      if (!start)
+        start = 0;
+      if (!deleteCount)
+        deleteCount = 0;
+      var result = Object.getPrototypeOf(newArray).splice.call(newArray, start, deleteCount, ...items);
+      if (!items)
+        items = [];
+      if (!self2.isDisposedValue) {
+        if (onRemove && result) {
+          for (var i = 0; i < result.length; i++) {
+            onRemove(result[i]);
+          }
+        }
+        if (onPush) {
+          for (var i = 0; i < items.length; i++) {
+            onPush(items[i], start + i);
+          }
+        }
+        const arrayChanges = new ArrayChanges(start, deleteCount, items, result);
+        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
+        self2.notifyArrayChanged(name, newArray, arrayChanges);
+      }
+      return result;
+    };
+    return newArray;
+  }
+  getItemValueType() {
+    return void 0;
+  }
+  setArray(name, dest, src, isItemValues, onPush) {
+    var deletedItems = [].concat(dest);
+    Object.getPrototypeOf(dest).splice.call(dest, 0, dest.length);
+    if (!!src) {
+      for (var i = 0; i < src.length; i++) {
+        var item = src[i];
+        if (isItemValues) {
+          if (!!Base.createItemValue) {
+            item = Base.createItemValue(item, this.getItemValueType());
+          }
+        }
+        Object.getPrototypeOf(dest).push.call(dest, item);
+        if (onPush)
+          onPush(dest[i]);
+      }
+      delete dest.isReset;
+    } else {
+      dest.isReset = true;
+    }
+    const arrayChanges = new ArrayChanges(0, deletedItems.length, dest, deletedItems);
+    this.propertyValueChanged(name, deletedItems, dest, arrayChanges);
+    this.notifyArrayChanged(name, dest, arrayChanges);
+  }
+  isTwoValueEquals(x2, y, caseInSensitive = false, trimString = false) {
+    return Helpers.checkIfValuesEqual(x2, y, { ignoreOrder: false, caseSensitive: !caseInSensitive, trimStrings: trimString, doNotConvertNumbers: true });
+  }
+  static copyObject(dst, src) {
+    for (var key in src) {
+      var source = src[key];
+      if (typeof source === "object") {
+        source = {};
+        this.copyObject(source, src[key]);
+      }
+      dst[key] = source;
+    }
+  }
+  copyCssClasses(dest, source) {
+    if (!source)
+      return;
+    if (typeof source === "string" || source instanceof String) {
+      dest["root"] = source;
+    } else {
+      Base.copyObject(dest, source);
+    }
+  }
+  getValueInLowCase(val) {
+    if (!!val && typeof val == "string")
+      return val.toLowerCase();
+    return val;
+  }
+  getElementsInDesign(includeHidden = false) {
+    return [];
+  }
+  get animationAllowed() {
+    return this.getIsAnimationAllowed();
+  }
+  getIsAnimationAllowed() {
+    return settings.animationEnabled && this.animationAllowedLock >= 0 && !this.isLoadingFromJson && !this.isDisposed && (!!this.onElementRerendered || !this.supportOnElementRerenderedEvent);
+  }
+  blockAnimations() {
+    this.animationAllowedLock--;
+  }
+  releaseAnimations() {
+    this.animationAllowedLock++;
+  }
+  enableOnElementRerenderedEvent() {
+    this.onElementRerenderedEventEnabled = true;
+  }
+  disableOnElementRerenderedEvent() {
+    var _a2;
+    (_a2 = this.onElementRerendered) === null || _a2 === void 0 ? void 0 : _a2.fire(this, { isCancel: true });
+    this.onElementRerenderedEventEnabled = false;
+  }
+  get onElementRerendered() {
+    return this.supportOnElementRerenderedEvent && this.onElementRerenderedEventEnabled ? this._onElementRerendered : void 0;
+  }
+  afterRerender() {
+    var _a2;
+    (_a2 = this.onElementRerendered) === null || _a2 === void 0 ? void 0 : _a2.fire(this, { isCancel: false });
+  }
+}
+Base.UniqueId = 0;
+Base.currentDependencis = void 0;
+class ArrayChanges {
+  constructor(index, deleteCount, itemsToAdd, deletedItems) {
+    this.index = index;
+    this.deleteCount = deleteCount;
+    this.itemsToAdd = itemsToAdd;
+    this.deletedItems = deletedItems;
+  }
+}
+class EventAsync extends EventBase {
+  fire(sender, options2, onComplete, onFirstAsync) {
+    onComplete = onComplete || (() => {
+    });
+    if (!this.callbacks) {
+      onComplete();
+      return;
+    }
+    const promises = [];
+    const callbacks = [].concat(this.callbacks);
+    for (var i = 0; i < callbacks.length; i++) {
+      const res = callbacks[i](sender, options2);
+      if (res && res instanceof Promise) {
+        promises.push(res);
+      }
+      if (!this.callbacks)
+        return;
+    }
+    if (promises.length > 0) {
+      onFirstAsync && onFirstAsync();
+      Promise.all(promises).then(() => {
+        onComplete();
+      });
+    } else {
+      onComplete();
+    }
+  }
+}
+class SurveyError {
+  constructor(text2 = null, errorOwner = null) {
+    this.text = text2;
+    this.errorOwner = errorOwner;
+    this.visible = true;
+    this.onUpdateErrorTextCallback = void 0;
+  }
+  equals(error3) {
+    if (!error3 || !error3.getErrorType)
+      return false;
+    if (this.getErrorType() !== error3.getErrorType())
+      return false;
+    return this.text === error3.text && this.visible === error3.visible;
+  }
+  get locText() {
+    if (!this.locTextValue) {
+      this.locTextValue = new LocalizableString(this.errorOwner, true);
+      this.locTextValue.storeDefaultText = true;
+      this.locTextValue.text = this.getText();
+    }
+    return this.locTextValue;
+  }
+  get notificationType() {
+    return this.notificationTypeValue || "error";
+  }
+  set notificationType(val) {
+    this.notificationTypeValue = val;
+  }
+  get isWarning() {
+    return this.notificationTypeValue === "warning";
+  }
+  get isInfo() {
+    return this.notificationTypeValue === "info";
+  }
+  get isError() {
+    return !this.isInfo && !this.isWarning;
+  }
+  getCssIcon(cssClasses) {
+    const error3 = this.getCssError(cssClasses);
+    const icon = this.isWarning ? error3.warningIcon : this.isInfo ? error3.infoIcon : error3.icon;
+    return icon || error3.icon || void 0;
+  }
+  getCssError(cssClasses) {
+    cssClasses = cssClasses || {};
+    return cssClasses.error || {};
+  }
+  getText() {
+    var res = this.text;
+    if (!res)
+      res = this.getDefaultText();
+    if (!!this.errorOwner) {
+      res = this.errorOwner.getErrorCustomText(res, this);
+    }
+    return res;
+  }
+  getErrorType() {
+    return "base";
+  }
+  getDefaultText() {
+    return "";
+  }
+  getLocale() {
+    return !!this.errorOwner ? this.errorOwner.getLocale() : "";
+  }
+  getLocalizationString(locStrName) {
+    return getLocaleString(locStrName, this.getLocale());
+  }
+  updateText() {
+    if (this.onUpdateErrorTextCallback) {
+      this.onUpdateErrorTextCallback(this);
+    }
+    this.locText.text = this.getText();
+  }
+}
+class AnswerRequiredError extends SurveyError {
+  constructor(text2 = null, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "required";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("requiredError");
+  }
+}
+class OneAnswerRequiredError extends SurveyError {
+  constructor(text2 = null, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "requireoneanswer";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("requiredErrorInPanel");
+  }
+}
+class RequreNumericError extends SurveyError {
+  constructor(text2 = null, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "requirenumeric";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("numericError");
+  }
+}
+class ExceedSizeError extends SurveyError {
+  constructor(maxSize, errorOwner = null) {
+    super(null, errorOwner);
+    this.maxSize = maxSize;
+    this.locText.text = this.getText();
+  }
+  getErrorType() {
+    return "exceedsize";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("exceedMaxSize")["format"](this.getTextSize());
+  }
+  getTextSize() {
+    var sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    var fixed = [0, 0, 2, 3, 3];
+    if (this.maxSize === 0) {
+      return "0 Byte";
+    }
+    var i = Math.floor(Math.log(this.maxSize) / Math.log(1024));
+    var value = this.maxSize / Math.pow(1024, i);
+    return value.toFixed(fixed[i]) + " " + sizes[i];
+  }
+}
+class ExceedFilesCountError extends SurveyError {
+  constructor(maxFiles, errorOwner = null) {
+    super(null, errorOwner);
+    this.maxFiles = maxFiles;
+    this.locText.text = this.getText();
+  }
+  getErrorType() {
+    return "exceedfilescount";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("exceedMaxFiles")["format"](this.maxFiles);
+  }
+}
+class WebRequestError extends SurveyError {
+  constructor(status, response, errorOwner = null) {
+    super(null, errorOwner);
+    this.status = status;
+    this.response = response;
+  }
+  getErrorType() {
+    return "webrequest";
+  }
+  getDefaultText() {
+    const str = this.getLocalizationString("urlRequestError");
+    return !!str ? str["format"](this.status, this.response) : "";
+  }
+}
+class WebRequestEmptyError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "webrequestempty";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("urlGetChoicesError");
+  }
+}
+class OtherEmptyError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "otherempty";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("otherRequiredError");
+  }
+}
+class UploadingFileError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "uploadingfile";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("uploadingFile");
+  }
+}
+class RequiredInAllRowsError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "requiredinallrowserror";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("requiredInAllRowsError");
+  }
+}
+class EachRowUniqueError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "eachrowuniqueeerror";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("eachRowUniqueError");
+  }
+}
+class MinRowCountError extends SurveyError {
+  constructor(minRowCount, errorOwner = null) {
+    super(null, errorOwner);
+    this.minRowCount = minRowCount;
+  }
+  getErrorType() {
+    return "minrowcounterror";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("minRowCountError")["format"](this.minRowCount);
+  }
+}
+class KeyDuplicationError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "keyduplicationerror";
+  }
+  getDefaultText() {
+    return this.getLocalizationString("keyDuplicationError");
+  }
+}
+class CustomError extends SurveyError {
+  constructor(text2, errorOwner = null) {
+    super(text2, errorOwner);
+    this.text = text2;
+  }
+  getErrorType() {
+    return "custom";
+  }
+}
+function getLocalizablePropertyName(propertyName) {
+  return "loc" + propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
+}
+function property(options2 = {}) {
+  return function(target, key) {
+    let processComputedUpdater = (obj, val) => {
+      if (!!val && typeof val === "object" && val.type === ComputedUpdater.ComputedUpdaterType) {
+        Base.startCollectDependencies(() => obj[key] = val.updater(), obj, key);
+        const result = val.updater();
+        const dependencies = Base.finishCollectDependencies();
+        val.setDependencies(dependencies);
+        if (obj.dependencies[key]) {
+          obj.dependencies[key].dispose();
+        }
+        obj.dependencies[key] = val;
+        return result;
+      }
+      return val;
+    };
+    if (!options2 || !options2.localizable) {
+      Object.defineProperty(target, key, {
+        get: function() {
+          let defaultVal = null;
+          let returnValue = void 0;
+          let calcFunc = void 0;
+          if (!!options2) {
+            returnValue = options2.returnValue;
+            if (options2.calcFunc) {
+              calcFunc = () => options2.calcFunc(this);
+            }
+            if (typeof options2.getDefaultValue === "function") {
+              defaultVal = options2.getDefaultValue(this);
+            }
+            if (options2.defaultValue !== void 0) {
+              defaultVal = options2.defaultValue;
+            }
+          }
+          const res = this.getPropertyValue(key, defaultVal, calcFunc);
+          return returnValue !== void 0 && res === void 0 ? returnValue : res;
+        },
+        set: function(val) {
+          let newValue = processComputedUpdater(this, val);
+          const prevValue = this.getPropertyValue(key);
+          if (!!options2) {
+            if (options2.isLowerCase) {
+              if (!newValue || typeof newValue !== "string")
+                return;
+              newValue = newValue.toLowerCase();
+            }
+            if (!!options2.onSetting) {
+              newValue = options2.onSetting(newValue, this, prevValue);
+            }
+          }
+          if (newValue !== prevValue) {
+            this.setPropertyValue(key, newValue);
+            if (!!options2 && options2.onSet) {
+              options2.onSet(newValue, this, prevValue);
+            }
+          }
+        }
+      });
+    } else {
+      const localizable = typeof options2.localizable === "object" ? options2.localizable : null;
+      const locName = localizable && !!localizable.name ? localizable.name : getLocalizablePropertyName(key);
+      const defaultStr = localizable && localizable.defaultStr ? localizable.defaultStr : false;
+      const supportsMarkdown = localizable && localizable.markdown === true;
+      Object.defineProperty(target, key, {
+        get: function() {
+          return this.getLocStringText(this[locName]);
+        },
+        set: function(val) {
+          val = processComputedUpdater(this, val);
+          this.setLocStringText(this[locName], val);
+          if (!!options2 && options2.onSet) {
+            options2.onSet(val, this);
+          }
+        }
+      });
+      Object.defineProperty(target, locName, {
+        get: function() {
+          return this.getOrCreateLocStr(key, supportsMarkdown, defaultStr, (locStr) => {
+            if (localizable && typeof localizable.onCreate === "function") {
+              localizable.onCreate(this, locStr);
+            }
+          });
+        }
+      });
+    }
+  };
+}
+function ensureArray(target, options2, key) {
+  target.ensureArray(key, (item, index) => {
+    const handler = !!options2 ? options2.onPush : null;
+    handler && handler(item, index, target);
+  }, (item, index) => {
+    const handler = !!options2 ? options2.onRemove : null;
+    handler && handler(item, index, target);
+  });
+}
+function propertyArray(options2) {
+  return function(target, key) {
+    Object.defineProperty(target, key, {
+      get: function() {
+        ensureArray(this, options2, key);
+        return this.getPropertyValue(key);
+      },
+      set: function(val) {
+        ensureArray(this, options2, key);
+        const arr2 = this.getPropertyValue(key);
+        if (val === arr2) {
+          return;
+        }
+        if (arr2) {
+          arr2.splice(0, arr2.length, ...val || []);
+        } else {
+          this.setPropertyValue(key, val);
+        }
+        if (!!options2 && options2.onSet) {
+          options2.onSet(val, this);
+        }
+      }
+    });
+  };
+}
+class AsyncElementsRunner {
+  constructor(onCompleted) {
+    this.onCompleted = onCompleted;
+    this.asyncElements = {};
+    this.isRunningValue = true;
+  }
+  addElement(id) {
+    this.asyncElements[id] = true;
+  }
+  removeElement(id) {
+    delete this.asyncElements[id];
+    this.tryComplete();
+  }
+  finish() {
+    this.isRunningValue = false;
+    this.tryComplete();
+  }
+  get isRunning() {
+    return this.isRunningValue || Object.keys(this.asyncElements).length > 0;
+  }
+  doCompleted() {
+    if (this.onCompleted) {
+      this.onCompleted();
+    }
+  }
+  tryComplete() {
+    if (!this.isRunning) {
+      this.doCompleted();
+    }
+  }
+}
+class ValidatorResult {
+  constructor(value, error3 = null) {
+    this.value = value;
+    this.error = error3;
+  }
+}
+class SurveyValidator extends Base {
+  get errorOwner() {
+    return this.owner;
+  }
+  set errorOwner(val) {
+    this.owner = val;
+  }
+  get id() {
+    return "svd" + this.uniqueId;
+  }
+  get isValidator() {
+    return true;
+  }
+  getSurvey(live = false) {
+    return !!this.owner && !!this.owner["getSurvey"] ? this.owner.getSurvey() : null;
+  }
+  getOwner() {
+    return this.owner;
+  }
+  /**
+   * An error message to display when a value fails validation.
+   */
+  get text() {
+    return this.getLocStringText(this.locText);
+  }
+  set text(value) {
+    this.setLocStringText(this.locText, value);
+  }
+  get locText() {
+    return this.getOrCreateLocStr("text", true);
+  }
+  getErrorText(name) {
+    if (this.text)
+      return this.text;
+    return this.getDefaultErrorText(name);
+  }
+  getDefaultErrorText(name) {
+    return "";
+  }
+  validateOnCallback(value, callback, name, properties) {
+    const res = this.validate(value, name, properties);
+    if (callback)
+      callback(res);
+    return res;
+  }
+  validate(value, name, properties) {
+    return null;
+  }
+  getLocale() {
+    return !!this.owner ? this.owner.getLocale() : "";
+  }
+  getMarkdownHtml(text2, name, item) {
+    return !!this.owner ? this.owner.getMarkdownHtml(text2, name, item) : void 0;
+  }
+  getRenderer(name) {
+    return !!this.owner ? this.owner.getRenderer(name) : null;
+  }
+  getRendererContext(locStr) {
+    return !!this.owner ? this.owner.getRendererContext(locStr) : locStr;
+  }
+  getProcessedText(text2) {
+    return !!this.owner ? this.owner.getProcessedText(text2) : text2;
+  }
+  createCustomError(name) {
+    const err = new CustomError(this.getErrorText(name), this.owner);
+    err.onUpdateErrorTextCallback = ((err2) => err2.text = this.getErrorText(name));
+    return err;
+  }
+  toString() {
+    var res = this.getType().replace("validator", "");
+    if (!!this.text) {
+      res += ", " + this.text;
+    }
+    return res;
+  }
+}
+__decorate([
+  property()
+], SurveyValidator.prototype, "notificationType", void 0);
+class ValidatorRunner {
+  run(owner) {
+    const validators = owner.getValidators();
+    const errors = new Array();
+    const asyncRunner = new AsyncElementsRunner(() => {
+      if (this.onAsyncCompleted) {
+        this.onAsyncCompleted(errors);
+      }
+    });
+    if (validators.length > 0) {
+      const properties = owner.getDataFilteredProperties();
+      const value = owner.validatedValue;
+      const title = owner.getValidatorTitle();
+      validators.forEach((validator) => {
+        asyncRunner.addElement(validator.id);
+        validator.validateOnCallback(value, (valRes) => {
+          if (!!valRes && !!valRes.error) {
+            valRes.error.notificationType = validator.notificationType;
+            errors.push(valRes.error);
+          }
+          asyncRunner.removeElement(validator.id);
+        }, title, properties);
+      });
+    }
+    const res = [].concat(...errors);
+    errors.length = 0;
+    asyncRunner.finish();
+    return res;
+  }
+}
+class NumericValidator extends SurveyValidator {
+  constructor(minValue = null, maxValue = null) {
+    super();
+    this.minValue = minValue;
+    this.maxValue = maxValue;
+  }
+  getType() {
+    return "numericvalidator";
+  }
+  validate(value, name, properties) {
+    if (this.isValueEmpty(value))
+      return null;
+    if (!Helpers.isNumber(value)) {
+      return new ValidatorResult(null, new RequreNumericError(this.text, this.owner));
+    }
+    const result = new ValidatorResult(Helpers.getNumber(value));
+    if (this.minValue !== null && this.minValue > result.value) {
+      result.error = this.createCustomError(name);
+      return result;
+    }
+    if (this.maxValue !== null && this.maxValue < result.value) {
+      result.error = this.createCustomError(name);
+      return result;
+    }
+    return typeof value === "number" ? null : result;
+  }
+  getDefaultErrorText(name) {
+    var vName = name ? name : this.getLocalizationString("value");
+    if (this.minValue !== null && this.maxValue !== null) {
+      return this.getLocalizationFormatString("numericMinMax", vName, this.minValue, this.maxValue);
+    } else {
+      if (this.minValue !== null) {
+        return this.getLocalizationFormatString("numericMin", vName, this.minValue);
+      }
+      return this.getLocalizationFormatString("numericMax", vName, this.maxValue);
+    }
+  }
+}
+__decorate([
+  property()
+], NumericValidator.prototype, "minValue", void 0);
+__decorate([
+  property()
+], NumericValidator.prototype, "maxValue", void 0);
+class TextValidator extends SurveyValidator {
+  constructor() {
+    super();
+  }
+  getType() {
+    return "textvalidator";
+  }
+  validate(value, name, properties) {
+    if (this.isValueEmpty(value))
+      return null;
+    if (!this.allowDigits) {
+      var reg = /\d+$/;
+      if (reg.test(value)) {
+        return new ValidatorResult(null, this.createCustomError("textNoDigitsAllow"));
+      }
+    }
+    if (this.minLength > 0 && value.length < this.minLength) {
+      return new ValidatorResult(null, this.createCustomError(name));
+    }
+    if (this.maxLength > 0 && value.length > this.maxLength) {
+      return new ValidatorResult(null, this.createCustomError(name));
+    }
+    return null;
+  }
+  getDefaultErrorText(name) {
+    if (name === "textNoDigitsAllow")
+      return this.getLocalizationString(name);
+    if (this.minLength > 0 && this.maxLength > 0)
+      return this.getLocalizationFormatString("textMinMaxLength", this.minLength, this.maxLength);
+    if (this.minLength > 0)
+      return this.getLocalizationFormatString("textMinLength", this.minLength);
+    return this.getLocalizationFormatString("textMaxLength", this.maxLength);
+  }
+}
+__decorate([
+  property()
+], TextValidator.prototype, "minLength", void 0);
+__decorate([
+  property()
+], TextValidator.prototype, "maxLength", void 0);
+__decorate([
+  property()
+], TextValidator.prototype, "allowDigits", void 0);
+class AnswerCountValidator extends SurveyValidator {
+  constructor(minCount = null, maxCount = null) {
+    super();
+    this.minCount = minCount;
+    this.maxCount = maxCount;
+  }
+  getType() {
+    return "answercountvalidator";
+  }
+  validate(value, name, properties) {
+    if (value == null || value.constructor != Array)
+      return null;
+    var count2 = value.length;
+    if (count2 == 0)
+      return null;
+    if (this.minCount && count2 < this.minCount) {
+      return new ValidatorResult(null, this.createCustomError(this.getLocalizationFormatString("minSelectError", this.minCount)));
+    }
+    if (this.maxCount && count2 > this.maxCount) {
+      return new ValidatorResult(null, this.createCustomError(this.getLocalizationFormatString("maxSelectError", this.maxCount)));
+    }
+    return null;
+  }
+  getDefaultErrorText(name) {
+    return name;
+  }
+}
+__decorate([
+  property()
+], AnswerCountValidator.prototype, "minCount", void 0);
+__decorate([
+  property()
+], AnswerCountValidator.prototype, "maxCount", void 0);
+class RegexValidator extends SurveyValidator {
+  constructor(regex2 = null) {
+    super();
+    this.regex = regex2;
+  }
+  getType() {
+    return "regexvalidator";
+  }
+  validate(value, name, properties) {
+    if (!this.regex || this.isValueEmpty(value))
+      return null;
+    const re = this.createRegExp();
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        const res = this.hasError(re, value[i], name);
+        if (res)
+          return res;
+      }
+    }
+    return this.hasError(re, value, name);
+  }
+  hasError(re, value, name) {
+    if (re.test(value))
+      return null;
+    return new ValidatorResult(value, this.createCustomError(name));
+  }
+  get insensitive() {
+    return this.caseInsensitive;
+  }
+  set insensitive(val) {
+    this.caseInsensitive = val;
+  }
+  createRegExp() {
+    const flags = this.caseInsensitive ? "i" : "";
+    return (this.owner ? this.owner.createRegexValidator(this, this.regex, flags) : null) || new RegExp(this.regex, flags);
+  }
+}
+__decorate([
+  property()
+], RegexValidator.prototype, "regex", void 0);
+__decorate([
+  property()
+], RegexValidator.prototype, "caseInsensitive", void 0);
+class EmailValidator extends SurveyValidator {
+  constructor() {
+    super();
+    this.re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()=[\]\.,;:\s@\"]+\.)+[^<>()=[\]\.,;:\s@\"]{2,})$/i;
+  }
+  getType() {
+    return "emailvalidator";
+  }
+  validate(value, name, properties) {
+    if (!value)
+      return null;
+    if (this.re.test(value))
+      return null;
+    return new ValidatorResult(value, this.createCustomError(name));
+  }
+  getDefaultErrorText(name) {
+    return this.getLocalizationString("invalidEmail");
+  }
+}
+class ExpressionValidator extends SurveyValidator {
+  constructor(expression = null) {
+    super();
+    this.conditionRunner = null;
+    this.expression = expression;
+  }
+  getType() {
+    return "expressionvalidator";
+  }
+  validateOnCallback(value, callback, name, properties) {
+    if (!!this.conditionRunner) {
+      this.conditionRunner.onRunComplete = null;
+    }
+    let errorResult = null;
+    const doCallBack = (res2) => {
+      errorResult = this.generateError(res2, value, name);
+      !!callback && callback(errorResult);
+    };
+    if (!this.ensureConditionRunner()) {
+      doCallBack(true);
+      return null;
+    }
+    this.conditionRunner.onRunComplete = (res2) => {
+      doCallBack(res2);
+    };
+    if (!this.conditionRunner.canRun()) {
+      doCallBack(res);
+      return errorResult;
+    }
+    var res = this.conditionRunner.runContext(this.getValueGetterContext(), this.getPropertiesCopy(properties, "expression"));
+    return errorResult || this.generateError(res, value, name);
+  }
+  generateError(res, value, name) {
+    if (!res) {
+      return new ValidatorResult(value, this.createCustomError(name));
+    }
+    return null;
+  }
+  getDefaultErrorText(name) {
+    return this.getLocalizationFormatString("invalidExpression", this.expression);
+  }
+  ensureConditionRunner() {
+    const expression = this.getExpressionFromSurvey("expression");
+    if (!expression)
+      return false;
+    this.conditionRunner = new ConditionRunner(expression);
+    return true;
+  }
+  getValueGetterContext() {
+    const owner = this.owner;
+    if (!!owner && !!owner.getValueGetterContext)
+      return owner.getValueGetterContext();
+    return super.getValueGetterContext();
+  }
+}
+__decorate([
+  property()
+], ExpressionValidator.prototype, "expression", void 0);
+Serializer.addClass("surveyvalidator", [
+  { name: "text", serializationProperty: "locText", visibleIndex: 99 },
+  { name: "notificationType", choices: ["error", "warning", "info"], default: "error", visibleIndex: 100 }
+]);
+Serializer.addClass("numericvalidator", ["minValue:number", "maxValue:number"], function() {
+  return new NumericValidator();
+}, "surveyvalidator");
+Serializer.addClass("textvalidator", [
+  { name: "minLength:number", default: 0 },
+  { name: "maxLength:number", default: 0 },
+  { name: "allowDigits:boolean", default: true }
+], function() {
+  return new TextValidator();
+}, "surveyvalidator");
+Serializer.addClass("answercountvalidator", ["minCount:number", "maxCount:number"], function() {
+  return new AnswerCountValidator();
+}, "surveyvalidator");
+Serializer.addClass("regexvalidator", ["regex", { name: "caseInsensitive:boolean", alternativeName: "insensitive" }], function() {
+  return new RegexValidator();
+}, "surveyvalidator");
+Serializer.addClass("emailvalidator", [], function() {
+  return new EmailValidator();
+}, "surveyvalidator");
+Serializer.addClass("expressionvalidator", ["expression:condition"], function() {
+  return new ExpressionValidator();
+}, "surveyvalidator");
+class CssClassBuilder {
+  constructor() {
+    this.classes = [];
+  }
+  isEmpty() {
+    return this.toString() === "";
+  }
+  append(value, condition = true) {
+    if (!!value && condition) {
+      if (typeof value === "string") {
+        value = value.trim();
+      }
+      this.classes.push(value);
+    }
+    return this;
+  }
+  toString() {
+    return this.classes.join(" ");
+  }
+}
+function debounce(func) {
+  let isSheduled = false;
+  let isCanceled = false;
+  let funcArgs;
+  const cancelCallback = () => {
+    isCanceled = true;
+    funcArgs = void 0;
+  };
+  return {
+    run: ((...args) => {
+      isCanceled = false;
+      funcArgs = args;
+      if (!isSheduled) {
+        isSheduled = true;
+        queueMicrotask(() => {
+          if (!isCanceled) {
+            func.apply(this, funcArgs);
+          }
+          funcArgs = void 0;
+          isCanceled = false;
+          isSheduled = false;
+        });
+      }
+    }),
+    cancel: cancelCallback,
+    getLastArguments: () => funcArgs,
+    flushSync: () => {
+      if (!isCanceled && isSheduled) {
+        func.apply(this, funcArgs);
+        cancelCallback();
+      }
+    }
+  };
+}
+let defaultActionBarCss = {
+  root: "sv-action-bar",
+  defaultSizeMode: "sv-action-bar--default-size-mode",
+  smallSizeMode: "sv-action-bar--small-size-mode",
+  item: "sv-action-bar-item",
+  itemWithTitle: "",
+  itemAsIcon: "sv-action-bar-item--icon",
+  itemActive: "sv-action-bar-item--active",
+  itemPressed: "sv-action-bar-item--pressed",
+  itemIcon: "sv-action-bar-item__icon",
+  itemTitle: "sv-action-bar-item__title",
+  itemTitleWithIcon: "sv-action-bar-item__title--with-icon"
+};
+class ActionContainer extends Base {
+  constructor() {
+    super(...arguments);
+    this.id = ActionContainer.ContainerID++;
+    this.visibleActions = [];
+    this.sizeMode = "default";
+    this.raiseUpdateCallback = debounce((isResetInitialized) => {
+      this.update(isResetInitialized);
+    });
+    this.onActionPropertyChangedCallback = this.onActionPropertyChanged.bind(this);
+    this.createActionCallback = null;
+  }
+  getMarkdownHtml(text2, name, item) {
+    return !!this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item) : void 0;
+  }
+  getRenderer(name) {
+    return !!this.locOwner ? this.locOwner.getRenderer(name) : null;
+  }
+  getRendererContext(locStr) {
+    return !!this.locOwner ? this.locOwner.getRendererContext(locStr) : locStr;
+  }
+  getProcessedText(text2) {
+    return this.locOwner ? this.locOwner.getProcessedText(text2) : text2;
+  }
+  getLocale() {
+    return !!this.locOwner ? this.locOwner.getLocale() : "";
+  }
+  getRenderedActions() {
+    return this.visibleActions;
+  }
+  locStrsChanged() {
+    super.locStrsChanged();
+    this.actions.forEach((item) => {
+      if (item.locTitle)
+        item.locTitle.strChanged();
+      item.locStrsChanged();
+    });
+  }
+  flushUpdates() {
+    this.raiseUpdateCallback.flushSync();
+  }
+  raiseUpdate(options2) {
+    var _a2;
+    const lastArguments = this.raiseUpdateCallback.getLastArguments();
+    const lastOptions = (_a2 = lastArguments && lastArguments[0]) !== null && _a2 !== void 0 ? _a2 : {};
+    this.raiseUpdateCallback.run(this.mergeUpdateOptions(options2, lastOptions));
+  }
+  mergeUpdateOptions(nextOptions, prevOptions) {
+    const options2 = Object.assign({}, nextOptions);
+    options2.needUpdateActions = !!options2.needUpdateActions || !!prevOptions.needUpdateActions;
+    options2.needUpdateIsEmpty = !!options2.needUpdateIsEmpty || !!prevOptions.needUpdateIsEmpty;
+    return options2;
+  }
+  update(options2) {
+    if (options2 === null || options2 === void 0 ? void 0 : options2.needUpdateActions) {
+      this.updateVisibleActions();
+    }
+    if (options2 === null || options2 === void 0 ? void 0 : options2.needUpdateIsEmpty) {
+      this.updateIsEmpty();
+    }
+  }
+  updateVisibleActions() {
+    this.visibleActions = this.getVisibleActions();
+  }
+  updateIsEmpty() {
+    this.isEmpty = this.getIsEmpty();
+  }
+  getIsEmpty() {
+    return this.visibleActions.length <= 0;
+  }
+  getVisibleActions() {
+    return this.actions.filter((action) => action.visible !== false);
+  }
+  onSet() {
+    this.actions.forEach((action) => {
+      this.patchAction(action);
+    });
+  }
+  onPush(action) {
+    this.patchAction(action);
+    this.raiseUpdate({ needUpdateActions: true, needUpdateIsEmpty: true });
+  }
+  onRemove(action) {
+    this.unPatchAction(action);
+    this.raiseUpdate({ needUpdateActions: true, needUpdateIsEmpty: true });
+  }
+  onActionPropertyChanged(action, options2) {
+    if (options2.name == "_visible") {
+      this.raiseUpdate({ needUpdateActions: true, needUpdateIsEmpty: true });
+    }
+  }
+  patchAction(action) {
+    this.setActionCssClasses(action);
+    action.owner = this;
+    action.onPropertyChanged.add(this.onActionPropertyChangedCallback);
+  }
+  unPatchAction(action) {
+    action.owner = null;
+    action.onPropertyChanged.remove(this.onActionPropertyChangedCallback);
+  }
+  setActionCssClasses(item) {
+    item.cssClasses = this.cssClasses;
+  }
+  get hasActions() {
+    return (this.actions || []).length > 0;
+  }
+  get hasVisibleActions() {
+    return !this.isEmpty;
+  }
+  get renderedActions() {
+    return this.getRenderedActions();
+  }
+  getRootStyle() {
+    return void 0;
+  }
+  getRootCss() {
+    const sizeModeClass = this.sizeMode === "small" ? this.cssClasses.smallSizeMode : this.cssClasses.defaultSizeMode;
+    return new CssClassBuilder().append(this.cssClasses.root + (!!sizeModeClass ? " " + sizeModeClass : "") + (!!this.containerCss ? " " + this.containerCss : "")).append(this.cssClasses.root + "--empty", this.isEmpty).toString();
+  }
+  getDefaultCssClasses() {
+    return defaultActionBarCss;
+  }
+  getAllActions() {
+    return this.actions;
+  }
+  setCssClasses(val, mergeWithDefault = true) {
+    this.cssClassesValue = {};
+    if (mergeWithDefault) {
+      this.copyCssClasses(this.cssClassesValue, this.getDefaultCssClasses());
+    }
+    mergeValues$1(val, this.cssClasses);
+    this.getAllActions().forEach((action) => {
+      this.setActionCssClasses(action);
+    });
+  }
+  set cssClasses(val) {
+    this.setCssClasses(val);
+  }
+  get cssClasses() {
+    if (!this.cssClassesValue) {
+      this.cssClassesValue = this.getDefaultCssClasses();
+    }
+    return this.cssClassesValue;
+  }
+  createAction(item) {
+    return item instanceof BaseAction ? item : this.createActionCore(this, item);
+  }
+  createActionCore(owner, item) {
+    if (this.createActionCallback)
+      return this.createActionCallback(item);
+    return new Action(item);
+  }
+  addAction(val, sortByVisibleIndex = true) {
+    const res = this.createAction(val);
+    if (sortByVisibleIndex && !this.isActionVisible(res))
+      return res;
+    const items = [].concat(this.actions, res);
+    this.sortItems(items);
+    this.actions = items;
+    return res;
+  }
+  removeActionById(id) {
+    const index = this.getActionIndexById(id);
+    if (index < 0)
+      return false;
+    this.actions.splice(index, 1);
+    return true;
+  }
+  setItems(items, sortByVisibleIndex = true) {
+    const newActions = [];
+    items.forEach((item) => {
+      if (!sortByVisibleIndex || this.isActionVisible(item)) {
+        newActions.push(this.createAction(item));
+      }
+    });
+    if (sortByVisibleIndex) {
+      this.sortItems(newActions);
+    }
+    this.actions = newActions;
+  }
+  sortItems(items) {
+    if (this.hasSetVisibleIndex(items)) {
+      items.sort(this.compareByVisibleIndex);
+    }
+  }
+  hasSetVisibleIndex(items) {
+    for (let i = 0; i < items.length; i++) {
+      const index = items[i].visibleIndex;
+      if (index !== void 0 && index >= 0)
+        return true;
+    }
+    return false;
+  }
+  compareByVisibleIndex(first, second) {
+    return first.visibleIndex - second.visibleIndex;
+  }
+  isActionVisible(item) {
+    return item.visibleIndex >= 0 || item.visibleIndex === void 0;
+  }
+  popupAfterShowCallback(itemValue) {
+  }
+  mouseOverHandler(itemValue) {
+    itemValue.isHovered = true;
+    let needToShowPopup = false;
+    let otherPopupVisible = false;
+    this.actions.forEach((action) => {
+      if (action === itemValue && !!itemValue.popupModel) {
+        needToShowPopup = true;
+      }
+      if (action.popupModel && action.popupModel.isVisible) {
+        otherPopupVisible = true;
+      }
+    });
+    if (needToShowPopup) {
+      const delay = otherPopupVisible ? Math.max(this.subItemsShowDelay, this.subItemsHideDelay) : this.subItemsShowDelay;
+      itemValue.showPopupDelayed(delay);
+      this.popupAfterShowCallback(itemValue);
+    }
+  }
+  initResponsivityManager(container, delayedUpdateFunction) {
+    return;
+  }
+  resetResponsivityManager() {
+  }
+  getActionById(id) {
+    const index = this.getActionIndexById(id);
+    return index > -1 ? this.actions[index] : null;
+  }
+  getActionIndexById(id) {
+    for (var i = 0; i < this.actions.length; i++) {
+      if (this.actions[i].id === id)
+        return i;
+    }
+    return -1;
+  }
+  dispose() {
+    super.dispose();
+    this.resetResponsivityManager();
+    this.actions.forEach((action) => action.dispose());
+    this.actions.length = 0;
+  }
+}
+ActionContainer.ContainerID = 1;
+__decorate([
+  propertyArray({})
+], ActionContainer.prototype, "visibleActions", void 0);
+__decorate([
+  propertyArray({
+    onSet: (_23, target) => {
+      target.onSet();
+    },
+    onPush: (item, i, target) => {
+      target.onPush(item);
+    },
+    onRemove: (item, i, target) => {
+      target.onRemove(item);
+    }
+  })
+], ActionContainer.prototype, "actions", void 0);
+__decorate([
+  property({})
+], ActionContainer.prototype, "containerCss", void 0);
+__decorate([
+  property({ defaultValue: true })
+], ActionContainer.prototype, "isEmpty", void 0);
+__decorate([
+  property({ defaultValue: 300 })
+], ActionContainer.prototype, "subItemsShowDelay", void 0);
+__decorate([
+  property({ defaultValue: 300 })
+], ActionContainer.prototype, "subItemsHideDelay", void 0);
+class ElementHelper {
+  static focusElement(element2) {
+    element2 && element2.focus();
+  }
+  static visibility(node) {
+    var style = DomDocumentHelper.getComputedStyle(node);
+    if (style.display === "none" || style.visibility === "hidden")
+      return false;
+    return node.parentElement ? this.visibility(node.parentElement) : true;
+  }
+  static getNextElementPreorder(element2) {
+    const result = !!element2.nextElementSibling ? element2.nextElementSibling : element2.parentElement.firstElementChild;
+    if (this.visibility(result)) {
+      return result;
+    } else {
+      return this.getNextElementPreorder(result);
+    }
+  }
+  static getNextElementPostorder(element2) {
+    const result = !!element2.previousElementSibling ? element2.previousElementSibling : element2.parentElement.lastElementChild;
+    if (this.visibility(result)) {
+      return result;
+    } else {
+      return this.getNextElementPostorder(result);
+    }
+  }
+  static hasHorizontalScroller(element2) {
+    if (!!element2) {
+      return element2.scrollWidth > element2.offsetWidth;
+    }
+    return false;
+  }
+  static hasVerticalScroller(element2) {
+    if (!!element2) {
+      return element2.scrollHeight > element2.offsetHeight;
+    }
+    return false;
+  }
+}
+const isShadowDOM = (rootElement) => {
+  return !!rootElement && !!("host" in rootElement && rootElement.host);
+};
+const getElement = (element2) => {
+  const { root: root2 } = settings.environment;
+  return typeof element2 === "string" ? root2.getElementById(element2) : element2;
+};
+function getRootNode(node) {
+  const root2 = (node === null || node === void 0 ? void 0 : node.getRootNode()) || settings.environment.root;
+  if (!(root2 instanceof Document || root2 instanceof ShadowRoot))
+    return null;
+  return root2;
+}
+function getActiveElement() {
+  const doc = DomDocumentHelper.getDocument();
+  if (!doc)
+    return null;
+  let activeElement = doc.activeElement;
+  if (activeElement && activeElement.shadowRoot && activeElement.shadowRoot.activeElement) {
+    activeElement = activeElement.shadowRoot.activeElement;
+  }
+  return activeElement;
+}
+function isElementVisible(element2, threshold = 0) {
+  const root2 = getRootNode(element2);
+  if (!root2 || !element2.offsetHeight)
+    return false;
+  const clientHeight = isShadowDOM(root2) ? root2.host.clientHeight : root2.documentElement.clientHeight;
+  const elementRect = element2.getBoundingClientRect();
+  const viewHeight = Math.max(clientHeight, DomWindowHelper.getInnerHeight());
+  const topWin = -threshold;
+  const bottomWin = viewHeight + threshold;
+  const topEl = elementRect.top;
+  const bottomEl = elementRect.bottom;
+  const maxTop = Math.max(topWin, topEl);
+  const minBottom = Math.min(bottomWin, bottomEl);
+  return maxTop <= minBottom;
+}
+function findScrollableParent(element2) {
+  if (!element2) {
+    return DomDocumentHelper.isAvailable() ? DomDocumentHelper.getDocument().documentElement : void 0;
+  }
+  if (element2.scrollHeight > element2.clientHeight && (getComputedStyle(element2).overflowY === "scroll" || getComputedStyle(element2).overflowY === "auto")) {
+    return element2;
+  }
+  if (element2.scrollWidth > element2.clientWidth && (getComputedStyle(element2).overflowX === "scroll" || getComputedStyle(element2).overflowX === "auto")) {
+    return element2;
+  }
+  if (!element2.parentElement) {
+    const rootNode = getRootNode(element2);
+    if (rootNode) {
+      return isShadowDOM(rootNode) ? rootNode.host : rootNode.documentElement;
+    }
+  }
+  return findScrollableParent(element2.parentElement);
+}
+function activateLazyRenderingChecks(element2) {
+  if (!element2)
+    return;
+  const scrollableEl = findScrollableParent(element2);
+  if (!!scrollableEl) {
+    setTimeout(() => scrollableEl.dispatchEvent(new CustomEvent("scroll")), 10);
+  }
+}
+function classesToSelector(str) {
+  if (!str)
+    return str;
+  const re = /\s*?([\w-]+)\s*?/g;
+  return str.replace(re, ".$1");
+}
+function getElementWidth(el) {
+  return !!getComputedStyle ? Number.parseFloat(getComputedStyle(el).width) : el.offsetWidth;
+}
+function isContainerVisible(el) {
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+function getFirstVisibleChild(el) {
+  let result;
+  for (let index = 0; index < el.children.length; index++) {
+    if (!result && getComputedStyle(el.children[index]).display !== "none") {
+      result = el.children[index];
+    }
+  }
+  return result;
+}
+function getSafeUrl(url) {
+  if (!url)
+    return url;
+  if (url.toLocaleLowerCase().indexOf("javascript:") > -1)
+    return encodeURIComponent(url);
+  return url;
+}
+function navigateToUrl(url) {
+  const location2 = DomWindowHelper.getLocation();
+  if (!url || !location2)
+    return;
+  location2.href = getSafeUrl(url);
+}
+function wrapUrlForBackgroundImage(url) {
+  return !!url ? ["url(", url, ")"].join("") : "";
+}
+function isBase64URL(url) {
+  if (typeof url == "string") {
+    return /^data:((?:\w+\/(?:(?!;).)+)?)((?:;[^;]+?)*),(.+)$/.test(url);
+  }
+  return null;
+}
+function preventDefaults(event) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+function updateListCssValues(res, css) {
+  const listCssClasses = {};
+  mergeValues$1(css.list, listCssClasses);
+  mergeValues$1(res.list, listCssClasses);
+  res["list"] = listCssClasses;
+}
+let _isMobile = false;
+let vendor = null;
+if (typeof navigator !== "undefined" && !!navigator && DomWindowHelper.isAvailable()) {
+  vendor = navigator.userAgent || navigator.vendor || DomWindowHelper.hasOwn("opera");
+}
+(function(a2) {
+  if (!a2)
+    return;
+  if (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 0 || navigator.platform === "iPad") {
+    _isMobile = true;
+  } else if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a2) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a2.substring(0, 4)))
+    _isMobile = true;
+})(vendor);
+let _IPad = false;
+const IsMobile = _isMobile || _IPad;
+var mouseInfo = {
+  get isTouch() {
+    return !this.hasMouse && this.hasTouchEvent;
+  },
+  get hasTouchEvent() {
+    return DomWindowHelper.isAvailable() && (DomWindowHelper.hasOwn("ontouchstart") || navigator.maxTouchPoints > 0);
+  },
+  hasMouse: true
+};
+const matchMediaMethod = DomWindowHelper.matchMedia;
+mouseInfo.hasMouse = detectMouseSupport(matchMediaMethod);
+let IsTouch = mouseInfo.isTouch;
+function calculateIsTablet(windowWidth, windowHeight, tabletSizeBreakpoint = 600) {
+  const _windowWidth = windowWidth || DomWindowHelper.getInnerWidth();
+  const _windowHeight = windowHeight || DomWindowHelper.getInnerHeight();
+  const width = Math.min(_windowWidth, _windowHeight);
+  const isTablet = width >= tabletSizeBreakpoint;
+  return isTablet;
+}
+function detectMouseSupport(matchMedia2) {
+  if (!matchMedia2)
+    return false;
+  if (IsMobile)
+    return false;
+  const pointerQuery = matchMedia2("(pointer:fine)");
+  const hoverQuery = matchMedia2("(any-hover:hover)");
+  return !!pointerQuery && pointerQuery.matches || !!hoverQuery && hoverQuery.matches;
+}
+let defaultListCss = {
+  root: "sv-list__container",
+  item: "sv-list__item",
+  searchClearButtonIcon: "sv-list__filter-clear-button",
+  loadingIndicator: "sv-list__loading-indicator",
+  itemSelected: "sv-list__item--selected",
+  itemGroup: "sv-list__item--group",
+  itemGroupSelected: "sv-list__item--group-selected",
+  itemWithIcon: "sv-list__item--with-icon",
+  itemDisabled: "sv-list__item--disabled",
+  itemFocused: "sv-list__item--focused",
+  itemHovered: "sv-list__item--hovered",
+  itemTextWrap: "sv-list__item-text--wrap",
+  itemIcon: "sv-list__item-icon",
+  itemMarkerIcon: "sv-list-item__marker-icon",
+  itemSeparator: "sv-list__item-separator",
+  itemBody: "sv-list__item-body",
+  itemsContainer: "sv-list",
+  itemsContainerFiltering: "sv-list--filtering",
+  filter: "sv-list__filter",
+  filterIcon: "sv-list__filter-icon",
+  filterInput: "sv-list__input",
+  emptyContainer: "sv-list__empty-container",
+  emptyText: "sv-list__empty-text"
+};
+class ListModel extends ActionContainer {
+  hasText(item, filterStringInLow) {
+    if (!filterStringInLow)
+      return true;
+    const text2 = item.title || "";
+    if (this.onTextSearchCallback)
+      return this.onTextSearchCallback(item, filterStringInLow);
+    let textInLow = text2.toLocaleLowerCase();
+    textInLow = settings.comparator.normalizeTextCallback(textInLow, "filter");
+    return textInLow.indexOf(filterStringInLow.toLocaleLowerCase()) > -1;
+  }
+  isItemVisible(item) {
+    if (item.id === this.loadingIndicator.id)
+      return item.visible;
+    if (this.disableSearch)
+      return item.visible;
+    return item.visible && this.hasText(item, this.filterString);
+  }
+  getRenderedActions() {
+    let actions = super.getRenderedActions();
+    if (this.filterString) {
+      let newActions = [];
+      actions.forEach((action) => {
+        newActions.push(action);
+        if (action.items) {
+          action.items.forEach((item) => {
+            const a2 = new Action(item);
+            if (!a2.iconName) {
+              a2.iconName = action.iconName;
+            }
+            newActions.push(a2);
+          });
+        }
+      });
+      return newActions;
+    }
+    return actions;
+  }
+  get visibleItems() {
+    return this.actions.filter((item) => this.isItemVisible(item));
+  }
+  onFilterStringChanged(text2) {
+    if (!!this.onFilterStringChangedCallback) {
+      this.onFilterStringChangedCallback(text2);
+    }
+    this.raiseUpdate({ needUpdateIsEmpty: true });
+  }
+  getIsEmpty() {
+    return !this.renderedActions.some((action) => this.isItemVisible(action));
+  }
+  scrollToItem(classes, ms = 0) {
+    setTimeout(() => {
+      if (!this.listContainerHtmlElement)
+        return;
+      const item = this.listContainerHtmlElement.querySelector(classesToSelector(classes));
+      if (item) {
+        setTimeout(() => {
+          item.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+        }, ms);
+      }
+    }, ms);
+  }
+  constructor(items, onSelectionChanged, allowSelection, selectedItem, elementId) {
+    super();
+    this.onSelectionChanged = onSelectionChanged;
+    this.allowSelection = allowSelection;
+    this.elementId = elementId;
+    this.onItemClick = (itemValue) => {
+      if (this.isItemDisabled(itemValue)) {
+        return;
+      }
+      this.isExpanded = false;
+      if (this.allowSelection) {
+        this.selectedItem = itemValue;
+      }
+      if (!!this.onSelectionChanged) {
+        this.onSelectionChanged(itemValue);
+      }
+      const action = itemValue.action;
+      if (!!action) {
+        action(itemValue);
+      }
+    };
+    this.onItemHover = (itemValue) => {
+      this.mouseOverHandler(itemValue);
+    };
+    this.isItemDisabled = (itemValue) => {
+      return itemValue.enabled !== void 0 && !itemValue.enabled;
+    };
+    this.getA11yItemAriaSelected = (itemValue) => {
+      if (this.listItemRole == "option")
+        return this.isItemSelected(itemValue) ? "true" : "false";
+      return void 0;
+    };
+    this.getA11yItemAriaChecked = (itemValue) => {
+      if (this.listItemRole == "menuitemradio")
+        return this.isItemSelected(itemValue) ? "true" : "false";
+      return void 0;
+    };
+    this.isItemSelected = (itemValue) => {
+      return this.areSameItems(this.selectedItem, itemValue);
+    };
+    this.isItemFocused = (itemValue) => {
+      return this.areSameItems(this.focusedItem, itemValue);
+    };
+    this.getListClass = () => {
+      return new CssClassBuilder().append(this.cssClasses.itemsContainer).append(this.cssClasses.itemsContainerFiltering, !!this.filterString && this.visibleActions.length !== this.visibleItems.length).toString();
+    };
+    this.getItemClass = (itemValue) => {
+      const isSelected = this.isItemSelected(itemValue);
+      return new CssClassBuilder().append(this.cssClasses.item).append(this.cssClasses.itemWithIcon, !!itemValue.iconName).append(this.cssClasses.itemDisabled, this.isItemDisabled(itemValue)).append(this.cssClasses.itemFocused, this.isItemFocused(itemValue)).append(this.cssClasses.itemSelected, !itemValue.hasSubItems && isSelected).append(this.cssClasses.itemGroup, itemValue.hasSubItems).append(this.cssClasses.itemGroupSelected, itemValue.hasSubItems && isSelected).append(this.cssClasses.itemHovered, itemValue.isHovered).append(this.cssClasses.itemTextWrap, this.textWrapEnabled).append(itemValue.css).toString();
+    };
+    this.getItemStyle = (itemValue) => {
+      const level = itemValue.level || 0;
+      return {
+        "--sjs-list-item-level": level + 1
+      };
+    };
+    if (Object.keys(items).indexOf("items") !== -1) {
+      const options2 = items;
+      Object.keys(options2).forEach((key) => {
+        switch (key) {
+          case "items":
+            this.setItems(options2.items);
+            break;
+          case "onFilterStringChangedCallback":
+            this.setOnFilterStringChangedCallback(options2.onFilterStringChangedCallback);
+            break;
+          case "onTextSearchCallback":
+            this.setOnTextSearchCallback(options2.onTextSearchCallback);
+            break;
+          default:
+            this[key] = options2[key];
+        }
+      });
+      this.updateActionsIds();
+    } else {
+      this.setItems(items);
+      this.selectedItem = selectedItem;
+    }
+  }
+  setOnFilterStringChangedCallback(callback) {
+    this.onFilterStringChangedCallback = callback;
+  }
+  setOnTextSearchCallback(callback) {
+    this.onTextSearchCallback = callback;
+  }
+  setItems(items, sortByVisibleIndex = true) {
+    super.setItems(items, sortByVisibleIndex);
+    this.updateActionsIds();
+    if (!this.isAllDataLoaded && !!this.actions.length) {
+      this.actions.push(this.loadingIndicator);
+    }
+  }
+  updateActionsIds() {
+    if (this.elementId) {
+      this.actions.forEach((action) => {
+        action.elementId = this.elementId + action.id;
+      });
+    }
+  }
+  setSearchEnabled(newValue) {
+    this.searchEnabled = newValue;
+    this.showSearchClearButton = newValue;
+  }
+  onSet() {
+    this.showFilter = this.searchEnabled && (this.forceShowFilter || (this.actions || []).length > ListModel.MINELEMENTCOUNT);
+    super.onSet();
+  }
+  getDefaultCssClasses() {
+    return defaultListCss;
+  }
+  popupAfterShowCallback(itemValue) {
+    this.addScrollEventListener(() => {
+      itemValue.hidePopup();
+    });
+  }
+  onItemLeave(itemValue) {
+    itemValue.hidePopupDelayed(this.subItemsHideDelay);
+  }
+  areSameItems(item1, item2) {
+    if (!!this.areSameItemsCallback)
+      return this.areSameItemsCallback(item1, item2);
+    return !!item1 && !!item2 && item1.id == item2.id;
+  }
+  get a11ya11y_input_ariaLabel() {
+    return this.listAriaLabel;
+  }
+  get filterStringPlaceholder() {
+    return this.getLocalizationString("filterStringPlaceholder");
+  }
+  get emptyMessage() {
+    return this.isAllDataLoaded ? this.getLocalizationString("emptyMessage") : this.getLocalizationString("loadingData");
+  }
+  get scrollableContainer() {
+    return this.listContainerHtmlElement.querySelector(classesToSelector(this.cssClasses.itemsContainer));
+  }
+  get loadingIndicator() {
+    if (!this.loadingIndicatorValue) {
+      const _loadingIndicator = new Action({
+        id: "loadingIndicator",
+        title: this.getLocalizationString("loadingPage"),
+        action: () => {
+        },
+        css: this.cssClasses.loadingIndicator
+      });
+      _loadingIndicator.initLoadingIndicatorVisibilityObserver(this.loadingIndicatorVisibilityObserver);
+      this.loadingIndicatorValue = _loadingIndicator;
+    }
+    return this.loadingIndicatorValue;
+  }
+  goToItems(event) {
+    if (event.key === "ArrowDown" || event.keyCode === 40) {
+      const currentElement = event.target.parentElement;
+      const listElement = currentElement.parentElement.querySelector("ul");
+      const firstChild = getFirstVisibleChild(listElement);
+      if (!!listElement && !!firstChild) {
+        ElementHelper.focusElement(firstChild);
+        event.preventDefault();
+      }
+    }
+  }
+  onMouseMove(event) {
+    this.resetFocusedItem();
+  }
+  onKeyDown(event) {
+    const currentElement = event.target;
+    if (event.key === "ArrowDown" || event.keyCode === 40) {
+      ElementHelper.focusElement(ElementHelper.getNextElementPreorder(currentElement));
+      event.preventDefault();
+    } else if (event.key === "ArrowUp" || event.keyCode === 38) {
+      ElementHelper.focusElement(ElementHelper.getNextElementPostorder(currentElement));
+      event.preventDefault();
+    }
+  }
+  onPointerDown(event, item) {
+  }
+  refresh() {
+    if (this.filterString == "") {
+      this.raiseUpdate({ needUpdateIsEmpty: true });
+    }
+    this.resetFocusedItem();
+  }
+  onClickSearchClearButton(event) {
+    event.currentTarget.parentElement.querySelector("input").focus();
+    this.refresh();
+  }
+  resetFocusedItem() {
+    this.focusedItem = void 0;
+  }
+  focusFirstVisibleItem() {
+    if (!IsTouch) {
+      this.focusedItem = this.visibleItems[0];
+    }
+  }
+  focusLastVisibleItem() {
+    this.focusedItem = this.visibleItems[this.visibleItems.length - 1];
+  }
+  initFocusedItem() {
+    this.focusedItem = this.visibleItems.filter((item) => item.visible && this.isItemSelected(item))[0];
+    if (!this.focusedItem) {
+      this.focusFirstVisibleItem();
+    }
+  }
+  focusNextVisibleItem() {
+    if (!this.focusedItem) {
+      this.initFocusedItem();
+    } else {
+      const items = this.visibleItems;
+      const currentFocusedItemIndex = items.indexOf(this.focusedItem);
+      const nextItem = items[currentFocusedItemIndex + 1];
+      if (nextItem) {
+        this.focusedItem = nextItem;
+      } else {
+        this.focusFirstVisibleItem();
+      }
+    }
+  }
+  focusPrevVisibleItem() {
+    if (!this.focusedItem) {
+      this.initFocusedItem();
+    } else {
+      const items = this.visibleItems;
+      const currentFocusedItemIndex = items.indexOf(this.focusedItem);
+      const prevItem = items[currentFocusedItemIndex - 1];
+      if (prevItem) {
+        this.focusedItem = prevItem;
+      } else {
+        this.focusLastVisibleItem();
+      }
+    }
+  }
+  selectFocusedItem() {
+    !!this.focusedItem && this.onItemClick(this.focusedItem);
+  }
+  initListContainerHtmlElement(htmlElement) {
+    this.listContainerHtmlElement = htmlElement;
+  }
+  onItemRended(item, element2) {
+    if (this.isAllDataLoaded)
+      return;
+    if (item === this.actions[this.actions.length - 1] && !!this.listContainerHtmlElement) {
+      this.hasVerticalScroller = ElementHelper.hasVerticalScroller(this.scrollableContainer);
+    }
+    if (item.id === this.loadingIndicator.id && element2 && this.loadingIndicator["intersectionVisibilityObserver"]) {
+      this.loadingIndicator["intersectionVisibilityObserver"].observe(element2);
+    }
+  }
+  scrollToFocusedItem() {
+    this.scrollToItem(this.cssClasses.itemFocused);
+  }
+  scrollToSelectedItem() {
+    if (!!this.selectedItem && this.selectedItem.items && this.selectedItem.items.length > 0) {
+      this.scrollToItem(this.cssClasses.itemGroupSelected, 110);
+    } else {
+      this.scrollToItem(this.cssClasses.itemSelected, 110);
+    }
+  }
+  setLoadingIndicatorVisibilityObserver(handler) {
+    if (!!handler) {
+      this.loadingIndicatorVisibilityObserver = handler;
+    }
+  }
+  addScrollEventListener(handler) {
+    if (!!handler) {
+      this.removeScrollEventListener();
+      this.scrollHandler = handler;
+    }
+    if (!!this.scrollHandler) {
+      this.scrollableContainer.addEventListener("scroll", this.scrollHandler);
+    }
+  }
+  removeScrollEventListener() {
+    if (!!this.scrollHandler) {
+      this.scrollableContainer.removeEventListener("scroll", this.scrollHandler);
+    }
+  }
+  dispose() {
+    super.dispose();
+    if (!!this.loadingIndicatorValue) {
+      this.loadingIndicatorValue.dispose();
+    }
+    this.listContainerHtmlElement = void 0;
+  }
+}
+ListModel.INDENT = 16;
+ListModel.MINELEMENTCOUNT = 10;
+__decorate([
+  property({
+    defaultValue: true,
+    onSet: (newValue, target) => {
+      target.onSet();
+    }
+  })
+], ListModel.prototype, "searchEnabled", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "showFilter", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "forceShowFilter", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "isExpanded", void 0);
+__decorate([
+  property({})
+], ListModel.prototype, "selectedItem", void 0);
+__decorate([
+  property()
+], ListModel.prototype, "focusedItem", void 0);
+__decorate([
+  property({
+    onSet: (_23, target) => {
+      target.onFilterStringChanged(target.filterString);
+    }
+  })
+], ListModel.prototype, "filterString", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "hasVerticalScroller", void 0);
+__decorate([
+  property({ defaultValue: true })
+], ListModel.prototype, "isAllDataLoaded", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "showSearchClearButton", void 0);
+__decorate([
+  property({ defaultValue: true })
+], ListModel.prototype, "renderElements", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "textWrapEnabled", void 0);
+__decorate([
+  property({ defaultValue: "sv-list-item-content" })
+], ListModel.prototype, "itemComponent", void 0);
+__decorate([
+  property({ defaultValue: "listbox" })
+], ListModel.prototype, "listRole", void 0);
+__decorate([
+  property({ defaultValue: "option" })
+], ListModel.prototype, "listItemRole", void 0);
+__decorate([
+  property()
+], ListModel.prototype, "listAriaLabel", void 0);
+__decorate([
+  property({ defaultValue: false })
+], ListModel.prototype, "disableSearch", void 0);
+class PopupModel extends Base {
+  refreshInnerModel() {
+    const innerModel = this.contentComponentData["model"];
+    innerModel && innerModel.refresh && innerModel.refresh();
+  }
+  constructor(contentComponentName, contentComponentData, options2) {
+    super();
+    this.focusFirstInputSelector = "";
+    this.onCancel = () => {
+    };
+    this.onApply = () => {
+      return true;
+    };
+    this.onHide = () => {
+    };
+    this.onShow = () => {
+    };
+    this.onBlur = () => {
+    };
+    this.onDispose = () => {
+    };
+    this.onVisibilityChanged = this.addEvent();
+    this.onFooterActionsCreated = this.addEvent();
+    this.onRecalculatePosition = this.addEvent();
+    this.contentComponentName = contentComponentName;
+    this.contentComponentData = contentComponentData;
+    if (!!options2) {
+      for (var key in options2) {
+        this[key] = options2[key];
+      }
+    }
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+    super.onPropertyValueChanged(name, oldValue, newValue);
+    if (name === "isVisible") {
+      this.onVisibilityChanged.fire(this, { model: this, isVisible: newValue });
+    }
+  }
+  toggleVisibility() {
+    this.isVisible = !this.isVisible;
+  }
+  show() {
+    if (!this.isVisible)
+      this.isVisible = true;
+  }
+  hide() {
+    if (this.isVisible)
+      this.isVisible = false;
+  }
+  recalculatePosition(isResetHeight) {
+    this.onRecalculatePosition.fire(this, { isResetHeight });
+  }
+  updateFooterActions(footerActions) {
+    const options2 = { actions: footerActions };
+    this.onFooterActionsCreated.fire(this, options2);
+    return options2.actions;
+  }
+  getDisplayMode() {
+    if (this.isModal) {
+      return this.displayMode === "popup" ? "modal-popup" : "modal-overlay";
+    } else {
+      if (this.displayMode === "popup") {
+        return "menu-popup";
+      } else {
+        let result;
+        switch (this.overlayDisplayMode) {
+          case "plain": {
+            result = "menu-popup";
+            break;
+          }
+          case "dropdown-overlay": {
+            result = "menu-overlay";
+            break;
+          }
+          case "tablet-dropdown-overlay": {
+            result = "menu-popup-overlay";
+            break;
+          }
+          case "auto": {
+            if (!IsTouch) {
+              result = "menu-popup";
+            } else {
+              result = "menu-popup-overlay";
+            }
+            break;
+          }
+        }
+        return result;
+      }
+    }
+  }
+  updateDisplayMode(menuType) {
+    let newDisplayMode;
+    let newOverlayDisplayMode;
+    switch (menuType) {
+      case "dropdown": {
+        newDisplayMode = "popup";
+        newOverlayDisplayMode = "auto";
+        break;
+      }
+      case "popup": {
+        newDisplayMode = "overlay";
+        newOverlayDisplayMode = "tablet-dropdown-overlay";
+        break;
+      }
+      case "overlay": {
+        newDisplayMode = "overlay";
+        newOverlayDisplayMode = "dropdown-overlay";
+        break;
+      }
+    }
+    if (this.displayMode !== newDisplayMode) {
+      const isDropdown = menuType === "dropdown";
+      this.setWidthByTarget = isDropdown;
+      this.isFocusedContent = !isDropdown;
+    }
+    if (this.displayMode !== newDisplayMode || this.overlayDisplayMode !== newOverlayDisplayMode) {
+      this.displayMode = newDisplayMode;
+      this.overlayDisplayMode = newOverlayDisplayMode;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  onHiding() {
+    this.refreshInnerModel();
+    this.onHide();
+  }
+  dispose() {
+    super.dispose();
+    this.onDispose();
+  }
+}
+__decorate([
+  property()
+], PopupModel.prototype, "contentComponentName", void 0);
+__decorate([
+  property()
+], PopupModel.prototype, "contentComponentData", void 0);
+__decorate([
+  property({ defaultValue: "bottom" })
+], PopupModel.prototype, "verticalPosition", void 0);
+__decorate([
+  property({ defaultValue: "left" })
+], PopupModel.prototype, "horizontalPosition", void 0);
+__decorate([
+  property({ defaultValue: true })
+], PopupModel.prototype, "showPointer", void 0);
+__decorate([
+  property({ defaultValue: false })
+], PopupModel.prototype, "showCloseButton", void 0);
+__decorate([
+  property({ defaultValue: false })
+], PopupModel.prototype, "isModal", void 0);
+__decorate([
+  property({ defaultValue: true })
+], PopupModel.prototype, "canShrink", void 0);
+__decorate([
+  property({ defaultValue: true })
+], PopupModel.prototype, "isFocusedContent", void 0);
+__decorate([
+  property({ defaultValue: true })
+], PopupModel.prototype, "isFocusedContainer", void 0);
+__decorate([
+  property({ defaultValue: "" })
+], PopupModel.prototype, "cssClass", void 0);
+__decorate([
+  property({ defaultValue: "" })
+], PopupModel.prototype, "title", void 0);
+__decorate([
+  property({ defaultValue: "auto" })
+], PopupModel.prototype, "overlayDisplayMode", void 0);
+__decorate([
+  property({ defaultValue: "popup" })
+], PopupModel.prototype, "displayMode", void 0);
+__decorate([
+  property({ defaultValue: "flex" })
+], PopupModel.prototype, "positionMode", void 0);
+__decorate([
+  property({ defaultValue: false })
+], PopupModel.prototype, "isVisible", void 0);
+function createDropdownActionModelAdvanced(actionOptions, listOptions, popupOptions) {
+  var _a2;
+  const originalSelectionChanged = listOptions.onSelectionChanged;
+  listOptions.onSelectionChanged = (item, ...params) => {
+    if (newAction.hasTitle) {
+      newAction.title = item.title;
+    }
+    if (originalSelectionChanged) {
+      originalSelectionChanged(item, params);
+    }
+  };
+  const popupModel = createPopupModelWithListModel(listOptions, popupOptions);
+  popupModel.getTargetCallback = getActionDropdownButtonTarget;
+  const newActionOptions = Object.assign({}, actionOptions, {
+    component: "sv-action-bar-item-dropdown",
+    popupModel,
+    action: (action, isUserAction) => {
+      !!actionOptions.action && actionOptions.action();
+      popupModel.isFocusedContent = popupModel.isFocusedContent || !isUserAction;
+      popupModel.show();
+    }
+  });
+  const newAction = new Action(newActionOptions);
+  newAction.data = (_a2 = popupModel.contentComponentData) === null || _a2 === void 0 ? void 0 : _a2.model;
+  return newAction;
+}
+function createPopupModelWithListModel(listOptions, popupOptions) {
+  if (!listOptions.listRole)
+    listOptions.listRole = "menu";
+  if (!listOptions.listItemRole)
+    listOptions.listItemRole = !!listOptions.allowSelection ? "menuitemradio" : "menuitem";
+  const listModel = new ListModel(listOptions);
+  listModel.onSelectionChanged = (item) => {
+    if (listOptions.onSelectionChanged) {
+      listOptions.onSelectionChanged(item);
+    }
+    popupModel.hide();
+  };
+  const _popupOptions = popupOptions || {};
+  _popupOptions.onDispose = () => {
+    listModel.dispose();
+  };
+  const popupModel = new PopupModel("sv-list", { model: listModel }, _popupOptions);
+  popupModel.isFocusedContent = listModel.showFilter;
+  popupModel.onShow = () => {
+    if (!!_popupOptions.onShow)
+      _popupOptions.onShow();
+    listModel.scrollToSelectedItem();
+  };
+  popupModel.onHide = () => {
+    if (!!_popupOptions.onHide)
+      _popupOptions.onHide();
+    listModel.filterString = "";
+  };
+  return popupModel;
+}
+function getActionDropdownButtonTarget(container) {
+  return container === null || container === void 0 ? void 0 : container.previousElementSibling;
+}
+class BaseAction extends Base {
+  constructor() {
+    super(...arguments);
+    this.rendredIdValue = BaseAction.getNextRendredId();
+  }
+  static getNextRendredId() {
+    return BaseAction.renderedId++;
+  }
+  get data() {
+    return this._data;
+  }
+  set data(val) {
+    this._data = val;
+  }
+  get id() {
+    return this.getId();
+  }
+  set id(val) {
+    this.setId(val);
+  }
+  getId() {
+    return this.idValue;
+  }
+  setId(val) {
+    this.idValue = val;
+  }
+  addVisibilityChangedCallback(callback) {
+  }
+  removeVisibilityChangedCallback(callback) {
+  }
+  get renderedId() {
+    return this.rendredIdValue;
+  }
+  get owner() {
+    return this.ownerValue;
+  }
+  set owner(val) {
+    if (val !== this.owner) {
+      this.ownerValue = val;
+      this.locStrsChanged();
+    }
+  }
+  get visible() {
+    return this.getVisible();
+  }
+  set visible(val) {
+    this.setVisible(val);
+  }
+  get enabled() {
+    return this.getEnabled();
+  }
+  set enabled(val) {
+    this.setEnabled(val);
+  }
+  get component() {
+    return this.getComponent();
+  }
+  set component(val) {
+    this.setComponent(val);
+  }
+  get locTitle() {
+    return this.getLocTitle();
+  }
+  set locTitle(val) {
+    this.setLocTitle(val);
+  }
+  get title() {
+    return this.getTitle();
+  }
+  set title(val) {
+    this.setTitle(val);
+  }
+  get titles() {
+    return this.locTitle.getJson();
+  }
+  set titles(val) {
+    this.locTitle.setJson(val);
+  }
+  set cssClasses(val) {
+    this.cssClassesValue = val;
+  }
+  get cssClasses() {
+    return this.cssClassesValue || defaultActionBarCss;
+  }
+  get isVisible() {
+    return this.visible && this.mode !== "popup" && this.mode !== "removed";
+  }
+  get disabled() {
+    return this.enabled !== void 0 && !this.enabled;
+  }
+  get canShrink() {
+    return !this.disableShrink && !!this.iconName;
+  }
+  get hasTitle() {
+    return (this.mode != "small" && (this.showTitle || this.showTitle === void 0) || !this.iconName) && !!this.title;
+  }
+  get hasSubItems() {
+    return !!this.items && this.items.length > 0;
+  }
+  getActionBarItemTitleCss() {
+    return new CssClassBuilder().append(this.cssClasses.itemTitle).append(this.cssClasses.itemTitleWithIcon, !!this.iconName).toString();
+  }
+  getActionBarItemCss() {
+    const hasTitle = this.hasTitle;
+    return new CssClassBuilder().append(this.cssClasses.item).append(this.cssClasses.itemWithTitle, hasTitle).append(this.cssClasses.itemAsIcon, !hasTitle).append(this.cssClasses.itemActive, !!this.active).append(this.cssClasses.itemPressed, !!this.pressed).append(this.innerCss).toString();
+  }
+  getActionRootCss() {
+    return new CssClassBuilder().append("sv-action").append(this.css).append("sv-action--space", this.needSpace).append("sv-action--hidden", !this.isVisible).toString();
+  }
+  getTooltip() {
+    return this.tooltip || this.title;
+  }
+  getIsTrusted(args) {
+    if (!!args.originalEvent) {
+      return args.originalEvent.isTrusted;
+    }
+    return args.isTrusted;
+  }
+  showPopup() {
+    if (!!this.popupModel) {
+      this.popupModel.show();
+    }
+  }
+  hidePopup() {
+    if (!!this.popupModel) {
+      this.popupModel.hide();
+    }
+  }
+  clearPopupTimeouts() {
+    if (this.showPopupTimeout)
+      clearTimeout(this.showPopupTimeout);
+    if (this.hidePopupTimeout)
+      clearTimeout(this.hidePopupTimeout);
+  }
+  showPopupDelayed(delay) {
+    this.clearPopupTimeouts();
+    this.showPopupTimeout = setTimeout(() => {
+      this.clearPopupTimeouts();
+      this.showPopup();
+    }, delay);
+  }
+  hidePopupDelayed(delay) {
+    var _a2;
+    if ((_a2 = this.popupModel) === null || _a2 === void 0 ? void 0 : _a2.isVisible) {
+      this.clearPopupTimeouts();
+      this.hidePopupTimeout = setTimeout(() => {
+        this.clearPopupTimeouts();
+        this.hidePopup();
+        this.isHovered = false;
+      }, delay);
+    } else {
+      this.clearPopupTimeouts();
+      this.isHovered = false;
+    }
+  }
+}
+BaseAction.renderedId = 1;
+__decorate([
+  property()
+], BaseAction.prototype, "tooltip", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "showTitle", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "innerCss", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "active", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "pressed", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "popupModel", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "needSeparator", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "template", void 0);
+__decorate([
+  property({ defaultValue: "large" })
+], BaseAction.prototype, "mode", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "visibleIndex", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "disableTabStop", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "disableShrink", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "disableHide", void 0);
+__decorate([
+  property({ defaultValue: false })
+], BaseAction.prototype, "needSpace", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "ariaChecked", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "ariaExpanded", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "ariaLabelledBy", void 0);
+__decorate([
+  property({ defaultValue: "button" })
+], BaseAction.prototype, "ariaRole", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "iconName", void 0);
+__decorate([
+  property({ defaultValue: 24 })
+], BaseAction.prototype, "iconSize", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "markerIconName", void 0);
+__decorate([
+  property()
+], BaseAction.prototype, "css", void 0);
+__decorate([
+  property({ defaultValue: false })
+], BaseAction.prototype, "isPressed", void 0);
+__decorate([
+  property({ defaultValue: false })
+], BaseAction.prototype, "isHovered", void 0);
+class Action extends BaseAction {
+  constructor(innerItemData) {
+    super();
+    this.locTitleChanged = () => {
+      const val = this.locTitle.renderedHtml;
+      this.setPropertyValue("_title", !!val ? val : void 0);
+    };
+    this.needUpdateMaxDimension = false;
+    this.needUpdateMinDimension = false;
+    const innerItem = innerItemData instanceof Action ? innerItemData.innerItem : innerItemData;
+    this.innerItem = innerItem;
+    this.locTitle = !!innerItem ? innerItem["locTitle"] : null;
+    if (!!innerItem) {
+      for (var key in innerItem) {
+        if (key === "locTitle" || key === "title" && !!this.title)
+          continue;
+        this[key] = innerItem[key];
+      }
+    }
+    if (!!this.locTitleName) {
+      this.locTitleChanged();
+    }
+    this.locStrChangedInPopupModel();
+  }
+  createLocTitle() {
+    return this.createLocalizableString("title", this, true);
+  }
+  setSubItems(options2) {
+    this.markerIconName = "icon-next_16x16";
+    this.items = [...options2.items];
+    if (!this.popupModel) {
+      this.createPopupForSubitems(options2);
+    } else {
+      const list = this.popupModel.contentComponentData.model;
+      list.setItems(this.items);
+    }
+    this.component = this.getGroupComponentName();
+  }
+  createPopupForSubitems(options2) {
+    const listOptions = Object.assign({}, options2);
+    listOptions.searchEnabled = false;
+    const popupModel = createPopupModelWithListModel(listOptions, { horizontalPosition: "right", showPointer: false, canShrink: false });
+    popupModel.cssClass = "sv-popup-inner";
+    this.popupModel = popupModel;
+  }
+  getId() {
+    return this.getPropertyValue("id");
+  }
+  setId(val) {
+    this.setPropertyValue("id", val);
+  }
+  getLocTitle() {
+    return this.locTitleValue;
+  }
+  setLocTitle(val) {
+    if (!val && !this.locTitleValue) {
+      val = this.createLocTitle();
+    }
+    if (!!this.locTitleValue) {
+      this.locTitleValue.onStringChanged.remove(this.locTitleChanged);
+    }
+    this.locTitleValue = val;
+    this.locTitleValue.onStringChanged.add(this.locTitleChanged);
+    this.locTitleChanged();
+  }
+  getTitle() {
+    return this._title;
+  }
+  setTitle(val) {
+    this._title = val;
+  }
+  get locTitleName() {
+    return this.locTitle.localizationName;
+  }
+  set locTitleName(val) {
+    this.locTitle.localizationName = val;
+  }
+  locStrsChanged() {
+    super.locStrsChanged();
+    this.locTooltipChanged();
+    this.locStrChangedInPopupModel();
+  }
+  doAction(args) {
+    const evt = !!args.originalEvent ? args.originalEvent : args;
+    this.action(this, evt.isTrusted);
+    evt.preventDefault();
+    evt.stopPropagation();
+    return true;
+  }
+  doMouseDown(args) {
+    this.isMouseDown = true;
+  }
+  doFocus(args) {
+    if (!!this.onFocus) {
+      const evt = !!args.originalEvent ? args.originalEvent : args;
+      this.onFocus(this.isMouseDown, evt);
+    }
+    this.isMouseDown = false;
+  }
+  locStrChangedInPopupModel() {
+    if (!this.popupModel || !this.popupModel.contentComponentData || !this.popupModel.contentComponentData.model)
+      return;
+    const model = this.popupModel.contentComponentData.model;
+    if (Array.isArray(model.actions)) {
+      const actions = model.actions;
+      actions.forEach((item) => {
+        if (!!item.locStrsChanged) {
+          item.locStrsChanged();
+        }
+      });
+    }
+  }
+  locTooltipChanged() {
+    if (!this.locTooltipName)
+      return;
+    this.tooltip = getLocaleString(this.locTooltipName, this.locTitle.locale);
+  }
+  //ILocalizableOwner
+  getLocale() {
+    return this.owner ? this.owner.getLocale() : "";
+  }
+  getMarkdownHtml(text2, name, item) {
+    return this.owner ? this.owner.getMarkdownHtml(text2, name, item) : void 0;
+  }
+  getProcessedText(text2) {
+    return this.owner ? this.owner.getProcessedText(text2) : text2;
+  }
+  getRenderer(name) {
+    return this.owner ? this.owner.getRenderer(name) : null;
+  }
+  getRendererContext(locStr) {
+    return this.owner ? this.owner.getRendererContext(locStr) : locStr;
+  }
+  setVisible(val) {
+    if (this.visible !== val) {
+      this._visible = val;
+    }
+  }
+  getVisible() {
+    return this._visible;
+  }
+  setEnabled(val) {
+    this._enabled = val;
+  }
+  getEnabled() {
+    if (this.enabledIf)
+      return this.enabledIf();
+    return this._enabled;
+  }
+  setComponent(val) {
+    this._component = val;
+  }
+  getComponent() {
+    return this._component;
+  }
+  getGroupComponentName() {
+    return "sv-list-item-group";
+  }
+  initLoadingIndicatorVisibilityObserver(handler) {
+    if (typeof IntersectionObserver !== "undefined") {
+      this.intersectionVisibilityObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const isIntersecting = entry.isIntersecting;
+          handler(isIntersecting);
+        });
+      }, { trackVisibility: true, delay: 100 });
+    }
+  }
+  dispose() {
+    if (!!this.locTitleValue) {
+      this.locTitleValue.onStringChanged.remove(this.locTitleChanged);
+    }
+    this.locTitleChanged = void 0;
+    this.action = void 0;
+    super.dispose();
+    if (this.popupModel) {
+      this.popupModel.dispose();
+    }
+    if (this.intersectionVisibilityObserver) {
+      this.intersectionVisibilityObserver.disconnect();
+      this.intersectionVisibilityObserver = void 0;
+    }
+  }
+  updateDimension(mode, htmlElement, calcDimension) {
+    const property2 = mode == "small" ? "minDimension" : "maxDimension";
+    if (htmlElement) {
+      const actionContainer = htmlElement;
+      if (actionContainer.classList.contains("sv-action--hidden")) {
+        actionContainer.classList.remove("sv-action--hidden");
+        this[property2] = calcDimension(htmlElement);
+        actionContainer.classList.add("sv-action--hidden");
+      } else {
+        this[property2] = calcDimension(htmlElement);
+      }
+    }
+  }
+  afterRender() {
+    this.afterRenderCallback && this.afterRenderCallback();
+  }
+  updateMode(mode, callback) {
+    if (this.updateModeCallback) {
+      this.updateModeCallback(mode, callback);
+    } else {
+      this.afterRenderCallback = () => {
+        this.updateModeCallback(mode, callback);
+        this.afterRenderCallback = void 0;
+      };
+    }
+  }
+  updateDimensions(calcDimension, callback, modeToCalculate) {
+    const mode = !modeToCalculate || modeToCalculate == "large" && this.mode !== "small" ? this.mode : modeToCalculate;
+    this.updateMode(mode, (mode2, htmlElement) => {
+      this.updateDimension(mode2, htmlElement, calcDimension);
+      if (!modeToCalculate) {
+        this.updateMode(mode2 !== "small" ? "small" : "large", (mode3, htmlElement2) => {
+          this.updateDimension(mode3, htmlElement2, calcDimension);
+          callback();
+        });
+      } else {
+        callback();
+      }
+    });
+  }
+}
+__decorate([
+  property({ defaultValue: true })
+], Action.prototype, "_visible", void 0);
+__decorate([
+  property({
+    onSet: (_23, target) => {
+      target.locTooltipChanged();
+    }
+  })
+], Action.prototype, "locTooltipName", void 0);
+__decorate([
+  property()
+], Action.prototype, "_enabled", void 0);
+__decorate([
+  property()
+], Action.prototype, "action", void 0);
+__decorate([
+  property()
+], Action.prototype, "onFocus", void 0);
+__decorate([
+  property()
+], Action.prototype, "_component", void 0);
+__decorate([
+  property()
+], Action.prototype, "items", void 0);
+__decorate([
+  property({
+    onSet: (val, target) => {
+      if (target.locTitleValue.text === val)
+        return;
+      target.locTitleValue.text = val;
+    }
+  })
+], Action.prototype, "_title", void 0);
+class ActionDropdownViewModel {
+  constructor(item) {
+    this.item = item;
+    this.funcKey = "sv-dropdown-action";
+    this.setupPopupCallbacks();
+  }
+  setupPopupCallbacks() {
+    const popupModel = this.popupModel = this.item.popupModel;
+    if (!popupModel)
+      return;
+    popupModel.registerPropertyChangedHandlers(["isVisible"], () => {
+      if (!popupModel.isVisible) {
+        this.item.pressed = false;
+      } else {
+        this.item.pressed = true;
+      }
+    }, this.funcKey);
+  }
+  removePopupCallbacks() {
+    if (!!this.popupModel) {
+      this.popupModel.unregisterPropertyChangedHandlers(["isVisible"], this.funcKey);
+    }
+  }
+  dispose() {
+    this.removePopupCallbacks();
+  }
+}
+class ResponsivityManager {
+  constructor(container, model, afterInitializeCallback) {
+    this.container = container;
+    this.model = model;
+    this.afterInitializeCallback = afterInitializeCallback;
+    this.resizeObserver = void 0;
+    this.isInitialized = false;
+    this.isResizeObserverStarted = false;
+    this.getComputedStyle = (elt) => {
+      return DomDocumentHelper.getComputedStyle(elt);
+    };
+    this.isDisposed = false;
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        DomWindowHelper.requestAnimationFrame(() => {
+          this.isResizeObserverStarted = true;
+          this.process();
+        });
+      });
+      this.resizeObserver.observe(this.container.parentElement);
+    }
+  }
+  getDimensions(element2) {
+    return {
+      scroll: element2.scrollWidth,
+      offset: element2.offsetWidth
+    };
+  }
+  getAvailableSpace() {
+    const style = this.getComputedStyle(this.container);
+    let space = this.container.offsetWidth;
+    if (style.boxSizing === "border-box") {
+      space -= parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    }
+    return space;
+  }
+  getGap() {
+    const computedStyle = this.getComputedStyle(this.container);
+    if (computedStyle.display == "flex") {
+      const gap = parseFloat(computedStyle.rowGap);
+      return !isNaN(gap) ? gap : 0;
+    }
+    return 0;
+  }
+  calcItemSize(item) {
+    return item.offsetWidth || item.getBoundingClientRect().width;
+  }
+  updateItemsDimensions(callback) {
+    if (!this.container)
+      return;
+    const actionsToUpdateDimension = this.isInitialized ? this.model.renderedActions.filter((action) => action.needUpdateMaxDimension || action.needUpdateMinDimension) : this.model.renderedActions;
+    let actionsCounter = actionsToUpdateDimension.length;
+    if (actionsCounter == 0) {
+      callback();
+    }
+    const onItemDimensionsUpdated = () => {
+      if (--actionsCounter <= 0) {
+        callback();
+      }
+    };
+    actionsToUpdateDimension.forEach((action) => {
+      const needUpdateMaxDimension = !this.isInitialized || action.needUpdateMaxDimension;
+      const needUpdateMinDimension = !this.isInitialized || action.needUpdateMinDimension;
+      const modeToCalculate = needUpdateMinDimension ? needUpdateMaxDimension ? void 0 : "small" : "large";
+      action.updateDimensions((el) => this.calcItemSize(el), () => {
+        action.needUpdateMaxDimension = false;
+        action.needUpdateMinDimension = false;
+        onItemDimensionsUpdated();
+      }, modeToCalculate);
+    });
+  }
+  get isContainerVisible() {
+    return !!this.container && isContainerVisible(this.container);
+  }
+  shouldProcessResponsiveness() {
+    return this.isContainerVisible && !this.model.isResponsivenessDisabled && !this.isDisposed;
+  }
+  process() {
+    if (this.shouldProcessResponsiveness()) {
+      this.updateItemsDimensions(() => {
+        if (this.shouldProcessResponsiveness()) {
+          this.model.fit({ availableSpace: this.getAvailableSpace(), gap: this.getGap() });
+        }
+        if (!this.isInitialized) {
+          this.isInitialized = true;
+          this.afterInitializeCallback && this.afterInitializeCallback();
+        }
+      });
+    }
+  }
+  update(forceUpdate) {
+    if (!this.isResizeObserverStarted)
+      return;
+    if (!this.model.isResponsivenessDisabled) {
+      if (forceUpdate) {
+        this.isInitialized = false;
+      }
+      this.process();
+    }
+  }
+  dispose() {
+    this.isDisposed = true;
+    if (!!this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    this.isResizeObserverStarted = false;
+    this.resizeObserver = void 0;
+    this.container = void 0;
+  }
+}
+var UpdateResponsivenessMode;
+(function(UpdateResponsivenessMode2) {
+  UpdateResponsivenessMode2[UpdateResponsivenessMode2["None"] = 0] = "None";
+  UpdateResponsivenessMode2[UpdateResponsivenessMode2["Light"] = 1] = "Light";
+  UpdateResponsivenessMode2[UpdateResponsivenessMode2["Hard"] = 3] = "Hard";
+})(UpdateResponsivenessMode || (UpdateResponsivenessMode = {}));
+class AdaptiveActionContainer extends ActionContainer {
+  hideItemsGreaterN(visibleItemsCount) {
+    const actionsToHide = this.getActionsToHide();
+    visibleItemsCount = Math.max(visibleItemsCount, this.minVisibleItemsCount - (this.visibleActions.length - actionsToHide.length));
+    const hiddenItems = [];
+    actionsToHide.forEach((item) => {
+      if (visibleItemsCount <= 0) {
+        item.mode = "popup";
+        hiddenItems.push(item.innerItem);
+      }
+      visibleItemsCount--;
+    });
+    this.hiddenItemsListModel.setItems(hiddenItems);
+  }
+  getActionsToHide() {
+    return this.visibleActions.filter((action) => !action.disableHide);
+  }
+  updateItemMode(availableSpace, maxItemsSize) {
+    const items = this.visibleActions;
+    for (let index = items.length - 1; index >= 0; index--) {
+      if (maxItemsSize > availableSpace && !items[index].disableShrink) {
+        maxItemsSize -= items[index].maxDimension - items[index].minDimension;
+        items[index].mode = "small";
+      } else {
+        items[index].mode = "large";
+      }
+    }
+  }
+  constructor() {
+    super();
+    this.minVisibleItemsCount = 0;
+    this.isResponsivenessDisabled = false;
+    this.isInitialized = false;
+    this.dotsItem = createDropdownActionModelAdvanced({
+      id: "dotsItem-id" + this.id++,
+      css: "sv-dots",
+      innerCss: "sv-dots__item",
+      iconName: "icon-more",
+      visible: false,
+      tooltip: getLocaleString("more")
+    }, {
+      items: [],
+      allowSelection: false
+    });
+    this.hiddenItemsListModel.createActionCallback = (item) => this.createActionCore(this.hiddenItemsListModel, item);
+  }
+  get hiddenItemsListModel() {
+    return this.dotsItem.data;
+  }
+  onSet() {
+    super.onSet();
+    this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Hard });
+  }
+  onPush(action) {
+    super.onPush(action);
+    this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Hard });
+  }
+  onRemove(action) {
+    super.onRemove(action);
+    this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Hard });
+  }
+  onActionPropertyChanged(action, options2) {
+    super.onActionPropertyChanged(action, options2);
+    if (options2.name == "_visible" || options2.name == "_title") {
+      action.needUpdateMaxDimension = action.visible;
+      action.needUpdateMinDimension = action.visible;
+      this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Light });
+    }
+    if (options2.name == "disableHide" && options2.newValue && action.mode == "popup") {
+      this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Light });
+    }
+  }
+  getRenderedActions() {
+    const actions = super.getRenderedActions();
+    if (actions.length == 0 || actions.length === 1 && !!actions[0].iconName)
+      return actions;
+    return actions.concat([this.dotsItem]);
+  }
+  getAllActions() {
+    return this.actions.concat(this.dotsItem);
+  }
+  getActionMinDimension(action) {
+    return action.disableShrink ? action.maxDimension : action.minDimension;
+  }
+  getVisibleItemsCount(options2) {
+    let { availableSpace, gap } = options2;
+    availableSpace -= this.dotsItem.minDimension + gap;
+    let currentItemsSize = 0;
+    if (this.visibleActions[0].disableHide) {
+      availableSpace += gap;
+    } else {
+      currentItemsSize -= gap;
+    }
+    this.visibleActions.filter((action) => action.disableHide).forEach((action) => {
+      return availableSpace -= this.getActionMinDimension(action) + gap;
+    });
+    const actionsToHide = this.getActionsToHide();
+    if (actionsToHide.length === 1 && !!actionsToHide[0].iconName) {
+      return 1;
+    }
+    for (let i = 0; i < actionsToHide.length; i++) {
+      currentItemsSize += this.getActionMinDimension(actionsToHide[i]) + gap;
+      if (currentItemsSize > availableSpace) {
+        return i;
+      }
+    }
+  }
+  fit(options2) {
+    var _a2;
+    if (options2.availableSpace <= 0)
+      return;
+    options2.gap = (_a2 = options2.gap) !== null && _a2 !== void 0 ? _a2 : 0;
+    const { availableSpace, gap } = options2;
+    this.dotsItem.visible = false;
+    const actions = this.visibleActions;
+    let minSize = -1 * options2.gap;
+    let maxSize = -1 * options2.gap;
+    actions.forEach((action) => {
+      minSize += this.getActionMinDimension(action) + gap;
+      maxSize += action.maxDimension + gap;
+    });
+    if (availableSpace >= maxSize) {
+      this.setActionsMode("large");
+    } else if (availableSpace < minSize) {
+      this.setActionsMode("small");
+      this.hideItemsGreaterN(this.getVisibleItemsCount(options2));
+      this.dotsItem.visible = !!this.hiddenItemsListModel.actions.length;
+    } else {
+      this.updateItemMode(options2.availableSpace, maxSize);
+    }
+  }
+  createResponsivityManager(container) {
+    return new ResponsivityManager(container, this);
+  }
+  mergeUpdateOptions(nextOptions, prevOptions) {
+    const options2 = super.mergeUpdateOptions(nextOptions, prevOptions);
+    options2.updateResponsivenessMode = options2.updateResponsivenessMode | prevOptions.updateResponsivenessMode;
+    return options2;
+  }
+  raiseUpdate(options2) {
+    super.raiseUpdate(options2);
+  }
+  update(options2) {
+    var _a2;
+    super.update(options2);
+    if (options2.updateResponsivenessMode) {
+      (_a2 = this.responsivityManager) === null || _a2 === void 0 ? void 0 : _a2.update(options2.updateResponsivenessMode == UpdateResponsivenessMode.Hard);
+    }
+  }
+  initResponsivityManager(container) {
+    if (!!this.responsivityManager) {
+      if (this.responsivityManager.container == container) {
+        return;
+      }
+      this.responsivityManager.dispose();
+    }
+    this.isInitialized = false;
+    this.responsivityManager = this.createResponsivityManager(container);
+    this.responsivityManager.afterInitializeCallback = () => {
+      this.isInitialized = true;
+    };
+  }
+  resetResponsivityManager() {
+    if (!!this.responsivityManager) {
+      this.responsivityManager.dispose();
+      this.responsivityManager = void 0;
+    }
+  }
+  getRootStyle() {
+    if (!this.isInitialized && !this.isResponsivenessDisabled) {
+      return { opacity: 0 };
+    } else {
+      return void 0;
+    }
+  }
+  setActionsMode(mode) {
+    this.actions.forEach((action) => {
+      if (mode == "small" && action.disableShrink) {
+        action.mode = "large";
+      } else {
+        action.mode = mode;
+      }
+    });
+  }
+  dispose() {
+    super.dispose();
+    this.dotsItem.data.dispose();
+    this.dotsItem.dispose();
+    this.resetResponsivityManager();
+  }
+}
+__decorate([
+  property()
+], AdaptiveActionContainer.prototype, "isInitialized", void 0);
+class AnimationUtils2 {
+  constructor() {
+    this.cancelQueue = [];
+  }
+  getMsFromRule(value) {
+    if (value === "auto")
+      return 0;
+    return Number(value.slice(0, -1).replace(",", ".")) * 1e3;
+  }
+  reflow(element2) {
+    return element2.offsetHeight;
+  }
+  getAnimationsCount(element2) {
+    let animationName = "";
+    if (getComputedStyle) {
+      animationName = getComputedStyle(element2).animationName;
+    }
+    return animationName && animationName != "none" ? animationName.split(", ").length : 0;
+  }
+  getAnimationDuration(element2) {
+    const style = getComputedStyle(element2);
+    const delays = style["animationDelay"].split(", ");
+    const durations = style["animationDuration"].split(", ");
+    let duration2 = 0;
+    for (let i = 0; i < Math.max(durations.length, delays.length); i++) {
+      duration2 = Math.max(duration2, this.getMsFromRule(durations[i % durations.length]) + this.getMsFromRule(delays[i % delays.length]));
+    }
+    return duration2;
+  }
+  addCancelCallback(callback) {
+    this.cancelQueue.push(callback);
+  }
+  removeCancelCallback(callback) {
+    if (this.cancelQueue.indexOf(callback) >= 0) {
+      this.cancelQueue.splice(this.cancelQueue.indexOf(callback), 1);
+    }
+  }
+  onAnimationEnd(element2, callback, options2) {
+    let cancelTimeout;
+    let animationsCount = this.getAnimationsCount(element2);
+    const onEndCallback = (isCancel = true) => {
+      callback(isCancel);
+      clearTimeout(cancelTimeout);
+      this.removeCancelCallback(onEndCallback);
+      element2.removeEventListener("animationend", onAnimationEndCallback);
+    };
+    const onAnimationEndCallback = (event) => {
+      if (event.target == event.currentTarget && --animationsCount <= 0) {
+        onEndCallback(false);
+      }
+    };
+    if (animationsCount > 0) {
+      element2.addEventListener("animationend", onAnimationEndCallback);
+      this.addCancelCallback(onEndCallback);
+      cancelTimeout = setTimeout(() => {
+        onEndCallback(false);
+      }, this.getAnimationDuration(element2) + 10);
+    } else {
+      callback(true);
+    }
+  }
+  afterAnimationRun(element2, options2) {
+    if (element2 && options2) {
+      options2.onAfterRunAnimation && options2.onAfterRunAnimation(element2);
+    }
+  }
+  beforeAnimationRun(element2, options2) {
+    if (element2 && options2) {
+      options2.onBeforeRunAnimation && options2.onBeforeRunAnimation(element2);
+    }
+  }
+  getCssClasses(options2) {
+    return options2.cssClass.replace(/\s+$/, "").split(/\s+/);
+  }
+  runAnimation(element2, options2, callback) {
+    if (element2 && (options2 === null || options2 === void 0 ? void 0 : options2.cssClass)) {
+      this.reflow(element2);
+      this.getCssClasses(options2).forEach((cssClass) => {
+        element2.classList.add(cssClass);
+      });
+      this.onAnimationEnd(element2, callback, options2);
+    } else {
+      callback(true);
+    }
+  }
+  clearHtmlElement(element2, options2) {
+    if (element2 && options2.cssClass) {
+      this.getCssClasses(options2).forEach((cssClass) => {
+        element2.classList.remove(cssClass);
+      });
+    }
+    this.afterAnimationRun(element2, options2);
+  }
+  onNextRender(callback, isCancel = false) {
+    if (!isCancel && DomWindowHelper.isAvailable()) {
+      let latestRAF;
+      const cancelCallback = () => {
+        callback(true);
+        cancelAnimationFrame(latestRAF);
+      };
+      latestRAF = DomWindowHelper.requestAnimationFrame(() => {
+        latestRAF = DomWindowHelper.requestAnimationFrame(() => {
+          callback(false);
+          this.removeCancelCallback(cancelCallback);
+        });
+      });
+      this.addCancelCallback(cancelCallback);
+    } else {
+      callback(true);
+    }
+  }
+  cancel() {
+    const cancelQueue = [].concat(this.cancelQueue);
+    cancelQueue.forEach((callback) => callback());
+    this.cancelQueue = [];
+  }
+}
+class AnimationPropertyUtils extends AnimationUtils2 {
+  onEnter(options2) {
+    const htmlElement = options2.getAnimatedElement();
+    const enterOptions = options2.getEnterOptions ? options2.getEnterOptions() : {};
+    this.beforeAnimationRun(htmlElement, enterOptions);
+    this.runAnimation(htmlElement, enterOptions, () => {
+      this.clearHtmlElement(htmlElement, enterOptions);
+    });
+  }
+  onLeave(options2, callback) {
+    const htmlElement = options2.getAnimatedElement();
+    const leaveOptions = options2.getLeaveOptions ? options2.getLeaveOptions() : {};
+    this.beforeAnimationRun(htmlElement, leaveOptions);
+    this.runAnimation(htmlElement, leaveOptions, (isCancel) => {
+      callback();
+      this.onNextRender(() => {
+        this.clearHtmlElement(htmlElement, leaveOptions);
+      }, isCancel);
+    });
+  }
+}
+class AnimationGroupUtils extends AnimationUtils2 {
+  runGroupAnimation(options2, addedItems, removedItems, reorderedItems, callback) {
+    const info = {
+      isAddingRunning: addedItems.length > 0,
+      isDeletingRunning: removedItems.length > 0,
+      isReorderingRunning: reorderedItems.length > 0
+    };
+    const addedHtmlElements = addedItems.map((el) => options2.getAnimatedElement(el));
+    const enterOptions = addedItems.map((el) => options2.getEnterOptions ? options2.getEnterOptions(el, info) : {});
+    const removedHtmlElements = removedItems.map((el) => options2.getAnimatedElement(el));
+    const leaveOptions = removedItems.map((el) => options2.getLeaveOptions ? options2.getLeaveOptions(el, info) : {});
+    const reorderedHtmlElements = reorderedItems.map((el) => options2.getAnimatedElement(el.item));
+    const reorderedOptions = reorderedItems.map((el) => options2.getReorderOptions ? options2.getReorderOptions(el.item, el.movedForward, info) : {});
+    addedItems.forEach((_23, i) => {
+      this.beforeAnimationRun(addedHtmlElements[i], enterOptions[i]);
+    });
+    removedItems.forEach((_23, i) => {
+      this.beforeAnimationRun(removedHtmlElements[i], leaveOptions[i]);
+    });
+    reorderedItems.forEach((_23, i) => {
+      this.beforeAnimationRun(reorderedHtmlElements[i], reorderedOptions[i]);
+    });
+    let counter = addedItems.length + removedItems.length + reorderedHtmlElements.length;
+    const onAnimationEndCallback = (isCancel) => {
+      if (--counter <= 0) {
+        callback && callback();
+        this.onNextRender(() => {
+          addedItems.forEach((_23, i) => {
+            this.clearHtmlElement(addedHtmlElements[i], enterOptions[i]);
+          });
+          removedItems.forEach((_23, i) => {
+            this.clearHtmlElement(removedHtmlElements[i], leaveOptions[i]);
+          });
+          reorderedItems.forEach((_23, i) => {
+            this.clearHtmlElement(reorderedHtmlElements[i], reorderedOptions[i]);
+          });
+        }, isCancel);
+      }
+    };
+    addedItems.forEach((_23, i) => {
+      this.runAnimation(addedHtmlElements[i], enterOptions[i], onAnimationEndCallback);
+    });
+    removedItems.forEach((_23, i) => {
+      this.runAnimation(removedHtmlElements[i], leaveOptions[i], onAnimationEndCallback);
+    });
+    reorderedItems.forEach((_23, i) => {
+      this.runAnimation(reorderedHtmlElements[i], reorderedOptions[i], onAnimationEndCallback);
+    });
+  }
+}
+class AnimationProperty {
+  constructor(animationOptions, update2, getCurrentValue) {
+    this.animationOptions = animationOptions;
+    this.update = update2;
+    this.getCurrentValue = getCurrentValue;
+    this._debouncedSync = debounce((newValue) => {
+      this.cancelAnimations();
+      try {
+        this._sync(newValue);
+      } catch (_a2) {
+        this.update(newValue);
+      }
+    });
+  }
+  onNextRender(callback, onCancel) {
+    const rerenderEvent = this.animationOptions.getRerenderEvent();
+    if (!rerenderEvent) {
+      if (DomWindowHelper.isAvailable()) {
+        const raf = DomWindowHelper.requestAnimationFrame(() => {
+          callback();
+          this.cancelCallback = void 0;
+        });
+        this.cancelCallback = () => {
+          onCancel && onCancel();
+          cancelAnimationFrame(raf);
+          this.cancelCallback = void 0;
+        };
+      } else {
+        throw new Error("Can't get next render");
+      }
+    } else {
+      const clear = () => {
+        rerenderEvent.remove(nextRenderCallback);
+        this.cancelCallback = void 0;
+      };
+      const nextRenderCallback = (_23, options2) => {
+        if (options2.isCancel) {
+          onCancel && onCancel();
+        } else {
+          callback();
+        }
+        clear();
+      };
+      this.cancelCallback = () => {
+        onCancel && onCancel();
+        clear();
+      };
+      rerenderEvent.add(nextRenderCallback);
+    }
+  }
+  sync(newValue) {
+    if (this.animationOptions.isAnimationEnabled()) {
+      this._debouncedSync.run(newValue);
+    } else {
+      this.cancel();
+      this.update(newValue);
+    }
+  }
+  cancel() {
+    this._debouncedSync.cancel();
+    this.cancelAnimations();
+  }
+  cancelAnimations() {
+    this.cancelCallback && this.cancelCallback();
+    this.animation.cancel();
+  }
+}
+class AnimationBoolean extends AnimationProperty {
+  constructor() {
+    super(...arguments);
+    this.animation = new AnimationPropertyUtils();
+  }
+  _sync(newValue) {
+    if (newValue !== this.getCurrentValue()) {
+      if (newValue) {
+        this.onNextRender(() => {
+          this.animation.onEnter(this.animationOptions);
+        });
+        this.update(newValue);
+      } else {
+        this.animation.onLeave(this.animationOptions, () => {
+          this.update(newValue);
+        });
+      }
+    } else {
+      this.update(newValue);
+    }
+  }
+}
+class AnimationGroup extends AnimationProperty {
+  constructor() {
+    super(...arguments);
+    this.animation = new AnimationGroupUtils();
+  }
+  _sync(newValue) {
+    var _a2, _b2;
+    newValue = [].concat(newValue);
+    const oldValue = [].concat(this.getCurrentValue());
+    const allowSyncRemovalAddition = (_a2 = this.animationOptions.allowSyncRemovalAddition) !== null && _a2 !== void 0 ? _a2 : true;
+    let compareResult = compareArrays(oldValue, newValue, (_b2 = this.animationOptions.getKey) !== null && _b2 !== void 0 ? _b2 : ((item) => item));
+    if (!allowSyncRemovalAddition && (compareResult.reorderedItems.length > 0 || compareResult.addedItems.length > 0)) {
+      compareResult.deletedItems = [];
+      compareResult.mergedItems = newValue;
+    }
+    if (!!this.animationOptions.onCompareArrays) {
+      this.animationOptions.onCompareArrays(compareResult);
+    }
+    let { addedItems, reorderedItems, deletedItems, mergedItems } = compareResult;
+    const runAnimationCallback = () => {
+      this.animation.runGroupAnimation(this.animationOptions, addedItems, deletedItems, reorderedItems, () => {
+        if (deletedItems.length > 0) {
+          this.update(newValue);
+        }
+      });
+    };
+    if ([addedItems, deletedItems, reorderedItems].some((arr2) => arr2.length > 0)) {
+      if (deletedItems.length <= 0 || reorderedItems.length > 0 || addedItems.length > 0) {
+        this.onNextRender(runAnimationCallback, () => {
+          this.update(newValue);
+        });
+        this.update(mergedItems);
+      } else {
+        runAnimationCallback();
+      }
+    } else {
+      this.update(newValue);
+    }
+  }
+}
+class AnimationTab extends AnimationProperty {
+  constructor(animationOptions, update2, getCurrentValue, mergeValues2) {
+    super(animationOptions, update2, getCurrentValue);
+    this.mergeValues = mergeValues2;
+    this.animation = new AnimationGroupUtils();
+  }
+  _sync(newValue) {
+    const oldValue = [].concat(this.getCurrentValue());
+    if (oldValue[0] !== newValue[0]) {
+      const tempValue = !!this.mergeValues ? this.mergeValues(newValue, oldValue) : [].concat(oldValue, newValue);
+      this.onNextRender(() => {
+        this.animation.runGroupAnimation(this.animationOptions, newValue, oldValue, [], () => {
+          this.update(newValue);
+        });
+      }, () => this.update(newValue));
+      this.update(tempValue, true);
+    } else {
+      this.update(newValue);
+    }
+  }
+}
+function getVerticalDimensions(el) {
+  if (DomDocumentHelper.isAvailable()) {
+    const { paddingTop, paddingBottom, borderTopWidth, borderBottomWidth, marginTop, marginBottom, boxSizing } = DomDocumentHelper.getComputedStyle(el);
+    let heightTo = el.offsetHeight + "px";
+    if (boxSizing == "content-box") {
+      let heightPx = el.offsetHeight;
+      [borderBottomWidth, borderTopWidth, paddingBottom, paddingTop].forEach((style) => {
+        heightPx -= parseFloat(style);
+      });
+      heightTo = heightPx + "px";
+    }
+    return {
+      paddingTop,
+      paddingBottom,
+      borderTopWidth,
+      borderBottomWidth,
+      marginTop,
+      marginBottom,
+      heightFrom: "0px",
+      heightTo
+    };
+  } else {
+    return void 0;
+  }
+}
+function setPropertiesOnElementForAnimation(el, styles, prefix = "--animation-") {
+  var _a2;
+  el["__sv_created_properties"] = (_a2 = el["__sv_created_properties"]) !== null && _a2 !== void 0 ? _a2 : [];
+  Object.keys(styles).forEach((key) => {
+    const propertyName = `${prefix}${key.split(/\.?(?=[A-Z])/).join("-").toLowerCase()}`;
+    el.style.setProperty(propertyName, styles[key]);
+    el["__sv_created_properties"].push(propertyName);
+  });
+}
+function prepareElementForVerticalAnimation(el) {
+  setPropertiesOnElementForAnimation(el, getVerticalDimensions(el));
+}
+function cleanHtmlElementAfterAnimation(el) {
+  if (Array.isArray(el["__sv_created_properties"])) {
+    el["__sv_created_properties"].forEach((propertyName) => {
+      el.style.removeProperty(propertyName);
+    });
+    delete el["__sv_created_properties"];
+  }
+}
+class SurveyElementCore extends Base {
+  constructor() {
+    super();
+    this.createLocTitleProperty();
+  }
+  createLocTitleProperty() {
+    return this.createLocalizableString("title", this, true);
+  }
+  getAllowLineBreaks(name) {
+    var _a2;
+    return ((_a2 = Serializer.findProperty(this.getType(), name)) === null || _a2 === void 0 ? void 0 : _a2.type) === "text";
+  }
+  /**
+   * A title for the survey element. If `title` is undefined, the `name` property value is displayed instead.
+   *
+   * Empty pages and panels do not display their titles or names.
+   *
+   * @see [Configure Question Titles](https://surveyjs.io/form-library/documentation/design-survey-question-titles)
+  */
+  get title() {
+    return this.getLocalizableStringText("title", this.getDefaultTitleValue());
+  }
+  set title(val) {
+    this.setTitleValue(val);
+  }
+  get locTitle() {
+    return this.getLocalizableString("title");
+  }
+  get locRenderedTitle() {
+    return this.locTitle;
+  }
+  getDefaultTitleValue() {
+    return void 0;
+  }
+  setTitleValue(val) {
+    this.setLocalizableStringText("title", val);
+  }
+  /**
+   * Returns `true` if the survey element has a description.
+   * @see description
+  */
+  get hasDescription() {
+    return this.getPropertyValue("hasDescription", void 0, () => this.calcDescriptionVisibility());
+  }
+  set hasDescription(val) {
+    this.setPropertyValue("hasDescription", val);
+  }
+  calcDescriptionVisibility() {
+    const newDescription = this.description;
+    let showPlaceholder = false;
+    if (this.isDesignMode) {
+      const property2 = Serializer.findProperty(this.getType(), "description");
+      showPlaceholder = !!(property2 === null || property2 === void 0 ? void 0 : property2.placeholder);
+    }
+    return !!newDescription || showPlaceholder && this.isDesignMode;
+  }
+  resetDescriptionVisibility() {
+    this.resetPropertyValue("hasDescription");
+  }
+  get locDescription() {
+    return this.getLocalizableString("description");
+  }
+  get titleTagName() {
+    let titleTagName = this.getDefaultTitleTagName();
+    const survey = this.getSurvey();
+    return !!survey ? survey.getElementTitleTagName(this, titleTagName) : titleTagName;
+  }
+  getDefaultTitleTagName() {
+    return settings.titleTags[this.getType()];
+  }
+  get hasTitle() {
+    return this.title.length > 0;
+  }
+  get hasTitleActions() {
+    return false;
+  }
+  get hasTitleEvents() {
+    return this.hasTitleActions;
+  }
+  getTitleToolbar() {
+    return null;
+  }
+  getTitleOwner() {
+    return void 0;
+  }
+  get isTitleOwner() {
+    return !!this.getTitleOwner();
+  }
+  get isTitleRenderedAsString() {
+    return this.getIsTitleRenderedAsString();
+  }
+  toggleState() {
+    return void 0;
+  }
+  get cssClasses() {
+    return {};
+  }
+  get cssTitle() {
+    return "";
+  }
+  get ariaTitleId() {
+    return void 0;
+  }
+  get ariaDescriptionId() {
+    return void 0;
+  }
+  get titleTabIndex() {
+    return void 0;
+  }
+  get titleAriaExpanded() {
+    return void 0;
+  }
+  get titleAriaRole() {
+    return void 0;
+  }
+  get ariaLabel() {
+    return this.locTitle.renderedHtml;
+  }
+  get titleAriaLabel() {
+    return this.ariaLabel;
+  }
+  getIsTitleRenderedAsString() {
+    return !this.isTitleOwner;
+  }
+}
+__decorate([
+  property({
+    localizable: { markdown: true },
+    onSet: (newDescription, self2) => {
+      self2.resetDescriptionVisibility();
+    }
+  })
+], SurveyElementCore.prototype, "description", void 0);
+class SurveyElement extends SurveyElementCore {
+  static getProgressInfoByElements(children, isRequired) {
+    const info = Base.createProgressInfo();
+    for (let i = 0; i < children.length; i++) {
+      if (!children[i].isVisible)
+        continue;
+      const childInfo = children[i].getProgressInfo();
+      info.questionCount += childInfo.questionCount;
+      info.answeredQuestionCount += childInfo.answeredQuestionCount;
+      info.requiredQuestionCount += childInfo.requiredQuestionCount;
+      info.requiredAnsweredQuestionCount += childInfo.requiredAnsweredQuestionCount;
+    }
+    if (isRequired && info.questionCount > 0) {
+      if (info.requiredQuestionCount == 0)
+        info.requiredQuestionCount = 1;
+      if (info.answeredQuestionCount > 0)
+        info.requiredAnsweredQuestionCount = 1;
+    }
+    return info;
+  }
+  static IsNeedScrollIntoView(el, checkLeft, scrollIfVisible) {
+    const elTop = scrollIfVisible ? -1 : el.getBoundingClientRect().top;
+    let needScroll = elTop < 0;
+    let elLeft = -1;
+    if (!needScroll && checkLeft) {
+      elLeft = el.getBoundingClientRect().left;
+      needScroll = elLeft < 0;
+    }
+    if (!needScroll && DomWindowHelper.isAvailable()) {
+      const height = DomWindowHelper.getInnerHeight();
+      needScroll = height > 0 && height < elTop;
+      if (!needScroll && checkLeft) {
+        const width = DomWindowHelper.getInnerWidth();
+        needScroll = width > 0 && width < elLeft;
+      }
+    }
+    return needScroll;
+  }
+  static ScrollIntoView(el, scrollIntoViewOptions, doneCallback) {
+    el.scrollIntoView(scrollIntoViewOptions);
+    if (typeof doneCallback === "function") {
+      let lastPos = null;
+      let same = 0;
+      const checkPos = () => {
+        const newPos = el.getBoundingClientRect().top;
+        if (newPos === lastPos) {
+          if (same++ > 2) {
+            doneCallback();
+            return;
+          }
+        } else {
+          lastPos = newPos;
+          same = 0;
+        }
+        requestAnimationFrame(checkPos);
+      };
+      DomWindowHelper.requestAnimationFrame(checkPos);
+    }
+  }
+  static ScrollElementToTop(element2, scrollIfVisible, scrollIntoViewOptions, doneCallback) {
+    return SurveyElement.ScrollElementToViewCore(element2, false, scrollIfVisible, scrollIntoViewOptions, doneCallback);
+  }
+  static ScrollElementToViewCore(el, checkLeft, scrollIfVisible, scrollIntoViewOptions, doneCallback) {
+    if (!el || !el.scrollIntoView) {
+      doneCallback && doneCallback();
+      return false;
+    }
+    const needScroll = SurveyElement.IsNeedScrollIntoView(el, checkLeft, scrollIfVisible);
+    if (needScroll) {
+      SurveyElement.ScrollIntoView(el, scrollIntoViewOptions, doneCallback);
+    } else {
+      doneCallback && doneCallback();
+    }
+    return needScroll;
+  }
+  static GetFirstNonTextElement(elements, removeSpaces = false) {
+    if (!elements || !elements.length || elements.length == 0)
+      return null;
+    if (removeSpaces) {
+      let tEl = elements[0];
+      if (tEl.nodeName === "#text")
+        tEl.data = "";
+      tEl = elements[elements.length - 1];
+      if (tEl.nodeName === "#text")
+        tEl.data = "";
+    }
+    for (let i = 0; i < elements.length; i++) {
+      if (elements[i].nodeName != "#text" && elements[i].nodeName != "#comment")
+        return elements[i];
+    }
+    return null;
+  }
+  static FocusElement(elementId, isTimeOut, containerEl) {
+    if (!elementId || !DomDocumentHelper.isAvailable())
+      return false;
+    const res = !isTimeOut ? SurveyElement.focusElementCore(elementId, containerEl) : false;
+    if (!res) {
+      setTimeout(() => {
+        SurveyElement.focusElementCore(elementId, containerEl);
+      }, isTimeOut ? 100 : 10);
+    }
+    return res;
+  }
+  static focusElementCore(elementId, containerEl) {
+    const { root: root2 } = settings.environment;
+    if (!root2 && !containerEl)
+      return false;
+    const el = containerEl ? containerEl.querySelector(`#${CSS.escape(elementId)}`) : root2.getElementById(elementId);
+    if (el && !el["disabled"] && el.style.display !== "none" && el.offsetParent !== null) {
+      SurveyElement.ScrollElementToViewCore(el, true, false);
+      el.focus();
+      return true;
+    }
+    return false;
+  }
+  get effectiveColSpan() {
+    const res = this.getPropertyValueWithoutDefault("effectiveColSpan");
+    if (res !== void 0)
+      return res;
+    this.setRootStyle();
+    return this.getPropertyValue("effectiveColSpan");
+  }
+  constructor(name) {
+    super();
+    this.selectedElementInDesignValue = this;
+    this.parentQuestionValue = null;
+    this.isContentElement = false;
+    this.isEditableTemplateElement = false;
+    this.isInteractiveDesignElement = true;
+    this._renderedIsExpanded = true;
+    this._isAnimatingCollapseExpand = false;
+    this.animationCollapsed = new AnimationBoolean(this.getExpandCollapseAnimationOptions(), (val) => {
+      this._renderedIsExpanded = val;
+      if (this.animationAllowed) {
+        if (val) {
+          this.isAnimatingCollapseExpand = true;
+        } else {
+          this.updateElementCss(false);
+        }
+      }
+    }, () => this.renderedIsExpanded);
+    this.onAfterRenderElement = this.addEvent();
+    this.setPropertyValueDirectly("name", this.getValidName(name));
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+    super.onPropertyValueChanged(name, oldValue, newValue);
+    const updateRootStyleProps = ["minWidth", "maxWidth", "renderWidth", "allowRootStyle", "parent"];
+    if (updateRootStyleProps.indexOf(name) > -1) {
+      this.updateRootStyle();
+    }
+    if (name === "state") {
+      this.updateElementCss(false);
+      this.notifyStateChanged(oldValue);
+      if (this.stateChangedCallback)
+        this.stateChangedCallback();
+    }
+    if (name === "isReadOnly") {
+      this.onReadOnlyChanged();
+    }
+    if (name === "errors") {
+      this.updateVisibleErrors();
+    }
+    if (name === "isSingleInRow") {
+      this.updateElementCss(false);
+    }
+    if (name === "effectiveColSpan") {
+      this.colSpan = newValue;
+    }
+  }
+  isPropertyStoredInHash(name) {
+    return name !== "bindings";
+  }
+  getSkeletonComponentNameCore() {
+    if (this.survey) {
+      return this.survey.getSkeletonComponentName(this);
+    }
+    return "sv-skeleton";
+  }
+  canUpdateValueOnVisibleChanged() {
+    return !this.isLoadingFromJson && !!this.survey && !this.survey.isSettingData();
+  }
+  /**
+   * A Dynamic Panel, Dynamic Matrix, or Dropdown Matrix that includes the current question.
+   *
+   * This property is `null` for standalone questions.
+   */
+  get parentQuestion() {
+    return this.parentQuestionValue;
+  }
+  setParentQuestion(val) {
+    this.parentQuestionValue = val;
+    this.onParentQuestionChanged();
+  }
+  onParentQuestionChanged() {
+  }
+  getPanelInDesignMode() {
+    return null;
+  }
+  updateElementVisibility() {
+    this.setPropertyValue("isVisible", this.isVisible);
+  }
+  get skeletonComponentName() {
+    return this.getSkeletonComponentNameCore();
+  }
+  /**
+   * Gets and sets the survey element's expand state.
+   *
+   * Possible values:
+   *
+   * - `"default"` (default) - The survey element is displayed in full and cannot be collapsed in the UI.
+   * - `"expanded"` - The survey element is displayed in full and can be collapsed in the UI.
+   * - `"collapsed"` - The survey element displays only `title` and `description` and can be expanded in the UI.
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/set-properties-on-multiple-questions-using-panel/ (linkStyle))
+   * @hidefor PageModel
+   * @see toggleState
+   * @see collapse
+   * @see expand
+   * @see isCollapsed
+   * @see isExpanded
+   */
+  get state() {
+    return this.getPropertyValue("state");
+  }
+  set state(val) {
+    this.setPropertyValue("state", val);
+    this.renderedIsExpanded = !this.isCollapsed;
+  }
+  notifyStateChanged(prevState) {
+    if (this.survey) {
+      this.lifecycleCallbacks.elementContentVisibilityChanged(this);
+    }
+  }
+  /**
+   * Returns `true` if the survey element is collapsed.
+   * @hidefor PageModel
+   * @see state
+   * @see toggleState
+   * @see collapse
+   * @see expand
+   * @see isExpanded
+   */
+  get isCollapsed() {
+    return this.state === "collapsed" && !this.isDesignMode && !this.isSingleInputMode;
+  }
+  get isSingleInputMode() {
+    var _a2;
+    return (_a2 = this.singleInput) === null || _a2 === void 0 ? void 0 : _a2.isSingleVisibleInput;
+  }
+  /**
+   * Returns `true` if the survey element is expanded.
+   * @hidefor PageModel
+   * @see state
+   * @see toggleState
+   * @see collapse
+   * @see expand
+   * @see isCollapsed
+   */
+  get isExpanded() {
+    return this.state === "expanded" && !this.isSingleInputMode;
+  }
+  /**
+   * Collapses the survey element.
+   *
+   * In collapsed state, the element displays only `title` and `description`.
+   * @hidefor PageModel
+   * @see title
+   * @see description
+   * @see state
+   * @see toggleState
+   * @see expand
+   * @see isCollapsed
+   * @see isExpanded
+   */
+  collapse() {
+    if (this.isDesignMode)
+      return;
+    this.state = "collapsed";
+  }
+  /**
+   * Expands the survey element.
+   * @see state
+   * @see toggleState
+   * @see collapse
+   * @see isCollapsed
+   * @see isExpanded
+   */
+  expand() {
+    this.state = "expanded";
+  }
+  /**
+   * Toggles the survey element's `state` between collapsed and expanded.
+   * @hidefor PageModel
+   * @see state
+   * @see collapse
+   * @see expand
+   * @see isCollapsed
+   * @see isExpanded
+   */
+  toggleState() {
+    if (this.isCollapsed) {
+      this.expand();
+      return true;
+    }
+    if (this.isExpanded) {
+      this.collapse();
+      return false;
+    }
+    return true;
+  }
+  get hasStateButton() {
+    return this.isExpanded || this.isCollapsed;
+  }
+  get uiState() {
+    return this.getUIState();
+  }
+  set uiState(data2) {
+    this.setUIState(data2);
+  }
+  getUIState() {
+    if (this.state !== "default") {
+      return { collapsed: this.state === "collapsed" };
+    }
+    return void 0;
+  }
+  setUIState(data2) {
+    if (data2 && data2.collapsed !== void 0) {
+      this.state = data2.collapsed ? "collapsed" : "expanded";
+    }
+  }
+  get shortcutText() {
+    return this.title || this.name;
+  }
+  getTitleToolbar() {
+    if (!this.titleToolbarValue) {
+      this.titleToolbarValue = this.createActionContainer(true);
+      this.titleToolbarValue.locOwner = this;
+      this.titleToolbarValue.containerCss = (this.isPanel ? this.cssClasses.panel.titleBar : this.cssClasses.titleBar) || "sv-action-title-bar";
+      this.titleToolbarValue.setItems(this.getTitleActions());
+      this.titleToolbarValue.flushUpdates();
+    }
+    return this.titleToolbarValue;
+  }
+  createActionContainer(allowAdaptiveActions) {
+    const actionContainer = allowAdaptiveActions ? new AdaptiveActionContainer() : new ActionContainer();
+    if (this.survey && !!this.survey.getCss().actionBar) {
+      actionContainer.cssClasses = this.survey.getCss().actionBar;
+    }
+    return actionContainer;
+  }
+  get titleActions() {
+    return this.getArrayPropertyValue("titleActions");
+  }
+  getTitleActions() {
+    if (!this.isTitleActionRequested) {
+      this.updateTitleActions();
+      this.isTitleActionRequested = true;
+    }
+    return this.titleActions;
+  }
+  getDefaultTitleActions() {
+    return [];
+  }
+  updateTitleActions() {
+    let actions = this.getDefaultTitleActions();
+    if (!!this.survey) {
+      actions = this.titleSettings.getUpdatedElementTitleActions(this, actions);
+    }
+    this.setArrayPropertyValue("titleActions", actions);
+  }
+  locStrsChanged() {
+    super.locStrsChanged();
+    if (!!this.titleToolbarValue) {
+      this.titleToolbarValue.locStrsChanged();
+    }
+  }
+  get hasTitleActions() {
+    return this.getTitleActions().length > 0;
+  }
+  get hasTitleEvents() {
+    return this.state !== void 0 && this.state !== "default";
+  }
+  get titleTabIndex() {
+    return !this.isPage && this.state !== "default" ? 0 : void 0;
+  }
+  get titleAriaExpanded() {
+    if (this.isPage || this.state === "default")
+      return void 0;
+    return this.state === "expanded" ? "true" : "false";
+  }
+  get titleAriaRole() {
+    if (this.isPage || this.state === "default")
+      return void 0;
+    return "button";
+  }
+  setSurveyImpl(value, isLight) {
+    this.surveyImplValue = value;
+    if (!this.surveyImplValue) {
+      this.setSurveyCore(null);
+      this.surveyDataValue = null;
+      this.textProcessorValue = null;
+    } else {
+      this.surveyDataValue = this.surveyImplValue.getSurveyData();
+      this.setSurveyCore(this.surveyImplValue.getSurvey());
+      this.textProcessorValue = this.createTextProcessor();
+      this.onSetData();
+    }
+    if (!!this.survey) {
+      this.resetDescriptionVisibility();
+      this.clearCssClasses();
+    }
+    this.blockAnimations();
+    this.renderedIsExpanded = !this.isCollapsed;
+    this.releaseAnimations();
+  }
+  getValueGetterContext() {
+    const data2 = this.data;
+    return !!data2 ? data2.getValueGetterContext() : super.getValueGetterContext();
+  }
+  createTextProcessor() {
+    return this.surveyImplValue.getTextProcessor();
+  }
+  canRunConditions() {
+    return super.canRunConditions() && !!this.data;
+  }
+  getDataFilteredProperties() {
+    var props = !!this.data ? this.data.getFilteredProperties() : {};
+    props.question = this;
+    return props;
+  }
+  get surveyImpl() {
+    return this.surveyImplValue;
+  }
+  /* You shouldn't use this method ever */
+  __setData(data2) {
+    this.surveyDataValue = data2;
+  }
+  get data() {
+    return this.surveyDataValue;
+  }
+  /**
+   * Returns the survey object.
+   */
+  get survey() {
+    return this.getSurvey();
+  }
+  get titleSettings() {
+    return this.survey;
+  }
+  get lifecycleCallbacks() {
+    return this.survey;
+  }
+  get cssCallbacks() {
+    return this.survey;
+  }
+  get singleInput() {
+    return this.survey;
+  }
+  getSurvey(live = false) {
+    if (!!this.surveyValue)
+      return this.surveyValue;
+    if (!!this.surveyImplValue) {
+      this.setSurveyCore(this.surveyImplValue.getSurvey());
+    }
+    return this.surveyValue;
+  }
+  setSurveyCore(value) {
+    this.surveyValue = value;
+    if (!!this.surveyChangedCallback) {
+      this.surveyChangedCallback();
+    }
+  }
+  get skeletonHeight() {
+    let skeletonHeight = void 0;
+    if (!!this.survey && this.survey.skeletonHeight) {
+      skeletonHeight = this.survey.skeletonHeight + "px";
+    }
+    return skeletonHeight;
+  }
+  get isInternal() {
+    return this.isContentElement;
+  }
+  get areInvisibleElementsShowing() {
+    const pQ = this.parentQuestion;
+    if (!!pQ && pQ.areInvisibleElementsShowing === false)
+      return false;
+    return !!this.survey && this.survey.areInvisibleElementsShowing && (!this.isDesignMode || !this.isContentElement);
+  }
+  get isVisible() {
+    return true;
+  }
+  /**
+   * Returns `true` if the survey element or its parent element is read-only.
+   *
+   * If you want to switch a survey element to the read-only state based on a condition, specify the [`enableIf`](https://surveyjs.io/form-library/documentation/question#enableIf) property. Refer to the following help topic for information: [Conditional Visibility](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#conditional-visibility).
+   * @see readOnly
+   */
+  get isReadOnly() {
+    return this.readOnly;
+  }
+  /**
+   * Makes the survey element read-only.
+   *
+   * If you want to switch a survey element to the read-only state based on a condition, specify the [`enableIf`](https://surveyjs.io/form-library/documentation/question#enableIf) property. Refer to the following help topic for information: [Conditional Visibility](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#conditional-visibility).
+   * @see isReadOnly
+   */
+  get readOnly() {
+    return this.getPropertyValue("readOnly");
+  }
+  set readOnly(val) {
+    if (this.readOnly == val)
+      return;
+    this.setPropertyValue("readOnly", val);
+    if (!this.isLoadingFromJson) {
+      this.setPropertyValue("isReadOnly", this.isReadOnly);
+    }
+  }
+  onReadOnlyChanged() {
+    if (!!this.readOnlyChangedCallback) {
+      this.readOnlyChangedCallback();
+    }
+  }
+  get css() {
+    return !!this.survey ? this.survey.getCss() : {};
+  }
+  get cssClassesValue() {
+    return this.getPropertyValue("cssClassesValue", void 0, () => this.createCssClassesValue());
+  }
+  createCssClassesValue() {
+    const callOnCalc = this.isCalculatingCssClasses;
+    this.isCalculatingCssClasses = true;
+    const res = this.calcCssClasses(this.css);
+    if (!callOnCalc) {
+      this.onCalcCssClasses(res);
+    }
+    this.updateElementCssCore(res);
+    this.isCalculatingCssClasses = false;
+    return res;
+  }
+  onCalcCssClasses(classes) {
+  }
+  /**
+   * Returns an object in which keys are UI elements and values are CSS classes applied to them.
+   *
+   * Use the following events of the [`SurveyModel`](https://surveyjs.io/form-library/documentation/surveymodel) object to override CSS classes:
+   *
+   * - [`onUpdateQuestionCssClasses`](https://surveyjs.io/form-library/documentation/surveymodel#onUpdateQuestionCssClasses)
+   * - [`onUpdatePanelCssClasses`](https://surveyjs.io/form-library/documentation/surveymodel#onUpdatePanelCssClasses)
+   * - [`onUpdatePageCssClasses`](https://surveyjs.io/form-library/documentation/surveymodel#onUpdatePageCssClasses)
+   * - [`onUpdateChoiceItemCss`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#onUpdateChoiceItemCss)
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/customize-survey-with-css/ (linkStyle))
+   */
+  get cssClasses() {
+    if (!this.survey)
+      return this.calcCssClasses(this.css);
+    return this.cssClassesValue;
+  }
+  get cssTitleNumber() {
+    const css = this.cssClasses;
+    if (css.number)
+      return css.number;
+    return css.panel ? css.panel.number : void 0;
+  }
+  get cssRequiredMark() {
+    const css = this.cssClasses;
+    return css.requiredMark || css.panel && css.panel.requiredMark;
+  }
+  getCssTitleExpandableSvg() {
+    if (this.state === "default" || this.isSingleInputMode)
+      return null;
+    return this.cssClasses.titleExpandableSvg;
+  }
+  calcCssClasses(css) {
+    return void 0;
+  }
+  updateElementCssCore(cssClasses) {
+  }
+  get cssError() {
+    return "";
+  }
+  updateElementCss(reNew) {
+    this.clearCssClasses();
+  }
+  clearCssClasses() {
+    this.resetPropertyValue("cssClassesValue");
+  }
+  getIsLoadingFromJson() {
+    if (super.getIsLoadingFromJson())
+      return true;
+    return this.surveyValue ? this.surveyValue.isLoadingFromJson : false;
+  }
+  /**
+   * A survey element identifier.
+   *
+   * > Question names must be unique.
+   */
+  get name() {
+    return this.getPropertyValue("name", "");
+  }
+  set name(val) {
+    var oldValue = this.name;
+    this.setPropertyValue("name", this.getValidName(val));
+    if (!this.isLoadingFromJson && !!oldValue) {
+      this.onNameChanged(oldValue);
+    }
+  }
+  getValidName(name) {
+    if (!!name) {
+      name = name.trim();
+      const sep = settings.itemValueSeparator;
+      if (!!sep && name.indexOf(sep) > -1) {
+        name = name.replace(sep, "");
+      }
+    }
+    return name;
+  }
+  onNameChanged(oldValue) {
+  }
+  updateBindingValue(valueName, value) {
+    if (!!this.data && !this.isTwoValueEquals(value, this.data.getValue(valueName))) {
+      this.data.setValue(valueName, value, false);
+    }
+  }
+  /**
+   * Validation errors. Call the `validate()` method to validate survey element data.
+   * @see validate
+   */
+  get errors() {
+    return this.getArrayPropertyValue("errors");
+  }
+  set errors(val) {
+    this.setArrayPropertyValue("errors", val);
+  }
+  get renderedErrors() {
+    return this.getArrayPropertyValue("renderedErrors");
+  }
+  set renderedErrors(val) {
+    this.setArrayPropertyValue("renderedErrors", val);
+  }
+  calcRenderedErrors() {
+    const currentType = this.currentNotificationType;
+    return this.errors.filter(((e2) => {
+      return e2.visible && e2.notificationType === currentType;
+    }));
+  }
+  get currentNotificationType() {
+    return this.getPropertyValue("currentNotificationType", void 0, () => this.calcCurrentNotificationType());
+  }
+  calcCurrentNotificationType() {
+    let currentType = "";
+    const types2 = ["info", "warning", "error"];
+    for (let i = 0; i < this.errors.length; i++) {
+      const error3 = this.errors[i];
+      if (!error3.visible)
+        continue;
+      const newType = error3.notificationType;
+      if (!currentType) {
+        currentType = newType;
+        continue;
+      }
+      const newTypeIndex = types2.indexOf(newType);
+      const currentTypeIndex = types2.indexOf(currentType);
+      if (newTypeIndex > currentTypeIndex)
+        currentType = newType;
+    }
+    return currentType;
+  }
+  updateVisibleErrors() {
+    this.resetPropertyValue("currentNotificationType");
+    var counter = 0;
+    for (var i = 0; i < this.errors.length; i++) {
+      if (this.errors[i].visible)
+        counter++;
+    }
+    this.hasVisibleErrors = counter > 0;
+    this.renderedErrors = this.calcRenderedErrors();
+  }
+  /**
+   * Returns `true` if the survey element or its child elements have validation errors.
+   *
+   * This property contains the result of the most recent validation. This result may be outdated. Call the `validate` method to get an up-to-date value.
+   * @see errors
+   */
+  get containsErrors() {
+    return this.getPropertyValue("containsErrors", false);
+  }
+  updateContainsErrors() {
+    this.setPropertyValue("containsErrors", this.getContainsErrors());
+  }
+  getContainsErrors() {
+    return this.errors.length > 0;
+  }
+  get selectedElementInDesign() {
+    return this.selectedElementInDesignValue;
+  }
+  set selectedElementInDesign(val) {
+    this.selectedElementInDesignValue = val;
+  }
+  updateCustomWidgets() {
+  }
+  onSurveyLoad() {
+  }
+  get wasRendered() {
+    return !!this.wasRenderedValue;
+  }
+  resetWasRendered() {
+    this.wasRenderedValue = false;
+  }
+  onFirstRendering() {
+    if (!this.wasRendered && !this.isLoadingFromJson) {
+      this.wasRenderedValue = true;
+      this.onFirstRenderingCore();
+    }
+  }
+  onFirstRenderingCore() {
+  }
+  endLoadingFromJson() {
+    super.endLoadingFromJson();
+    if (!this.survey) {
+      this.onSurveyLoad();
+    }
+  }
+  setVisibleIndex(index) {
+    return 0;
+  }
+  getPageVisibleIndex() {
+    return -1;
+  }
+  getStartIndex() {
+    if (!!this.parent)
+      return this.parent.getQuestionStartIndex();
+    if (!!this.survey)
+      return this.titleSettings.getQuestionStartIndex(this.getPageVisibleIndex());
+    return "";
+  }
+  delete(doDispose) {
+  }
+  /**
+   * Returns the survey's [locale](https://surveyjs.io/form-library/documentation/surveymodel#locale).
+   *
+   * If a default locale is used, this method returns an empty string. To get the applied locale in this case, use the following code:
+   *
+   * ```js
+   * import { surveyLocalization } from 'survey-core';
+   * const defaultLocale = surveyLocalization.defaultLocale;
+   * ```
+   *
+   * @see [Localization & Globalization](https://surveyjs.io/form-library/documentation/localization)
+   */
+  getLocale() {
+    return this.survey ? this.survey.getLocale() : this.locOwner ? this.locOwner.getLocale() : "";
+  }
+  getMarkdownHtml(text2, name, item) {
+    return this.survey ? this.survey.getSurveyMarkdownHtml(this, text2, name, item) : this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item) : void 0;
+  }
+  getRenderer(name, item) {
+    return this.survey && typeof this.survey.getRendererForString === "function" ? this.survey.getRendererForString(this, name, item) : this.locOwner && typeof this.locOwner.getRenderer === "function" ? this.locOwner.getRenderer(name) : null;
+  }
+  getRendererContext(locStr, item) {
+    return this.survey && typeof this.survey.getRendererContextForString === "function" ? this.survey.getRendererContextForString(this, locStr, item) : this.locOwner && typeof this.locOwner.getRendererContext === "function" ? this.locOwner.getRendererContext(locStr) : locStr;
+  }
+  getProcessedText(text2, context2) {
+    if (this.isLoadingFromJson)
+      return text2;
+    if (this.textProcessor)
+      return this.textProcessor.processTextEx({ text: text2, returnDisplayValue: this.getUseDisplayValuesInDynamicTexts(), context: context2 || this, doEncoding: false }).text;
+    if (this.locOwner)
+      return this.locOwner.getProcessedText(text2, context2);
+    return text2;
+  }
+  getUseDisplayValuesInDynamicTexts() {
+    return true;
+  }
+  removeSelfFromList(list) {
+    if (!list || !Array.isArray(list))
+      return;
+    const index = list.indexOf(this);
+    if (index > -1) {
+      list.splice(index, 1);
+    }
+  }
+  get textProcessor() {
+    return this.textProcessorValue;
+  }
+  getProcessedHtml(html) {
+    if (!html || !this.textProcessor)
+      return html;
+    return this.textProcessor.processText(html, true);
+  }
+  onSetData() {
+  }
+  get parent() {
+    return this.getPropertyValue("parent", null);
+  }
+  set parent(val) {
+    this.setPropertyValue("parent", val);
+  }
+  getPage(parent) {
+    while (parent && parent.parent)
+      parent = parent.parent;
+    if (parent && parent.isPage)
+      return parent;
+    return null;
+  }
+  moveToBase(parent, container, insertBefore2 = null) {
+    if (!container)
+      return false;
+    parent.removeElement(this);
+    let index = -1;
+    if (Helpers.isNumber(insertBefore2)) {
+      index = parseInt(insertBefore2);
+    }
+    if (index == -1 && !!insertBefore2 && !!insertBefore2.getType) {
+      index = container.indexOf(insertBefore2);
+    }
+    container.addElement(this, index);
+    return true;
+  }
+  setPage(parent, newPage) {
+    const oldPage = this.getPage(parent);
+    this.prevSurvey = this.survey;
+    if (typeof newPage === "string") {
+      const survey = this.getSurvey();
+      survey.pages.forEach((page) => {
+        if (newPage === page.name)
+          newPage = page;
+      });
+    }
+    if (oldPage === newPage)
+      return;
+    if (parent)
+      parent.removeElement(this);
+    if (newPage) {
+      newPage.addElement(this, -1);
+    }
+    this.prevSurvey = void 0;
+  }
+  getSearchableLocKeys(keys) {
+    keys.push("title");
+    keys.push("description");
+  }
+  get hasParent() {
+    return this.parent && !this.parent.isPage || this.parent === void 0;
+  }
+  shouldAddRunnerStyles() {
+    return !this.isDesignMode;
+  }
+  get isCompact() {
+    return this.survey && this.survey["isCompact"];
+  }
+  canHaveFrameStyles() {
+    var _a2;
+    if (((_a2 = this.singleInput) === null || _a2 === void 0 ? void 0 : _a2.currentSingleElement) === this)
+      return true;
+    if (this.isInternalNested === true)
+      return false;
+    return this.parent !== void 0 && (!this.hasParent || this.parent && this.parent.showPanelAsPage);
+  }
+  getHasFrameV2() {
+    return this.shouldAddRunnerStyles() && this.canHaveFrameStyles();
+  }
+  getIsNested() {
+    return this.shouldAddRunnerStyles() && !this.canHaveFrameStyles();
+  }
+  getCssRoot(cssClasses) {
+    const isExpanadable = !!this.isCollapsed || !!this.isExpanded;
+    return new CssClassBuilder().append(cssClasses.withFrame, this.getHasFrameV2() && !this.isCompact).append(cssClasses.compact, this.isCompact && this.getHasFrameV2()).append(cssClasses.collapsed, !!this.isCollapsed).append(cssClasses.expandableAnimating, isExpanadable && this.isAnimatingCollapseExpand).append(cssClasses.expanded, !!this.isExpanded && this.renderedIsExpanded).append(cssClasses.expandable, isExpanadable).append(cssClasses.nested, this.getIsNested()).toString();
+  }
+  getRootStyle() {
+    const style = {};
+    if (!!this.paddingLeft) {
+      style["--sv-element-add-padding-left"] = this.paddingLeft;
+    }
+    if (!!this.paddingRight) {
+      style["--sv-element-add-padding-right"] = this.paddingRight;
+    }
+    return style;
+  }
+  get paddingLeft() {
+    return this.getPropertyValue("paddingLeft", void 0, () => this.calcPaddingLeft());
+  }
+  calcPaddingLeft() {
+    return "";
+  }
+  get paddingRight() {
+    return this.getPropertyValue("paddingRight", void 0, () => this.calcPaddingRight());
+  }
+  set paddingRight(val) {
+    this.setPropertyValue("paddingRight", val);
+  }
+  calcPaddingRight() {
+    return "";
+  }
+  resetIndents() {
+    this.resetPropertyValue("paddingLeft");
+    this.resetPropertyValue("paddingRight");
+  }
+  get rootStyle() {
+    return this.getPropertyValue("rootStyle", void 0, () => this.calcRootStyle());
+  }
+  set rootStyle(val) {
+    this.setPropertyValue("rootStyle", val);
+  }
+  updateRootStyle() {
+    if (!this.getPropertyValueWithoutDefault("rootStyle")) {
+      this.resetPropertyValue("effectiveColSpan");
+    } else {
+      this.setRootStyle();
+    }
+  }
+  setRootStyle() {
+    this.rootStyle = this.calcRootStyle();
+  }
+  calcRootStyle() {
+    const style = {};
+    let _width;
+    if (!!this.parent) {
+      const columns = this.parent.getColumsForElement(this);
+      _width = columns.reduce((sum2, col) => col.effectiveWidth + sum2, 0);
+      if (!!_width && _width !== 100) {
+        style["flexGrow"] = 1;
+        style["flexShrink"] = 0;
+        style["flexBasis"] = _width + "%";
+        style["minWidth"] = void 0;
+        style["maxWidth"] = this.maxWidth;
+      }
+    }
+    if (Object.keys(style).length == 0) {
+      let minWidth = "" + this.minWidth;
+      if (!!minWidth && minWidth != "auto") {
+        if (minWidth.indexOf("px") != -1 && this.survey) {
+          minWidth = minWidth.replace("px", "");
+          let minWidthNum = parseFloat(minWidth);
+          if (!isNaN(minWidthNum)) {
+            minWidth = minWidthNum * this.survey.widthScale / 100;
+            minWidth = "" + minWidth + "px";
+          }
+        }
+        minWidth = "min(100%, " + minWidth + ")";
+      }
+      if (this.allowRootStyle && this.renderWidth) {
+        style["flexGrow"] = 1;
+        style["flexShrink"] = 1;
+        style["flexBasis"] = this.renderWidth;
+        style["minWidth"] = minWidth;
+        style["maxWidth"] = this.maxWidth;
+      }
+    }
+    return style;
+  }
+  isContainsSelection(el) {
+    let elementWithSelection = void 0;
+    const _document = DomDocumentHelper.getDocument();
+    if (DomDocumentHelper.isAvailable() && !!_document && _document["selection"]) {
+      elementWithSelection = _document["selection"].createRange().parentElement();
+    } else {
+      var selection = DomWindowHelper.getSelection();
+      if (!!selection && selection.rangeCount > 0) {
+        const range2 = selection.getRangeAt(0);
+        if (range2.startOffset !== range2.endOffset) {
+          elementWithSelection = range2.startContainer.parentNode;
+        }
+      }
+    }
+    return elementWithSelection == el;
+  }
+  get clickTitleFunction() {
+    if (this.needClickTitleFunction()) {
+      return (event) => {
+        if (!!event && this.isContainsSelection(event.target)) {
+          return;
+        }
+        return this.processTitleClick();
+      };
+    }
+    return void 0;
+  }
+  needClickTitleFunction() {
+    return this.state !== "default";
+  }
+  processTitleClick() {
+    if (this.state !== "default") {
+      this.toggleState();
+    }
+  }
+  get hasAdditionalTitleToolbar() {
+    return false;
+  }
+  get additionalTitleToolbar() {
+    return this.getAdditionalTitleToolbar();
+  }
+  getAdditionalTitleToolbar() {
+    return null;
+  }
+  getCssTitle(cssClasses) {
+    if (!cssClasses)
+      return "";
+    const isExpandable = this.state !== "default";
+    const numInlineLimit = 4;
+    return new CssClassBuilder().append(cssClasses.title).append(cssClasses.titleNumInline, (this.no || "").length > numInlineLimit || isExpandable).append(cssClasses.titleExpandable, isExpandable).append(cssClasses.titleExpanded, this.isExpanded).append(cssClasses.titleCollapsed, this.isCollapsed).append(cssClasses.titleDisabled, this.isDisabledStyle).append(cssClasses.titleReadOnly, this.isReadOnly).append(cssClasses.titleOnError, this.containsErrors).toString();
+  }
+  get isDisabledStyle() {
+    return this.getIsDisableAndReadOnlyStyles(false)[1];
+  }
+  get isReadOnlyStyle() {
+    return this.getIsDisableAndReadOnlyStyles(false)[0];
+  }
+  getIsDisableAndReadOnlyStyles(itemReadOnly) {
+    const isPreview = this.isPreviewStyle;
+    const isReadOnly = itemReadOnly || this.isReadOnly;
+    const isReadOnlyStyle = isReadOnly && !isPreview;
+    return [isReadOnlyStyle, false];
+  }
+  get isPreviewStyle() {
+    return !!this.survey && this.survey.state === "preview";
+  }
+  localeChanged() {
+    super.localeChanged();
+    this.resetDescriptionVisibility();
+    if (this.errors.length > 0) {
+      this.errors.forEach((err) => {
+        err.updateText();
+      });
+    }
+  }
+  setWrapperElement(element2) {
+    this.wrapperElement = element2;
+  }
+  getWrapperElement() {
+    return this.wrapperElement;
+  }
+  set isAnimatingCollapseExpand(val) {
+    if (val !== this._isAnimatingCollapseExpand) {
+      this._isAnimatingCollapseExpand = val;
+      this.updateElementCss(false);
+    }
+  }
+  get isAnimatingCollapseExpand() {
+    return this._isAnimatingCollapseExpand || this._renderedIsExpanded != this.isExpanded;
+  }
+  onElementExpanded(elementIsRendered) {
+  }
+  getExpandCollapseAnimationOptions() {
+    const beforeRunAnimation = (el) => {
+      this.isAnimatingCollapseExpand = true;
+      prepareElementForVerticalAnimation(el);
+    };
+    const afterRunAnimation = (el) => {
+      this.isAnimatingCollapseExpand = false;
+      cleanHtmlElementAfterAnimation(el);
+    };
+    return {
+      getRerenderEvent: () => this.onElementRerendered,
+      getEnterOptions: () => {
+        const cssClasses = this.isPanel ? this.cssClasses.panel : this.cssClasses;
+        return {
+          cssClass: cssClasses.contentEnter,
+          onBeforeRunAnimation: beforeRunAnimation,
+          onAfterRunAnimation: (el) => {
+            afterRunAnimation(el);
+            this.onElementExpanded(true);
+          }
+        };
+      },
+      getLeaveOptions: () => {
+        const cssClasses = this.isPanel ? this.cssClasses.panel : this.cssClasses;
+        return {
+          cssClass: cssClasses.contentLeave,
+          onBeforeRunAnimation: beforeRunAnimation,
+          onAfterRunAnimation: afterRunAnimation
+        };
+      },
+      getAnimatedElement: () => {
+        var _a2;
+        const cssClasses = this.isPanel ? this.cssClasses.panel : this.cssClasses;
+        if (cssClasses.content) {
+          const selector = classesToSelector(cssClasses.content);
+          if (selector) {
+            return (_a2 = this.getWrapperElement()) === null || _a2 === void 0 ? void 0 : _a2.querySelector(`:scope ${selector}`);
+          }
+        }
+        return void 0;
+      },
+      isAnimationEnabled: () => this.isExpandCollapseAnimationEnabled
+    };
+  }
+  get isExpandCollapseAnimationEnabled() {
+    return this.animationAllowed && !this.isDesignMode;
+  }
+  set renderedIsExpanded(val) {
+    const oldValue = this._renderedIsExpanded;
+    this.animationCollapsed.sync(val);
+    if (!this.isExpandCollapseAnimationEnabled && !oldValue && this.renderedIsExpanded) {
+      this.onElementExpanded(false);
+    }
+  }
+  get renderedIsExpanded() {
+    return !!this._renderedIsExpanded;
+  }
+  getIsAnimationAllowed() {
+    return super.getIsAnimationAllowed() && !!this.survey && !this.survey["isEndLoadingFromJson"];
+  }
+  afterRenderCore(element2) {
+    this.onAfterRenderElement.fire(this, { htmlElement: element2 });
+  }
+  dispose() {
+    super.dispose();
+    if (this.titleToolbarValue) {
+      this.titleToolbarValue.dispose();
+    }
+  }
+  get randomSeed() {
+    var _a2;
+    let seed = ((_a2 = this.getOwner()) === null || _a2 === void 0 ? void 0 : _a2.randomSeed) || 0;
+    const key = this.getType() + this.name;
+    for (let i = 0; i < key.length; i++) {
+      seed = (seed << 5) - seed + key.charCodeAt(i);
+      seed |= 0;
+    }
+    return seed;
+  }
+  randomSeedChanged() {
+  }
+}
+__decorate([
+  property({ defaultValue: 1 })
+], SurveyElement.prototype, "colSpan", void 0);
+__decorate([
+  property({ defaultValue: false })
+], SurveyElement.prototype, "hasVisibleErrors", void 0);
+__decorate([
+  property({ defaultValue: true })
+], SurveyElement.prototype, "isSingleInRow", void 0);
+__decorate([
+  property({ defaultValue: "" })
+], SurveyElement.prototype, "width", void 0);
+__decorate([
+  property()
+], SurveyElement.prototype, "minWidth", void 0);
+__decorate([
+  property()
+], SurveyElement.prototype, "maxWidth", void 0);
+__decorate([
+  property({ defaultValue: "" })
+], SurveyElement.prototype, "renderWidth", void 0);
+__decorate([
+  property()
+], SurveyElement.prototype, "indent", void 0);
+__decorate([
+  property({ defaultValue: 0 })
+], SurveyElement.prototype, "rightIndent", void 0);
+__decorate([
+  property({ defaultValue: true })
+], SurveyElement.prototype, "allowRootStyle", void 0);
+__decorate([
+  property()
+], SurveyElement.prototype, "_renderedIsExpanded", void 0);
+class RenderingCompletedAwaiter {
+  constructor(_elements, _renderedHandler, waitingTimeout = 100) {
+    this._elements = _elements;
+    this._renderedHandler = _renderedHandler;
+    this._elementsToRenderCount = 0;
+    this._elementsToRenderTimer = void 0;
+    this._elementRenderedHandler = (s, o2) => {
+      var _a2;
+      (_a2 = s.onAfterRenderElement) === null || _a2 === void 0 ? void 0 : _a2.remove(this._elementRenderedHandler);
+      this._elementsToRenderCount--;
+      if (this._elementsToRenderCount <= 0) {
+        this.visibleElementsRendered();
+      }
+    };
+    this._elements.forEach((element2) => {
+      if (element2.onAfterRenderElement) {
+        element2.onAfterRenderElement.add(this._elementRenderedHandler);
+        this._elementsToRenderCount++;
+      }
+    });
+    if (this._elementsToRenderCount > 0) {
+      this._elementsToRenderTimer = setTimeout(() => {
+        if (this._elementsToRenderCount > 0) {
+          this.visibleElementsRendered();
+        }
+      }, waitingTimeout);
+    } else {
+      this.visibleElementsRendered();
+    }
+  }
+  stopWaitingForElementsRendering() {
+    if (this._elementsToRenderTimer) {
+      clearTimeout(this._elementsToRenderTimer);
+      this._elementsToRenderTimer = void 0;
+    }
+    this._elements.forEach((element2) => {
+      var _a2;
+      (_a2 = element2.onAfterRenderElement) === null || _a2 === void 0 ? void 0 : _a2.remove(this._elementRenderedHandler);
+    });
+    this._elementsToRenderCount = 0;
+  }
+  visibleElementsRendered() {
+    const renderedHandler = this._renderedHandler;
+    this.dispose();
+    if (typeof renderedHandler == "function") {
+      renderedHandler();
+    }
+  }
+  dispose() {
+    this.stopWaitingForElementsRendering();
+    this._elements = void 0;
+    this._renderedHandler = void 0;
+  }
+}
+class QuestionCustomWidget {
+  constructor(name, widgetJson) {
+    this.name = name;
+    this.widgetJson = widgetJson;
+    this.htmlTemplate = widgetJson.htmlTemplate ? widgetJson.htmlTemplate : "";
+  }
+  afterRender(question, el) {
+    if (!this.widgetJson.afterRender)
+      return;
+    question.localeChangedCallback = () => {
+      if (this.widgetJson.willUnmount) {
+        this.widgetJson.willUnmount(question, el);
+      }
+      this.widgetJson.afterRender(question, el);
+    };
+    this.widgetJson.afterRender(question, el);
+  }
+  willUnmount(question, el) {
+    if (this.widgetJson.willUnmount)
+      this.widgetJson.willUnmount(question, el);
+  }
+  getDisplayValue(question, value = void 0) {
+    if (this.widgetJson.getDisplayValue)
+      return this.widgetJson.getDisplayValue(question, value);
+    return null;
+  }
+  validate(question) {
+    if (this.widgetJson.validate)
+      return this.widgetJson.validate(question);
+    return void 0;
+  }
+  isFit(question) {
+    if (this.isLibraryLoaded() && this.widgetJson.isFit)
+      return this.widgetJson.isFit(question);
+    return false;
+  }
+  get canShowInToolbox() {
+    if (this.widgetJson.showInToolbox === false)
+      return false;
+    if (CustomWidgetCollection.Instance.getActivatedBy(this.name) != "customtype")
+      return false;
+    return !this.widgetJson.widgetIsLoaded || this.widgetJson.widgetIsLoaded();
+  }
+  get showInToolbox() {
+    return this.widgetJson.showInToolbox !== false;
+  }
+  set showInToolbox(val) {
+    this.widgetJson.showInToolbox = val;
+  }
+  init() {
+    if (this.widgetJson.init) {
+      this.widgetJson.init();
+    }
+  }
+  activatedByChanged(activatedBy) {
+    if (this.isLibraryLoaded() && this.widgetJson.activatedByChanged) {
+      this.widgetJson.activatedByChanged(activatedBy);
+    }
+  }
+  isLibraryLoaded() {
+    if (this.widgetJson.widgetIsLoaded)
+      return this.widgetJson.widgetIsLoaded() == true;
+    return true;
+  }
+  get isDefaultRender() {
+    return this.widgetJson.isDefaultRender;
+  }
+  get pdfQuestionType() {
+    return this.widgetJson.pdfQuestionType;
+  }
+  get pdfRender() {
+    return this.widgetJson.pdfRender;
+  }
+}
+class CustomWidgetCollection {
+  constructor() {
+    this.widgetsValues = [];
+    this.widgetsActivatedBy = {};
+    this.onCustomWidgetAdded = new Event$1();
+  }
+  get widgets() {
+    return this.widgetsValues;
+  }
+  add(widgetJson, activatedBy = "property") {
+    this.addCustomWidget(widgetJson, activatedBy);
+  }
+  addCustomWidget(widgetJson, activatedBy = "property") {
+    var name = widgetJson.name;
+    if (!name) {
+      name = "widget_" + this.widgets.length + 1;
+    }
+    var customWidget = new QuestionCustomWidget(name, widgetJson);
+    this.widgetsValues.push(customWidget);
+    customWidget.init();
+    this.widgetsActivatedBy[name] = activatedBy;
+    customWidget.activatedByChanged(activatedBy);
+    this.onCustomWidgetAdded.fire(customWidget, null);
+    return customWidget;
+  }
+  /**
+   * Returns the way the custom wiget is activated. It can be activated by a property ("property"), question type ("type") or by new/custom question type ("customtype").
+   * @param widgetName the custom widget name
+   * @see setActivatedBy
+   */
+  getActivatedBy(widgetName) {
+    var res = this.widgetsActivatedBy[widgetName];
+    return res ? res : "property";
+  }
+  /**
+   * Sets the way the custom wiget is activated. The activation types are: property ("property"), question type ("type") or new/custom question type ("customtype"). A custom wiget may support all or only some of this activation types.
+   * @param widgetName
+   * @param activatedBy there are three possible variants: "property", "type" and "customtype"
+   */
+  setActivatedBy(widgetName, activatedBy) {
+    if (!widgetName || !activatedBy)
+      return;
+    var widget = this.getCustomWidgetByName(widgetName);
+    if (!widget)
+      return;
+    this.widgetsActivatedBy[widgetName] = activatedBy;
+    widget.activatedByChanged(activatedBy);
+  }
+  clear() {
+    this.widgetsValues = [];
+  }
+  getCustomWidgetByName(name) {
+    for (var i = 0; i < this.widgets.length; i++) {
+      if (this.widgets[i].name == name)
+        return this.widgets[i];
+    }
+    return null;
+  }
+  getCustomWidget(question) {
+    for (var i = 0; i < this.widgetsValues.length; i++) {
+      if (this.widgetsValues[i].isFit(question))
+        return this.widgetsValues[i];
+    }
+    return null;
+  }
+}
+CustomWidgetCollection.Instance = new CustomWidgetCollection();
+class RendererFactory {
+  constructor() {
+    this.renderersHash = {};
+    this.defaultHash = {};
+  }
+  unregisterRenderer(questionType, rendererAs) {
+    delete this.renderersHash[questionType][rendererAs];
+    if (this.defaultHash[questionType] === rendererAs) {
+      delete this.defaultHash[questionType];
+    }
+  }
+  registerRenderer(questionType, renderAs, renderer2, useAsDefault = false) {
+    if (!this.renderersHash[questionType]) {
+      this.renderersHash[questionType] = {};
+    }
+    this.renderersHash[questionType][renderAs] = renderer2;
+    if (useAsDefault) {
+      this.defaultHash[questionType] = renderAs;
+    }
+  }
+  getRenderer(questionType, renderAs) {
+    const qHash = this.renderersHash[questionType];
+    if (!!qHash) {
+      if (!!renderAs && qHash[renderAs])
+        return qHash[renderAs];
+      const dVal = this.defaultHash[questionType];
+      if (!!dVal && qHash[dVal])
+        return qHash[dVal];
+    }
+    return "default";
+  }
+  getRendererByQuestion(question) {
+    return this.getRenderer(question.getType(), question.renderAs);
+  }
+  clear() {
+    this.renderersHash = {};
+  }
+}
+RendererFactory.Instance = new RendererFactory();
+function increaseHeightByContent(element2, getComputedStyle2) {
+  if (!element2)
+    return;
+  if (!getComputedStyle2)
+    getComputedStyle2 = (elt) => {
+      return DomDocumentHelper.getComputedStyle(elt);
+    };
+  const rows = parseFloat(element2.getAttribute("rows") || "2");
+  const style = getComputedStyle2(element2);
+  const oldOverlow = style.overflowY;
+  const lineHeight = parseFloat(style.lineHeight);
+  if (!!element2.scrollHeight) {
+    const paddingBorderWidth = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth) + parseFloat(style.paddingBottom) + parseFloat(style.paddingTop);
+    let currentLinesCount = (element2.scrollHeight - paddingBorderWidth) / lineHeight;
+    const setHeight = (linesCount) => {
+      element2.style.height = linesCount * lineHeight + paddingBorderWidth + "px";
+    };
+    setHeight(currentLinesCount);
+    element2.style.overflowY = "hidden";
+    while (element2.scrollHeight <= element2.offsetHeight && currentLinesCount > rows) {
+      currentLinesCount--;
+      setHeight(currentLinesCount);
+    }
+    element2.style.overflowY = oldOverlow;
+    if (element2.scrollHeight > element2.offsetHeight) {
+      currentLinesCount++;
+      setHeight(currentLinesCount);
+    }
+  } else {
+    element2.style.height = "auto";
+  }
+}
+class TextAreaModel {
+  updateElement() {
+    if (this.element && this.autoGrow) {
+      setTimeout(() => increaseHeightByContent(this.element), 1);
+    }
+  }
+  constructor(options2) {
+    this.options = options2;
+    this.onPropertyChangedCallback = () => {
+      if (this.element) {
+        this.element.value = this.getTextValue();
+        this.updateElement();
+      }
+    };
+    this.question.registerFunctionOnPropertiesValueChanged(this.options.propertyNames, this.onPropertyChangedCallback, "__textarea");
+  }
+  setElement(element2) {
+    if (!!element2) {
+      this.element = element2;
+      this.updateElement();
+    }
+  }
+  resetElement() {
+    this.element = void 0;
+  }
+  getTextValue() {
+    if (!!this.options.getTextValue)
+      return this.options.getTextValue() || "";
+    return "";
+  }
+  onTextAreaChange(event) {
+    if (!!this.options.onTextAreaChange)
+      this.options.onTextAreaChange(event);
+  }
+  onTextAreaInput(event) {
+    if (!!this.options.onTextAreaInput)
+      this.options.onTextAreaInput(event);
+    if (this.element && this.autoGrow) {
+      increaseHeightByContent(this.element);
+    }
+  }
+  onTextAreaKeyDown(event) {
+    if (!!this.options.onTextAreaKeyDown)
+      this.options.onTextAreaKeyDown(event);
+  }
+  onTextAreaBlur(event) {
+    this.onTextAreaChange(event);
+    if (!!this.options.onTextAreaBlur)
+      this.options.onTextAreaBlur(event);
+  }
+  onTextAreaFocus(event) {
+    var _a2;
+    if (!!this.options.onTextAreaFocus)
+      this.options.onTextAreaFocus(event);
+    if (this.isReadOnlyAttr) {
+      (_a2 = event === null || event === void 0 ? void 0 : event.target) === null || _a2 === void 0 ? void 0 : _a2.select();
+    }
+  }
+  get question() {
+    return this.options.question;
+  }
+  get id() {
+    return this.options.id();
+  }
+  get placeholder() {
+    return this.options.placeholder();
+  }
+  get className() {
+    return this.options.className();
+  }
+  get maxLength() {
+    if (this.options.maxLength)
+      return this.options.maxLength();
+  }
+  get autoGrow() {
+    if (this.options.autoGrow)
+      return this.options.autoGrow();
+  }
+  get rows() {
+    if (this.options.rows)
+      return this.options.rows();
+  }
+  get cols() {
+    if (this.options.cols)
+      return this.options.cols();
+  }
+  get isDisabledAttr() {
+    return this.options.isDisabledAttr();
+  }
+  get isReadOnlyAttr() {
+    if (this.options.isReadOnlyAttr)
+      return this.options.isReadOnlyAttr();
+  }
+  get ariaRequired() {
+    if (this.options.ariaRequired)
+      return this.options.ariaRequired();
+  }
+  get ariaLabel() {
+    if (this.options.ariaLabel)
+      return this.options.ariaLabel();
+  }
+  get ariaInvalid() {
+    if (this.options.ariaInvalid)
+      return this.options.ariaInvalid();
+  }
+  get ariaLabelledBy() {
+    if (this.options.ariaLabelledBy)
+      return this.options.ariaLabelledBy();
+  }
+  get ariaDescribedBy() {
+    if (this.options.ariaDescribedBy)
+      return this.options.ariaDescribedBy();
+  }
+  get ariaErrormessage() {
+    if (this.options.ariaErrormessage)
+      return this.options.ariaErrormessage();
+  }
+  dispose() {
+    if (this.question) {
+      this.question.unRegisterFunctionOnPropertiesValueChanged(this.options.propertyNames, "__textarea");
+    }
+    this.resetElement();
+  }
+}
+class QuestionSingleInputBehavior {
+  constructor(question) {
+    this.question = question;
+  }
+  get isSingleInputMode() {
+    var _a2;
+    return (_a2 = this.question.singleInput) === null || _a2 === void 0 ? void 0 : _a2.isSingleVisibleInput;
+  }
+  get isSingleInputActive() {
+    if (!this.isSingleInputMode)
+      return false;
+    const ssQ = this.question.singleInput.currentSingleQuestion;
+    return !!ssQ && ssQ === this.rootParentQuestion;
+  }
+  getPropertyValue(name, defaultValue, calcFunc) {
+    return this.question.getPropertyValue(name, defaultValue, calcFunc);
+  }
+  resetPropertyValue(name) {
+    this.question.resetPropertyValue(name);
+  }
+  get survey() {
+    return this.question.singleInput;
+  }
+  calculateSingleInputQuestion() {
+    if (!this.isSingleInputActive) {
+      return void 0;
+    }
+    const questions = this.getSingleInputQuestions();
+    if (Array.isArray(questions) && questions.length > 0) {
+      const q = questions[0];
+      this.onBeforeSetSingleInputQuestion(q);
+      return q;
+    }
+    return void 0;
+  }
+  //#region singleInput
+  get singleInputQuestion() {
+    if (!this.isSingleInputMode)
+      return void 0;
+    return this.getPropertyValue("singleInputQuestion", void 0, () => this.calculateSingleInputQuestion());
+  }
+  get currentSingleInputQuestion() {
+    let res = this.singleInputQuestion;
+    while (!!res && !!res.singleInputQuestion && res.singleInputQuestion !== res) {
+      res = res.singleInputQuestion;
+    }
+    return res;
+  }
+  get currentSingleInputParentQuestion() {
+    const q = this.currentSingleInputQuestion;
+    if (!q)
+      return this.question;
+    if (q.singleInputQuestion === q)
+      return q;
+    return q.parentQuestion || this.question;
+  }
+  get singleInputSummary() {
+    return this.getPropertyValue("singleInputSummary", void 0, () => {
+      if (!this.supportNestedSingleInput())
+        return void 0;
+      const q = this.singleInputQuestion;
+      if (!q || q !== this.question)
+        return void 0;
+      const res = this.createSingleInputSummary();
+      if (!!res) {
+        this.calcSingleInputActions();
+        this.resetPropertyValue("singleInputLocTitle");
+      }
+      return res;
+    });
+  }
+  createSingleInputSummary() {
+    return void 0;
+  }
+  get rootParentQuestion() {
+    return this.question.rootParentQuestion;
+  }
+  getParentQuestions() {
+    const res = new Array();
+    let q = this.question;
+    while (!!q.parentQuestion) {
+      res.push(q.parentQuestion);
+      q = q.parentQuestion;
+    }
+    return res;
+  }
+  focusSingleInput(onError) {
+    this.survey.currentSingleQuestion = this.rootParentQuestion;
+    const parents = this.getParentQuestions();
+    for (let i = parents.length - 1; i >= 1; i--) {
+      if (i === parents.length - 1) {
+        parents[i].singleInputBehavior.setSingleInputQuestion(parents[i - 1]);
+      }
+    }
+    if (parents.length > 0) {
+      parents[0].singleInputBehavior.setSingleInputQuestion(this.question);
+    }
+    this.question.focusInputElement(onError);
+  }
+  resetSingleInput() {
+    this.resetSingleInputCore();
+  }
+  resetSingleInputCore() {
+    const prev = this.getPropertyValue("singleInputQuestion");
+    this.resetPropertyValue("singleInputQuestion");
+    if (!!prev) {
+      this.onSingleInputChanged();
+    }
+  }
+  onSingleInputChanged(resetSummary = true) {
+    var _a2, _b2;
+    if (resetSummary) {
+      this.resetSingleInputSummary();
+    }
+    (_a2 = this.singleInputLocTitle) === null || _a2 === void 0 ? void 0 : _a2.strChanged();
+    this.resetPropertyValue("singleInputLocTitle");
+    this.calcSingleInputActions();
+    (_b2 = this.survey) === null || _b2 === void 0 ? void 0 : _b2.updateNavigationElements();
+  }
+  resetSingleInputSummary() {
+    var _a2;
+    (_a2 = this.singleInputSummary) === null || _a2 === void 0 ? void 0 : _a2.dispose();
+    this.resetPropertyValue("singleInputSummary");
+  }
+  validateSingleInput() {
+    const q = this.currentSingleInputQuestion;
+    if (!q)
+      return true;
+    return q.validate(true, true);
+  }
+  getSingleInputElementPos() {
+    if (this.singleInputQuestion === this.question)
+      return 0;
+    const pQ = this.currentSingleInputParentQuestion;
+    if (pQ !== this.question) {
+      let res = pQ.getSingleInputElementPos();
+      if (res === 2)
+        return 2;
+    }
+    const q = this.singleInputQuestion;
+    const questions = this.getSingleInputQuestions();
+    if (questions.length < 2)
+      return 0;
+    let index = questions.indexOf(q);
+    return index === 0 ? -1 : index >= questions.length - 1 ? 1 : 2;
+  }
+  singleInputOnAddItem(isOnDataChanging) {
+    if (this.isSingleInputActive) {
+      if (isOnDataChanging && this.singleInputSummary) {
+        this.resetSingleInputSummary();
+      } else {
+        this.setSingleQuestionOnChange(Number.MAX_VALUE);
+      }
+    }
+  }
+  singleInputOnRemoveItem(index) {
+    if (this.isSingleInputActive) {
+      if (!this.singleInputSummary) {
+        this.setSingleQuestionOnChange(index);
+      } else {
+        this.onSingleInputChanged();
+      }
+    }
+  }
+  getSingleQuestionOnChange(index) {
+    return null;
+  }
+  setSingleQuestionOnChange(index) {
+    const q = this.getSingleQuestionOnChange(index);
+    if (!!q) {
+      this.setSingleInputQuestion(q);
+    } else {
+      this.resetSingleInput();
+    }
+  }
+  onSetAsSingleInput() {
+    this.isSingleInputSummaryShown = false;
+    const needReset = !this.question.wasRendered || this.singleInputSummary;
+    this.question.onFirstRendering();
+    if (needReset) {
+      this.resetSingleInputSummary();
+      this.resetPropertyValue("singleInputQuestion");
+      this.resetPropertyValue("singleInputLocTitle");
+    }
+  }
+  nextSingleInput() {
+    return this.nextPrevSingleInput(1);
+  }
+  prevSingleInput() {
+    return this.nextPrevSingleInput(-1);
+  }
+  getSingleInputAddText() {
+    const q = this.currentSingleInputQuestion;
+    if (!q)
+      return void 0;
+    if (!!q.singleInputSummary)
+      return this.getBehavior(q).getSingleInputAddTextCore();
+    const qs = this.getSingleInputQuestions();
+    const len = Array.isArray(qs) ? qs.length : 0;
+    if (len > 0 && qs[len - 1] === q)
+      return this.getSingleInputAddTextCore();
+    return void 0;
+  }
+  singleInputAddItem(checkErrors) {
+    if (!checkErrors || this.validateSingleInput()) {
+      this.getBehavior(this.currentSingleInputQuestion).singleInputAddItemCore();
+    }
+  }
+  get singleInputLocTitle() {
+    return this.getPropertyValue("singleInputLocTitle", void 0, () => {
+      return this.getSingleQuestionLocTitle();
+    });
+  }
+  getLocTitle() {
+    return this.isSingleInputActive ? this.singleInputLocTitle : null;
+  }
+  get singleInputActions() {
+    return this.getPropertyValue("singleInputActions", void 0, () => {
+      return this.createSingleInputActions();
+    });
+  }
+  get singleInputHasActions() {
+    return this.getPropertyValue("singleInputHasActions", void 0, () => {
+      return this.createSingleInputActions();
+    });
+  }
+  get singleInputHideHeader() {
+    var _a2;
+    const childQ = (_a2 = this.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.singleInputQuestion;
+    return !!childQ && this.singleInputQuestion !== this.question;
+  }
+  set singleInputHasActionsValue(val) {
+    this.question.setPropertyValue("singleInputHasActions", val);
+  }
+  get singleInputParentQuestion() {
+    var _a2;
+    return ((_a2 = this.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.parentQuestion) || this.question;
+  }
+  createSingleInputActions() {
+    var _a2;
+    if (((_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.currentSingleQuestion) !== this.question)
+      return void 0;
+    const singleInputActions = new ActionContainer();
+    singleInputActions.actions = this.getSingleQuestionActions();
+    return singleInputActions;
+  }
+  calcSingleInputActions() {
+    if (!!this.question.parentQuestion) {
+      this.getBehavior(this.question.parentQuestion).calcSingleInputActions();
+    } else {
+      const actions = this.getSingleQuestionActions();
+      if (this.singleInputActions) {
+        this.singleInputActions.actions = actions;
+      }
+      this.question.setPropertyValue("singleInputHasActions", actions.length > 0 ? true : void 0);
+    }
+  }
+  getSingleQuestionActions() {
+    const res = new Array();
+    const p2 = this.currentSingleInputParentQuestion;
+    if (!p2 || p2 === this.question)
+      return res;
+    const pBehavior = this.getBehavior(p2);
+    const pSQs = pBehavior.getSingleInputQuestions();
+    const qs = new Array();
+    let summaryQ = void 0;
+    if (pSQs.length > 1 && pSQs[0] === p2) {
+      summaryQ = p2;
+      qs.push(p2);
+    }
+    let pQ = p2.parentQuestion;
+    while (!!pQ) {
+      qs.push(pQ);
+      pQ = pQ.parentQuestion;
+    }
+    for (let i = qs.length - 1; i >= 0; i--) {
+      const q = qs[i];
+      if (q !== summaryQ) {
+        const title = q.singleInputLocTitle;
+        const action = new Action({
+          id: "single-action" + q.id,
+          locTitle: title,
+          css: this.question.cssClasses.breadcrumbsItem,
+          innerCss: this.question.cssClasses.breadcrumbsItemButton,
+          action: () => {
+            this.getBehavior(q).singleInputMoveToFirst();
+          }
+        });
+        action.cssClasses = {};
+        res.push(action);
+      }
+    }
+    return res;
+  }
+  singleInputMoveToFirst() {
+    const q = this.singleInputQuestion;
+    if (!!q && q !== this.question) {
+      this.getBehavior(q).singleInputMoveToFirst();
+    }
+    this.singleInputMoveToFirstCore();
+  }
+  singleInputMoveToFirstCore() {
+  }
+  getSingleQuestionLocTitle() {
+    return !this.singleInputSummary ? this.getSingleQuestionLocTitleCore() : void 0;
+  }
+  getSingleQuestionLocTitleCore() {
+    return void 0;
+  }
+  supportNestedSingleInput() {
+    var _a2;
+    return (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.supportsNestedSingleInput(this.question);
+  }
+  getSingleInputQuestions() {
+    if (!this.supportNestedSingleInput())
+      return [];
+    const question = this.getPropertyValue("singleInputQuestion");
+    if (question === this.question)
+      return [this.question];
+    const res = this.getSingleInputQuestionsCore(question, !question || !this.isSingleInputSummaryShown);
+    if (this.survey) {
+      this.survey.updateNestedSingleQuestions(this.question, res);
+    }
+    res.forEach((q) => {
+      if (q !== this.question)
+        this.onSingleInputQuestionAdded(q);
+    });
+    return res;
+  }
+  getSingleInputQuestionsCore(question, checkDynamic) {
+    return this.question.getNestedQuestions(true, false);
+  }
+  onSingleInputQuestionAdded(question) {
+  }
+  fillSingleInputQuestionsInContainer(res, innerQuestion) {
+  }
+  getSingleInputQuestionsForDynamic(question, arr2) {
+    const res = new Array();
+    if (!!question && question !== this.question && arr2.indexOf(question) < 0) {
+      this.fillSingleInputQuestionsInContainer(res, question);
+    }
+    arr2.forEach((q) => res.push(q));
+    if (this.isSingleInputSummaryShown && res.length > 0) {
+      res.unshift(this.question);
+    }
+    res.push(this.question);
+    return res;
+  }
+  getSingleInputAddTextCore() {
+    return void 0;
+  }
+  singleInputAddItemCore() {
+  }
+  setSingleInputQuestionCore(question) {
+    this.onBeforeSetSingleInputQuestion(question);
+    this.question.setPropertyValue("singleInputQuestion", question);
+  }
+  onBeforeSetSingleInputQuestion(question) {
+    question.onFirstRendering();
+    if (question === this.question) {
+      this.isSingleInputSummaryShown = true;
+    }
+  }
+  setSingleInputQuestion(question, onPrev) {
+    if (this.singleInputQuestion !== question) {
+      this.setSingleInputQuestionCore(question);
+      this.onSingleInputChanged(!onPrev || question !== this.question);
+    }
+  }
+  nextPrevSingleInput(skip) {
+    let pQ = this.currentSingleInputParentQuestion;
+    while (!!pQ && pQ !== this.question) {
+      const res = this.getBehavior(pQ).nextPrevSingleInputCore(skip);
+      if (res)
+        return true;
+      pQ = pQ.parentQuestion;
+    }
+    return this.nextPrevSingleInputCore(skip);
+  }
+  nextPrevSingleInputCore(skip) {
+    const q = this.singleInputQuestion;
+    if (!q)
+      return false;
+    const questions = this.getSingleInputQuestions();
+    let index = questions.indexOf(q);
+    if (index < 0) {
+      if (questions.length === 0)
+        return false;
+      index = 0;
+      skip = 0;
+    }
+    index += skip;
+    if (index < 0 || index >= questions.length)
+      return false;
+    this.setSingleInputQuestion(questions[index], skip < 0);
+    return true;
+  }
+  //#endregion
+  getBehavior(q) {
+    return q.singleInputBehavior;
+  }
+}
+class QuestionValueGetterContext {
+  constructor(question, isUnwrapped) {
+    this.question = question;
+    this.isUnwrapped = isUnwrapped;
+  }
+  getObj() {
+    return this.question;
+  }
+  getValue(params) {
+    const path2 = params.path;
+    const index = params.index;
+    const expVar = settings.expressionVariables;
+    if (params.isProperty && path2.length > 1) {
+      params.path = path2.slice(1);
+      params.isRoot = false;
+      if (path2[0].name === expVar.self) {
+        return new PropertyGetterContext(this.question).getValue(params);
+      }
+      if (path2[0].name === expVar.parent && !!this.question.parentQuestion) {
+        return new PropertyGetterContext(this.question.parentQuestion).getValue(params);
+      }
+    }
+    if (path2.length === 0 || path2.length === 1 && path2[0].name === expVar.self)
+      return this.getQuestionValue(index);
+    if (path2.length > 1 && path2[0].name === expVar.panel) {
+      params.isRoot = false;
+      const panel = this.question.parent;
+      if (panel && panel.isPanel) {
+        path2.shift();
+        return params.isProperty ? new PropertyGetterContext(panel).getValue(params) : new QuestionArrayGetterContext(panel.questions).getValue(params);
+      }
+    }
+    if (!this.question.isEmpty()) {
+      let val = this.question.value;
+      if (index >= 0) {
+        if (!Array.isArray(val || index >= val.length))
+          return void 0;
+        val = val[index];
+      }
+      params.isProperty = false;
+      return new VariableGetterContext(val).getValue(params);
+    }
+    return void 0;
+  }
+  getTextValue(name, value, isDisplayValue) {
+    if (!isDisplayValue)
+      return value;
+    return this.question.getDisplayValue(true, value);
+  }
+  getRootObj() {
+    return this.question.data;
+  }
+  getQuestion() {
+    return this.question;
+  }
+  getSurveyValue(path2, index) {
+    const survey = this.question.getSurvey();
+    if (survey)
+      return survey.getValueGetterContext().getValue({ path: path2, isRoot: false, index });
+    return void 0;
+  }
+  getQuestionValue(index) {
+    const q = this.question;
+    let val = q.getFilteredValue(this.isUnwrapped);
+    if (index > -1 && Array.isArray(val)) {
+      val = index < val.length ? val[index] : void 0;
+    }
+    return { isFound: true, context: this, value: val, requireStrictCompare: q.requireStrictCompare };
+  }
+}
+class QuestionItemValueGetterContext extends ValueGetterContextCore {
+  getValueFromBindedQuestions(path2, objValue) {
+    if (typeof objValue !== "object") {
+      objValue = void 0;
+    }
+    const name = path2.length === 1 ? path2[0].name : "";
+    const qs = this.getQuestionsBySameValueNames();
+    for (let i = 0; i < qs.length; i++) {
+      const q = qs[i];
+      if (!!name && q.valuePropertyName === name && !!objValue && objValue.hasOwnProperty(name)) {
+        return { isFound: true, value: objValue[name], context: q.getValueGetterContext() };
+      }
+      const res = q.getValueGetterContext().getValue({ path: path2, isRoot: false, index: this.getIndex() });
+      if (!!res && res.isFound)
+        return res;
+    }
+    return void 0;
+  }
+  getQuestionsBySameValueNames() {
+    const res = new Array();
+    const q = this.getQuestionData();
+    if (!q || !q.isQuestion)
+      return res;
+    if (q.parent && q.parent.isPanel) {
+      this.fillQuestions(q.parent.getQuestionsByValueName(q.getValueName()), q, res);
+    }
+    if (res.length === 0 && !!q.survey) {
+      this.fillQuestions(q.survey.getQuestionsByValueName(q.getValueName()), q, res);
+    }
+    return res;
+  }
+  fillQuestions(qs, q, res) {
+    if (Array.isArray(qs)) {
+      qs.forEach((question) => {
+        if (question !== q) {
+          res.push(question);
+        }
+      });
+    }
+  }
+  getRootObj() {
+    return this.getQuestionData();
+  }
+}
+class QuestionArrayGetterContext extends ValueGetterContextCore {
+  constructor(questions) {
+    super();
+    this.questions = questions;
+  }
+  isSearchNameRevert() {
+    return true;
+  }
+  updateValueByItem(name, res) {
+    const lowName = name.toLocaleLowerCase();
+    const unWrappedNameSuffix = settings.expressionVariables.unwrapPostfix;
+    for (let i = 0; i < this.questions.length; i++) {
+      const q = this.questions[i];
+      const qName = q.getFilteredName().toLocaleLowerCase();
+      if (qName.toLocaleLowerCase() === lowName) {
+        res.isFound = true;
+        res.obj = q;
+        res.context = q.getValueGetterContext(qName.endsWith(unWrappedNameSuffix));
+        break;
+      }
+    }
+  }
+}
+class ValidationContext extends AsyncElementsRunner {
+  constructor(context2) {
+    super(() => {
+      this.setCallbackResult();
+    });
+    this.res = true;
+    this.errorCountValue = 0;
+    if (!context2) {
+      context2 = { fireCallback: true };
+    }
+    this.fireCallbackValue = context2.fireCallback || false;
+    this.isOnValueChangedValue = context2.isOnValueChanged || false;
+    this.focusOnFirstErrorValue = context2.focusOnFirstError || false;
+    this.callbackResult = context2.callbackResult || null;
+    this.changeCurrentPage = context2.changeCurrentPage || false;
+  }
+  get fireCallback() {
+    return this.fireCallbackValue;
+  }
+  get isOnValueChanged() {
+    return this.isOnValueChangedValue;
+  }
+  get focusOnFirstError() {
+    return this.focusOnFirstErrorValue;
+  }
+  get result() {
+    return this.res;
+  }
+  get runningResult() {
+    return !this.res || !this.isRunning || !this.callbackResult ? this.res : void 0;
+  }
+  setErrorElement(element2, errors) {
+    if (Array.isArray(errors) && this.isWarningOnlyOrEmpty(errors))
+      return;
+    this.errorCountValue++;
+    this.res = false;
+    if (!element2)
+      return;
+    if (element2.isQuestion) {
+      this.setQuestionError(element2);
+    } else {
+      if (element2.isCollapsed) {
+        element2.expand();
+      }
+    }
+  }
+  isWarningOnlyOrEmpty(errors) {
+    for (let i = 0; i < errors.length; i++) {
+      const er = errors[i];
+      if (er.isError && er.visible)
+        return false;
+    }
+    return true;
+  }
+  get firstErrorQuestion() {
+    return this.firstErrorQuestionValue;
+  }
+  get errorCount() {
+    return this.errorCountValue;
+  }
+  setCallbackResult() {
+    if (this.callbackResult && !this.isCallbackFired) {
+      this.isCallbackFired = true;
+      this.callbackResult(this.res, this.firstErrorQuestion);
+    }
+  }
+  setQuestionError(question) {
+    question.expandAllParents();
+    if (!this.firstErrorQuestionValue) {
+      this.firstErrorQuestionValue = question;
+      if (this.focusOnFirstError || this.changeCurrentPage) {
+        if (this.focusOnFirstError) {
+          question.focus(true);
+        } else {
+          const survey = question.getSurvey();
+          if (!!survey && !!question.page) {
+            survey.currentPage = question.page;
+          }
+        }
+      }
+      this.setCallbackResult();
+    }
+  }
+}
+class Question extends SurveyElement {
+  get afterRenderCallbacks() {
+    return this.survey;
+  }
+  get validationCallbacks() {
+    return this.survey;
+  }
+  isReadOnlyRenderDiv() {
+    return this.isReadOnly && settings.readOnly.commentRenderMode === "div";
+  }
+  allowMobileInDesignMode() {
+    return false;
+  }
+  updateIsMobileFromSurvey() {
+    this.setIsMobile(this.survey._isMobile);
+  }
+  setIsMobile(val) {
+    const newVal = val && (this.allowMobileInDesignMode() || !this.isDesignMode);
+    this.isMobile = newVal;
+  }
+  getIsMobile() {
+    return this._isMobile;
+  }
+  get isMobile() {
+    return this.getIsMobile();
+  }
+  set isMobile(val) {
+    this._isMobile = val;
+  }
+  themeChanged(theme) {
+  }
+  get ariaExpanded() {
+    if (this.isNewA11yStructure) {
+      return null;
+    }
+    return this.getPropertyValue("ariaExpanded");
+  }
+  set ariaExpanded(val) {
+    this.setPropertyValue("ariaExpanded", val);
+  }
+  constructor(name) {
+    super(name);
+    this.customWidgetData = { isNeedRender: true };
+    this.hasCssErrorCallback = () => false;
+    this.triggersInfo = [];
+    this.isReadyValue = true;
+    this.dependedQuestions = [];
+    this.onReadyChanged = this.addEvent();
+    this.isValueChangedInSurvey = false;
+    this.allowNotifyValueChanged = true;
+    this.setPropertyValueDirectly("id", "sq_" + this.uniqueId);
+    this.onCreating();
+    this.addExpressionProperty("visibleIf", (obj, res) => {
+      this.visible = res === true;
+    });
+    this.addExpressionProperty("enableIf", (obj, res) => {
+      this.readOnly = res === false;
+    });
+    this.addExpressionProperty("requiredIf", (obj, res) => {
+      this.isRequired = res === true;
+    });
+    this.addTriggersInfo();
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+    var _a2;
+    super.onPropertyValueChanged(name, oldValue, newValue);
+    const updateQuestionCssProps = ["readOnly", "hasVisibleErrors", "containsErrors"];
+    if (updateQuestionCssProps.indexOf(name) > -1) {
+      this.updateQuestionCss();
+    }
+    if (name === "showNumber") {
+      this.notifySurveyVisibilityChanged();
+    }
+    if (name === "no") {
+      this.resetCssTitle();
+    }
+    if (name === "width") {
+      this.updateQuestionCss();
+      if (!!this.parent) {
+        this.parent.elementWidthChanged(this);
+      }
+    }
+    if (name === "isRequired") {
+      if (!this.isRequired && this.errors.length > 0) {
+        this.validate();
+      }
+      this.locTitle.strChanged();
+      this.clearCssClasses();
+    }
+    if (name === "indent" || name === "rightIndent") {
+      this.resetIndents();
+    }
+    if (name === "showCommentArea" || name === "showOtherItem") {
+      this.initCommentFromSurvey();
+    }
+    if (name === "commentPlaceholder") {
+      this.resetRenderedCommentPlaceholder();
+    }
+    if (name === "_isMobile") {
+      this.onMobileChanged();
+    }
+    if (name === "colSpan") {
+      (_a2 = this.parent) === null || _a2 === void 0 ? void 0 : _a2.updateColumns();
+    }
+    if (name === "descriptionLocation") {
+      this.updateQuestionCss();
+    }
+  }
+  getDefaultTitle() {
+    return this.name;
+  }
+  createLocTitleProperty() {
+    const locTitleValue = super.createLocTitleProperty();
+    locTitleValue.storeDefaultText = true;
+    locTitleValue.onGetTextCallback = (text2, nonProcessedText) => {
+      if (!text2 && !nonProcessedText) {
+        text2 = this.getDefaultTitle();
+      }
+      if (!this.survey)
+        return text2;
+      return this.titleSettings.getUpdatedQuestionTitle(this, text2);
+    };
+    this.locProcessedTitle = new LocalizableString(this, true);
+    this.locProcessedTitle.sharedData = locTitleValue;
+    return locTitleValue;
+  }
+  get locRenderedTitle() {
+    return this.singleInputBehavior.getLocTitle() || this.locTitle;
+  }
+  get commentTextAreaModel() {
+    if (!this.commentTextAreaModelValue) {
+      this.commentTextAreaModelValue = new TextAreaModel(this.getCommentTextAreaOptions());
+    }
+    return this.commentTextAreaModelValue;
+  }
+  getCommentTextAreaOptions() {
+    const options2 = {
+      question: this,
+      id: () => this.commentId,
+      propertyNames: ["comment"],
+      className: () => this.cssClasses.comment,
+      placeholder: () => this.renderedCommentPlaceholder,
+      isDisabledAttr: () => this.isInputReadOnly || false,
+      rows: () => this.commentAreaRows,
+      autoGrow: () => this.autoGrowComment,
+      maxLength: () => this.getOthersMaxLength(),
+      ariaRequired: () => this.a11y_input_ariaRequired,
+      ariaLabel: () => this.a11y_input_ariaLabel,
+      getTextValue: () => {
+        return this.comment;
+      },
+      onTextAreaChange: (e2) => {
+        this.onCommentChange(e2);
+      },
+      onTextAreaInput: (e2) => {
+        this.onCommentInput(e2);
+      }
+    };
+    return options2;
+  }
+  getSurvey(live = false) {
+    if (live) {
+      return !!this.parent ? this.parent.getSurvey(live) : null;
+    }
+    if (!!this.onGetSurvey)
+      return this.onGetSurvey();
+    return super.getSurvey();
+  }
+  getValueName() {
+    if (!!this.valueName)
+      return this.valueName.toString();
+    return this.name;
+  }
+  /**
+   * Specifies an object property that should store the question value.
+   *
+   * Refer to the [Merge Question Values](https://surveyjs.io/form-library/documentation/design-survey-merge-question-values) help topic for more information.
+   */
+  get valueName() {
+    return this.getPropertyValue("valueName", "");
+  }
+  set valueName(val) {
+    var oldValueName = this.getValueName();
+    this.setPropertyValue("valueName", val);
+    this.onValueNameChanged(oldValueName);
+  }
+  onValueNameChanged(oldValue) {
+    if (!this.survey)
+      return;
+    this.lifecycleCallbacks.questionRenamed(this, this.name, !!oldValue ? oldValue : this.name);
+    this.initDataFromSurvey();
+  }
+  onNameChanged(oldValue) {
+    this.locTitle.strChanged();
+    if (!this.survey)
+      return;
+    this.lifecycleCallbacks.questionRenamed(this, oldValue, this.valueName ? this.valueName : oldValue);
+  }
+  getAllChildren() {
+    return [
+      ...super.getAllChildren(),
+      ...this.validators
+    ];
+  }
+  get isReady() {
+    return this.isReadyValue;
+  }
+  onAsyncRunningChanged() {
+    this.updateIsReady();
+  }
+  ensureQuestionIsReady() {
+    this.displayValue;
+  }
+  waitForQuestionIsReady(callback) {
+    return new Promise((resolve2) => {
+      this.ensureQuestionIsReady();
+      if (this.isReady) {
+        resolve2();
+        if (!!callback)
+          callback();
+      } else {
+        const readyCallback = (_23, options2) => {
+          if (options2.isReady) {
+            this.onReadyChanged.remove(readyCallback);
+            resolve2();
+            if (!!callback)
+              callback();
+          }
+        };
+        this.onReadyChanged.add(readyCallback);
+      }
+    });
+  }
+  updateIsReady() {
+    let res = this.getIsQuestionReady();
+    if (res) {
+      const questions = this.getIsReadyDependsOn();
+      for (let i = 0; i < questions.length; i++) {
+        if (!questions[i].getIsQuestionReady()) {
+          res = false;
+          break;
+        }
+      }
+    }
+    this.setIsReady(res);
+  }
+  getIsQuestionReady() {
+    return !this.isAsyncExpressionRunning && this.getAreNestedQuestionsReady();
+  }
+  getAreNestedQuestionsReady() {
+    const questions = this.getIsReadyNestedQuestions();
+    if (!Array.isArray(questions))
+      return true;
+    for (let i = 0; i < questions.length; i++) {
+      if (!questions[i].isReady)
+        return false;
+    }
+    return true;
+  }
+  getIsReadyNestedQuestions() {
+    return this.getNestedQuestions();
+  }
+  setIsReady(val) {
+    const oldIsReady = this.isReadyValue;
+    this.isReadyValue = val;
+    if (oldIsReady != val) {
+      this.getIsReadyDependends().forEach((q) => q.updateIsReady());
+      this.onReadyChanged.fire(this, {
+        question: this,
+        isReady: val,
+        oldIsReady
+      });
+    }
+  }
+  getIsReadyDependsOn() {
+    return this.getIsReadyDependendCore(true);
+  }
+  getIsReadyDependends() {
+    return this.getIsReadyDependendCore(false);
+  }
+  getDependedQuestionsByValueName(isDependOn) {
+    return this.survey.questionsByValueName(this.getValueName());
+  }
+  getIsReadyDependendCore(isDependOn) {
+    if (!this.survey)
+      return [];
+    const questions = this.getDependedQuestionsByValueName(isDependOn);
+    const res = new Array();
+    questions.forEach((q) => {
+      if (q !== this)
+        res.push(q);
+    });
+    if (!isDependOn) {
+      if (this.parentQuestion) {
+        res.push(this.parentQuestion);
+      }
+      if (this.dependedQuestions.length > 0) {
+        this.dependedQuestions.forEach((q) => res.push(q));
+      }
+    }
+    return res;
+  }
+  choicesLoaded() {
+  }
+  /**
+   * Returns a page to which the question belongs and allows you to move this question to a different page.
+   */
+  get page() {
+    if (!!this.parentQuestion)
+      return this.parentQuestion.page;
+    return this.getPage(this.parent);
+  }
+  set page(val) {
+    this.setPage(this.parent, val);
+  }
+  getPanels() {
+    return null;
+  }
+  getPageVisibleIndex() {
+    var _a2;
+    return ((_a2 = this.page) === null || _a2 === void 0 ? void 0 : _a2.visibleIndex) || -1;
+  }
+  delete(doDispose = true) {
+    this.removeFromParent();
+    if (doDispose) {
+      this.dispose();
+    } else {
+      this.resetDependedQuestions();
+    }
+  }
+  removeFromParent() {
+    if (!!this.parent) {
+      this.removeSelfFromList(this.parent.elements);
+    }
+  }
+  addDependedQuestion(question) {
+    if (!question || this.dependedQuestions.indexOf(question) > -1)
+      return;
+    this.dependedQuestions.push(question);
+  }
+  removeDependedQuestion(question) {
+    if (!question)
+      return;
+    var index = this.dependedQuestions.indexOf(question);
+    if (index > -1) {
+      this.dependedQuestions.splice(index, 1);
+    }
+  }
+  updateDependedQuestions() {
+    for (var i = 0; i < this.dependedQuestions.length; i++) {
+      this.dependedQuestions[i].updateDependedQuestion();
+    }
+  }
+  updateDependedQuestion() {
+  }
+  resetDependedQuestion() {
+  }
+  get isFlowLayout() {
+    return this.getLayoutType() === "flow";
+  }
+  getLayoutType() {
+    if (!!this.parent)
+      return this.parent.getChildrenLayoutType();
+    return "row";
+  }
+  isLayoutTypeSupported(layoutType) {
+    return layoutType !== "flow";
+  }
+  onVisibleChanged() {
+    const prevVal = this.getPropertyValue("isVisible");
+    this.onVisibleChangedCore();
+    const newVal = this.getPropertyValue("isVisible");
+    if (prevVal !== void 0 && prevVal !== newVal) {
+      this.notifySurveyVisibilityChanged();
+    }
+  }
+  onVisibleChangedCore() {
+    this.updateIsVisibleProp();
+    if (!this.isVisible && this.errors && this.errors.length > 0) {
+      this.errors = [];
+    }
+  }
+  notifyStateChanged(prevState) {
+    super.notifyStateChanged(prevState);
+    if (this.isCollapsed) {
+      this.onHidingContent();
+    }
+  }
+  updateElementVisibility() {
+    this.updateIsVisibleProp();
+  }
+  updateIsVisibleProp() {
+    const prev = this.getPropertyValue("isVisible");
+    const val = this.isVisible;
+    if (prev !== val) {
+      this.setPropertyValue("isVisible", val);
+      if (!val) {
+        this.onHidingContent();
+      }
+    }
+    if (val !== this.visible && this.areInvisibleElementsShowing) {
+      this.updateQuestionCss();
+    }
+  }
+  getUseDisplayValuesInDynamicTexts() {
+    return this.useDisplayValuesInDynamicTexts;
+  }
+  /**
+   * Returns `true` if the question is visible or the survey is currently in design mode.
+   *
+   * If you want to display or hide a question based on a condition, specify the [`visibleIf`](https://surveyjs.io/form-library/documentation/question#visibleIf) property. Refer to the following help topic for information: [Conditional Visibility](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#conditional-visibility).
+   * @see visibleIf
+   * @see visible
+   * @see isParentVisible
+   */
+  get isVisible() {
+    if (this.survey && this.survey.areEmptyElementsHidden && this.isEmpty())
+      return false;
+    if (this.areInvisibleElementsShowing)
+      return true;
+    return this.isVisibleCore();
+  }
+  get isVisibleInSurvey() {
+    return this.isVisible && this.isParentVisible;
+  }
+  isVisibleCore() {
+    return this.visible;
+  }
+  /**
+   * Returns the visible index of the question in the survey. It can be from 0 to all visible questions count - 1
+   * The visibleIndex is -1 if the title is 'hidden' or showNumber is false
+   * @see titleLocation
+   * @see showNumber
+   */
+  get visibleIndex() {
+    return this.getPropertyValue("visibleIndex", -1);
+  }
+  onHidingContent() {
+  }
+  /**
+   * @deprecated Use the [`showNumber`](https://surveyjs.io/form-library/documentation/api-reference/question#showNumber) property instead.
+   */
+  get hideNumber() {
+    return !this.showNumber;
+  }
+  set hideNumber(val) {
+    this.showNumber = !val;
+  }
+  /**
+   * Returns `true` if the question can display its title to the left of the input field.
+   * @see titleLocation
+   * @see getTitleLocation
+   * @see hasTitle
+   */
+  get isAllowTitleLeft() {
+    return true;
+  }
+  /**
+   * Returns the question type.
+   * Possible values:
+   * - [*"boolean"*](https://surveyjs.io/Documentation/Library?id=questionbooleanmodel)
+   * - [*"checkbox"*](https://surveyjs.io/Documentation/Library?id=questioncheckboxmodel)
+   * - [*"comment"*](https://surveyjs.io/Documentation/Library?id=questioncommentmodel)
+   * - [*"dropdown"*](https://surveyjs.io/Documentation/Library?id=questiondropdownmodel)
+   * - [*"tagbox"*](https://surveyjs.io/form-library/documentation/questiontagboxmodel)
+   * - [*"expression"*](https://surveyjs.io/Documentation/Library?id=questionexpressionmodel)
+   * - [*"file"*](https://surveyjs.io/Documentation/Library?id=questionfilemodel)
+   * - [*"html"*](https://surveyjs.io/Documentation/Library?id=questionhtmlmodel)
+   * - [*"image"*](https://surveyjs.io/Documentation/Library?id=questionimagemodel)
+   * - [*"imagepicker"*](https://surveyjs.io/Documentation/Library?id=questionimagepickermodel)
+   * - [*"matrix"*](https://surveyjs.io/Documentation/Library?id=questionmatrixmodel)
+   * - [*"matrixdropdown"*](https://surveyjs.io/Documentation/Library?id=questionmatrixdropdownmodel)
+   * - [*"matrixdynamic"*](https://surveyjs.io/Documentation/Library?id=questionmatrixdynamicmodel)
+   * - [*"multipletext"*](https://surveyjs.io/Documentation/Library?id=questionmultipletextmodel)
+   * - [*"panel"*](https://surveyjs.io/Documentation/Library?id=panelmodel)
+   * - [*"paneldynamic"*](https://surveyjs.io/Documentation/Library?id=questionpaneldynamicmodel)
+   * - [*"radiogroup"*](https://surveyjs.io/Documentation/Library?id=questionradiogroupmodel)
+   * - [*"rating"*](https://surveyjs.io/Documentation/Library?id=questionratingmodel)
+   * - [*"ranking"*](https://surveyjs.io/Documentation/Library?id=questionrankingmodel)
+   * - [*"signaturepad"*](https://surveyjs.io/Documentation/Library?id=questionsignaturepadmodel)
+   * - [*"text"*](https://surveyjs.io/Documentation/Library?id=questiontextmodel)
+   */
+  getType() {
+    return "question";
+  }
+  get isQuestion() {
+    return true;
+  }
+  getOwner() {
+    return this.parentQuestion || this.parent;
+  }
+  moveTo(container, insertBefore2 = null) {
+    return this.moveToBase(this.parent, container, insertBefore2);
+  }
+  getProgressInfo() {
+    if (!this.hasInput)
+      return super.getProgressInfo();
+    return {
+      questionCount: 1,
+      answeredQuestionCount: !this.isEmpty() ? 1 : 0,
+      requiredQuestionCount: this.isRequired ? 1 : 0,
+      requiredAnsweredQuestionCount: !this.isEmpty() && this.isRequired ? 1 : 0
+    };
+  }
+  runTriggerInfo(info, keys, properties) {
+    this.runExpressionByProperty(info.name, properties, (value) => {
+      info.doComplete(value, properties);
+    }, (runner) => {
+      if (!info.canRun())
+        return false;
+      return !keys || this.canExecuteTriggerByKeys(keys, runner, this.getExpressionByProperty(info.secondName));
+    });
+  }
+  canExecuteTriggerByKeys(keys, runner, secondRunner) {
+    if (!runner && !!secondRunner) {
+      runner = secondRunner;
+      secondRunner = void 0;
+    }
+    const run1 = this.canExecuteTriggerByKeysCore(keys, runner);
+    if (run1 === "var")
+      return true;
+    if (!secondRunner)
+      return run1 === "func" || run1 === "const";
+    const run2 = this.canExecuteTriggerByKeysCore(keys, secondRunner);
+    return run2 !== "";
+  }
+  canExecuteTriggerByKeysCore(keys, runner) {
+    if (!runner.expression)
+      return "";
+    const vars = runner.getVariables();
+    if (!Array.isArray(vars) || vars.length === 0) {
+      if (runner.hasFunction())
+        return "func";
+      return "const";
+    }
+    return new ValueGetter().isAnyKeyChanged(keys, vars) ? "var" : "";
+  }
+  getValueGetterContext(isUnwrapped) {
+    return new QuestionValueGetterContext(this, isUnwrapped);
+  }
+  addTriggersInfo() {
+    this.addTriggerInfo({
+      name: "resetValueIf",
+      canRun: () => !this.isEmpty(),
+      doComplete: (res, properties) => {
+        if (res === true) {
+          this.startSetValueOnExpression();
+          this.updateValueWithDefaultsOrClear();
+          this.finishSetValueOnExpression();
+        }
+      }
+    });
+    this.addTriggerInfo({
+      name: "setValueIf",
+      secondName: "setValueExpression",
+      canRun: () => true,
+      doComplete: (res, properties) => {
+        if (res) {
+          if (!this.setValueExpression) {
+            this.clearValue();
+          } else {
+            const info = {
+              name: "setValueExpression",
+              canRun: () => true,
+              doComplete: (res2, properties2) => this.runExpressionSetValue(res2)
+            };
+            this.runTriggerInfo(info, void 0, properties);
+          }
+        }
+      }
+    });
+    this.addTriggerInfo({
+      name: "setValueExpression",
+      canRun: () => !this.setValueIf,
+      doComplete: (res, properties) => this.runExpressionSetValue(res)
+    });
+  }
+  addTriggerInfo(info) {
+    this.triggersInfo.push(info);
+  }
+  runTriggers(name, value, keys) {
+    if (this.isSettingQuestionValue || this.parentQuestion && this.parentQuestion.getValueName() === name)
+      return;
+    if (!keys) {
+      keys = {};
+      keys[name] = value;
+    }
+    const properties = this.getDataFilteredProperties();
+    this.triggersInfo.forEach((info) => {
+      this.runTriggerInfo(info, keys, properties);
+    });
+  }
+  runConditions() {
+    if (this.data && !this.isLoadingFromJson) {
+      if (!this.isDesignMode) {
+        this.runCondition(this.getDataFilteredProperties());
+      }
+      this.locStrsChanged();
+    }
+  }
+  setSurveyImpl(value, isLight) {
+    super.setSurveyImpl(value);
+    if (!this.survey)
+      return;
+    this.lifecycleCallbacks.questionCreated(this);
+    if (isLight !== true) {
+      this.runConditions();
+    }
+    if (!this.visible) {
+      this.updateIsVisibleProp();
+    }
+    this.updateIsMobileFromSurvey();
+  }
+  /**
+   * Returns a survey element (panel or page) that contains the question and allows you to move this question to a different survey element.
+   */
+  get parent() {
+    return this.getPropertyValue("parent", null);
+  }
+  set parent(val) {
+    if (this.parent === val)
+      return;
+    this.removeFromParent();
+    this.setPropertyValue("parent", val);
+    if (!!val) {
+      this.updateQuestionCss();
+    }
+    this.onParentChanged();
+  }
+  onParentChanged() {
+  }
+  get singleInputBehavior() {
+    if (!this._singleInputBehavior) {
+      this._singleInputBehavior = this.createSingleInputBehavior();
+    }
+    return this._singleInputBehavior;
+  }
+  createSingleInputBehavior() {
+    return new QuestionSingleInputBehavior(this);
+  }
+  get singleInputQuestion() {
+    return this.singleInputBehavior.singleInputQuestion;
+  }
+  get singleInputSummary() {
+    return this.singleInputBehavior.singleInputSummary;
+  }
+  get rootParentQuestion() {
+    let res = this;
+    while (!!res.parentQuestion) {
+      res = res.parentQuestion;
+    }
+    return res;
+  }
+  resetSingleInput() {
+    this.singleInputBehavior.resetSingleInput();
+  }
+  validateSingleInput() {
+    return this.singleInputBehavior.validateSingleInput();
+  }
+  getSingleInputElementPos() {
+    return this.singleInputBehavior.getSingleInputElementPos();
+  }
+  get isSingleInputActive() {
+    return this.singleInputBehavior.isSingleInputActive;
+  }
+  singleInputOnAddItem(isOnDataChanging) {
+    this.singleInputBehavior.singleInputOnAddItem(isOnDataChanging);
+  }
+  singleInputOnRemoveItem(index) {
+    this.singleInputBehavior.singleInputOnRemoveItem(index);
+  }
+  onSetAsSingleInput() {
+    this.singleInputBehavior.onSetAsSingleInput();
+  }
+  nextSingleInput() {
+    return this.singleInputBehavior.nextSingleInput();
+  }
+  prevSingleInput() {
+    return this.singleInputBehavior.prevSingleInput();
+  }
+  getSingleInputAddText() {
+    return this.singleInputBehavior.getSingleInputAddText();
+  }
+  singleInputAddItem(checkErrors) {
+    this.singleInputBehavior.singleInputAddItem(checkErrors);
+  }
+  get singleInputLocTitle() {
+    return this.singleInputBehavior.singleInputLocTitle;
+  }
+  get singleInputActions() {
+    return this.singleInputBehavior.singleInputActions;
+  }
+  get singleInputHasActions() {
+    return this.singleInputBehavior.singleInputHasActions;
+  }
+  singleInputMoveToFirst() {
+    this.singleInputBehavior.singleInputMoveToFirst();
+  }
+  //#endregion
+  /**
+   * Returns `false` if the `titleLocation` property is set to `"hidden"` or if the question cannot have a title (for example, an [HTML](https://surveyjs.io/form-library/documentation/questionhtmlmodel) question).
+   *
+   * If the `title` property is `undefined` or set to an empty string, the `hasTitle` property returns `true`, because the question uses its `name` as a title in this case.
+   * @see title
+   * @see titleLocation
+   */
+  get hasTitle() {
+    return this.getTitleLocation() !== "hidden" && !this.singleInputBehavior.singleInputHideHeader;
+  }
+  /**
+   * Sets question title location relative to the input field. Overrides the `questionTitleLocation` property specified for the question's container (survey, page, or panel).
+   *
+   * Possible values:
+   *
+   * - `"default"` (default) - Inherits the setting from the `questionTitleLocation` property specified for the question's container.
+   * - `"top"` - Displays the title above the input field.
+   * - `"bottom"` - Displays the title below the input field.
+   * - `"left"` - Displays the title to the left of the input field.
+   * - `"hidden"` - Hides the question title.
+   *
+   * > Certain question types (Matrix, Multiple Text) do not support the `"left"` value. For them, the `"top"` value is used.
+   * @see SurveyModel.questionTitleLocation
+   * @see getTitleLocation
+   * @see isAllowTitleLeft
+   */
+  get titleLocation() {
+    return this.getPropertyValue("titleLocation");
+  }
+  set titleLocation(value) {
+    var isVisibilityChanged = this.titleLocation == "hidden" || value == "hidden";
+    this.setPropertyValue("titleLocation", value.toLowerCase());
+    this.updateQuestionCss();
+    if (isVisibilityChanged) {
+      this.notifySurveyVisibilityChanged();
+    }
+  }
+  get showTitle() {
+    return this.getTitleLocation() !== "hidden";
+  }
+  set showTitle(newValue) {
+    this.titleLocation = newValue ? "default" : "hidden";
+  }
+  getTitleOwner() {
+    return this;
+  }
+  getIsTitleRenderedAsString() {
+    return this.titleLocation === "hidden";
+  }
+  notifySurveyOnChildrenVisibilityChanged() {
+    return false;
+  }
+  notifySurveyVisibilityChanged() {
+    if (!this.canUpdateValueOnVisibleChanged())
+      return;
+    this.lifecycleCallbacks.questionVisibilityChanged(this, this.isVisible, !this.parentQuestion || this.parentQuestion.notifySurveyOnChildrenVisibilityChanged());
+    const isClearOnHidden = this.isClearValueOnHidden;
+    if (!this.visible) {
+      this.clearValueOnHidding(isClearOnHidden);
+    }
+    if (isClearOnHidden && this.isVisibleInSurvey) {
+      this.updateValueWithDefaults();
+    }
+  }
+  clearValueOnHidding(isClearOnHidden) {
+    if (isClearOnHidden) {
+      this.clearValueIfInvisible();
+    }
+  }
+  get titleWidth() {
+    if (this.parent && this.getTitleLocation() === "left") {
+      const columns = this.parent.getColumsForElement(this);
+      const columnCount = columns.length;
+      if (columnCount !== 0 && !!columns[0].questionTitleWidth)
+        return columns[0].questionTitleWidth;
+      const questionWidth = this.getQuestionParentTitleWidth();
+      const percentWidth = this.getPercentQuestionTitleWidth(questionWidth);
+      if (!percentWidth && !!this.parent) {
+        let width = questionWidth;
+        if (width && !isNaN(width))
+          width = width + "px";
+        return width;
+      }
+      return percentWidth / (columnCount || 1) + "%";
+    }
+    return void 0;
+  }
+  getQuestionParentTitleWidth() {
+    if (!this.parent)
+      return void 0;
+    const res = this.parent.getQuestionTitleWidth();
+    if (!res && !!this.parentQuestion)
+      return this.parentQuestion.getQuestionParentTitleWidth();
+    return res;
+  }
+  getPercentQuestionTitleWidth(width) {
+    if (!!width && width[width.length - 1] === "%") {
+      return parseInt(width);
+    }
+    return void 0;
+  }
+  /**
+   * Returns title location calculated based on the question's `titleLocation` property and the `questionTitleLocation` property of the question's containers (survey, page, or panel).
+   * @see titleLocation
+   * @see SurveyModel.questionTitleLocation
+   */
+  getTitleLocation() {
+    if (this.isFlowLayout)
+      return "hidden";
+    var location2 = this.getTitleLocationCore();
+    if (location2 === "left" && !this.isAllowTitleLeft)
+      location2 = "top";
+    return location2;
+  }
+  getTitleLocationCore() {
+    if (this.titleLocation !== "default")
+      return this.titleLocation;
+    return this.getParentTitleLocation();
+  }
+  getParentTitleLocation() {
+    if (!!this.parent)
+      return this.parent.getQuestionTitleLocation();
+    if (!!this.survey)
+      return this.titleSettings.questionTitleLocation;
+    return "top";
+  }
+  get hasTitleOnLeft() {
+    return this.hasTitle && this.getTitleLocation() === "left";
+  }
+  get hasTitleOnTop() {
+    return this.hasTitle && this.getTitleLocation() === "top";
+  }
+  get hasTitleOnBottom() {
+    return this.hasTitle && this.getTitleLocation() === "bottom";
+  }
+  get hasTitleOnLeftTop() {
+    if (!this.hasTitle)
+      return false;
+    const location2 = this.getTitleLocation();
+    return location2 === "left" || location2 === "top";
+  }
+  getErrorLocation() {
+    if (this.errorLocation !== "default")
+      return this.errorLocation;
+    if (this.parentQuestion)
+      return this.parentQuestion.getChildErrorLocation(this);
+    if (this.parent)
+      return this.parent.getQuestionErrorLocation();
+    return this.survey ? this.titleSettings.questionErrorLocation : "top";
+  }
+  getChildErrorLocation(child) {
+    return this.getErrorLocation();
+  }
+  /**
+   * Returns `false` if the question has no input fields ([HTML](https://surveyjs.io/form-library/documentation/questionhtmlmodel), [Image](https://surveyjs.io/form-library/documentation/questionimagemodel), and similar question types).
+   * @see hasSingleInput
+   */
+  get hasInput() {
+    return true;
+  }
+  /**
+   * Returns `false` if the question has no input fields ([HTML](https://surveyjs.io/form-library/documentation/questionhtmlmodel), [Image](https://surveyjs.io/form-library/documentation/questionimagemodel)) or has multiple input fields ([Matrix](https://surveyjs.io/form-library/documentation/questionmatrixmodel), [Multiple Text](https://surveyjs.io/form-library/documentation/questionmultipletextmodel)).
+   * @see hasInput
+   */
+  get hasSingleInput() {
+    return this.hasInput && !this.isContainer;
+  }
+  get inputId() {
+    return this.id + "i";
+  }
+  getDefaultTitleValue() {
+    return this.name;
+  }
+  getDefaultTitleTagName() {
+    return settings.titleTags.question;
+  }
+  get hasDescriptionUnderTitle() {
+    return this.getDescriptionLocation() == "underTitle" && this.hasDescription;
+  }
+  get hasDescriptionUnderInput() {
+    return this.getDescriptionLocation() == "underInput" && this.hasDescription;
+  }
+  getDescriptionLocation() {
+    if (this.descriptionLocation !== "default")
+      return this.descriptionLocation;
+    return !!this.survey ? this.titleSettings.questionDescriptionLocation : "underTitle";
+  }
+  needClickTitleFunction() {
+    return super.needClickTitleFunction() || this.hasInput;
+  }
+  processTitleClick() {
+    super.processTitleClick();
+    if (this.isCollapsed)
+      return;
+    setTimeout(() => {
+      this.focus();
+    }, 1);
+    return true;
+  }
+  get commentPlaceHolder() {
+    return this.commentPlaceholder;
+  }
+  set commentPlaceHolder(newValue) {
+    this.commentPlaceholder = newValue;
+  }
+  get renderedCommentPlaceholder() {
+    var _a2;
+    return (_a2 = this.getPropertyValue("renderedCommentPlaceholder")) !== null && _a2 !== void 0 ? _a2 : !this.isReadOnly ? this.commentPlaceholder : void 0;
+  }
+  resetRenderedCommentPlaceholder() {
+    this.resetPropertyValue("renderedCommentPlaceholder");
+  }
+  getAllErrors() {
+    return this.errors.slice();
+  }
+  getErrorByType(errorType) {
+    for (let i = 0; i < this.errors.length; i++) {
+      if (this.errors[i].getErrorType() === errorType)
+        return this.errors[i];
+    }
+    return null;
+  }
+  get customWidget() {
+    if (!this.isCustomWidgetRequested && !this.customWidgetValue) {
+      this.isCustomWidgetRequested = true;
+      this.updateCustomWidget();
+    }
+    return this.customWidgetValue;
+  }
+  updateCustomWidget() {
+    this.customWidgetValue = CustomWidgetCollection.Instance.getCustomWidget(this);
+  }
+  localeChanged() {
+    super.localeChanged();
+    this.resetRenderedCommentPlaceholder();
+    if (!!this.localeChangedCallback) {
+      this.localeChangedCallback();
+    }
+  }
+  get isCompositeQuestion() {
+    return false;
+  }
+  get isContainer() {
+    return false;
+  }
+  onCommentInput(event) {
+    if (this.isInputTextUpdate) {
+      if (event.target) {
+        this.comment = event.target.value;
+      }
+    }
+  }
+  onCommentChange(event) {
+    this.comment = event.target.value;
+    if (this.comment !== event.target.value) {
+      event.target.value = this.comment;
+    }
+  }
+  afterRenderQuestionElement(el) {
+    if (!this.survey || !this.hasSingleInput)
+      return;
+    this.afterRenderCallbacks.afterRenderQuestionInput(this, el);
+  }
+  afterRender(el) {
+    this.afterRenderCore(el);
+    if (!this.survey)
+      return;
+    this.afterRenderCallbacks.afterRenderQuestion(this, el);
+    if (!!this.afterRenderQuestionCallback) {
+      this.afterRenderQuestionCallback(this, el);
+    }
+    if (this.supportComment() || this.supportOther()) {
+      this.commentElements = [];
+      this.getCommentElementsId().forEach((id) => {
+        const commentEl = el === null || el === void 0 ? void 0 : el.querySelector(`#${id}`);
+        if (commentEl)
+          this.commentElements.push(commentEl);
+      });
+    }
+    this.checkForResponsiveness(el);
+  }
+  afterRenderCore(element2) {
+    super.afterRenderCore(element2);
+  }
+  getCommentElementsId() {
+    return [this.commentId];
+  }
+  beforeDestroyQuestionElement(el) {
+    this.commentElements = void 0;
+  }
+  get processedTitle() {
+    var res = this.locProcessedTitle.textOrHtml;
+    return res ? res : this.name;
+  }
+  get fullTitle() {
+    return this.locTitle.renderedHtml;
+  }
+  get titlePattern() {
+    return !!this.survey ? this.titleSettings.questionTitlePattern : "numTitleRequire";
+  }
+  get isRequireTextOnStart() {
+    return this.isRequired && this.titlePattern == "requireNumTitle";
+  }
+  get isRequireTextBeforeTitle() {
+    return this.isRequired && this.titlePattern == "numRequireTitle" && this.requiredMark !== "";
+  }
+  get isRequireTextAfterTitle() {
+    return this.isRequired && this.titlePattern == "numTitleRequire" && this.requiredMark !== "";
+  }
+  calcCssClasses(css) {
+    const classes = { error: {} };
+    this.copyCssClasses(classes, css.question);
+    this.copyCssClasses(classes.error, css.error);
+    this.updateCssClasses(classes, css);
+    return classes;
+  }
+  onCalcCssClasses(classes) {
+    super.onCalcCssClasses(classes);
+    if (this.survey) {
+      this.cssCallbacks.updateQuestionCssClasses(this, classes);
+    }
+    if (this.onUpdateCssClassesCallback) {
+      this.onUpdateCssClassesCallback(classes);
+    }
+  }
+  get cssRoot() {
+    this.ensureElementCss();
+    return this.getPropertyValue("cssRoot", "");
+  }
+  setCssRoot(val) {
+    this.setPropertyValue("cssRoot", val);
+  }
+  getCssRoot(cssClasses) {
+    const hasError = this.hasCssError(true);
+    return new CssClassBuilder().append(super.getCssRoot(cssClasses)).append(this.isFlowLayout && !this.isDesignMode ? cssClasses.flowRoot : cssClasses.mainRoot).append(cssClasses.titleLeftRoot, !this.isFlowLayout && this.hasTitleOnLeft).append(cssClasses.titleTopRoot, !this.isFlowLayout && this.hasTitleOnTop).append(cssClasses.titleBottomRoot, !this.isFlowLayout && this.hasTitleOnBottom).append(cssClasses.descriptionUnderInputRoot, !this.isFlowLayout && this.hasDescriptionUnderInput).append(cssClasses.hasError, hasError).append(cssClasses.hasErrorTop, hasError && this.getErrorLocation() == "top").append(cssClasses.hasErrorBottom, hasError && this.getErrorLocation() == "bottom").append(cssClasses.small, !this.width).append(cssClasses.answered, this.isAnswered).append(cssClasses.noPointerEventsMode, this.isReadOnlyAttr).toString();
+  }
+  get cssHeader() {
+    this.ensureElementCss();
+    return this.getPropertyValue("cssHeader", "");
+  }
+  setCssHeader(val) {
+    this.setPropertyValue("cssHeader", val);
+  }
+  getCssHeader(cssClasses) {
+    return new CssClassBuilder().append(cssClasses.header).append(cssClasses.headerTop, this.hasTitleOnTop).append(cssClasses.headerLeft, this.hasTitleOnLeft).append(cssClasses.headerBottom, this.hasTitleOnBottom).toString();
+  }
+  supportContainerQueries() {
+    return false;
+  }
+  get cssContent() {
+    this.ensureElementCss();
+    return this.getPropertyValue("cssContent", "");
+  }
+  setCssContent(val) {
+    this.setPropertyValue("cssContent", val);
+  }
+  getCssContent(cssClasses) {
+    return new CssClassBuilder().append(cssClasses.content).append(cssClasses.contentSupportContainerQueries, this.supportContainerQueries()).append(cssClasses.contentLeft, this.hasTitleOnLeft).toString();
+  }
+  get cssTitle() {
+    this.ensureElementCss();
+    return this.getPropertyValue("cssTitle", void 0, () => {
+      return this.getCssTitle(this.getCssClasses());
+    });
+  }
+  resetCssTitle() {
+    this.resetPropertyValue("cssTitle");
+  }
+  getCssTitle(cssClasses) {
+    return new CssClassBuilder().append(super.getCssTitle(cssClasses)).append(cssClasses.singleInputTitle, !!this.singleInputQuestion).append(cssClasses.titleOnAnswer, !this.containsErrors && this.isAnswered).append(cssClasses.titleEmpty, !this.title.trim()).toString();
+  }
+  get cssDescription() {
+    this.ensureElementCss();
+    return this.getPropertyValue("cssDescription", "");
+  }
+  setCssDescription(val) {
+    this.setPropertyValue("cssDescription", val);
+  }
+  getCssDescription(cssClasses) {
+    return new CssClassBuilder().append(cssClasses.description).append(cssClasses.descriptionUnderInput, this.getDescriptionLocation() == "underInput").toString();
+  }
+  get showErrorsAboveQuestion() {
+    return this.getErrorLocation() === "top";
+  }
+  get showErrorsBelowQuestion() {
+    return this.getErrorLocation() === "bottom";
+  }
+  get cssError() {
+    this.ensureElementCss();
+    return this.getPropertyValue("cssError", "");
+  }
+  setCssError(val) {
+    this.setPropertyValue("cssError", val);
+  }
+  getCssError(cssClasses) {
+    return new CssClassBuilder().append(cssClasses.error.root).append(cssClasses.error.warningMode, this.currentNotificationType === "warning").append(cssClasses.error.infoMode, this.currentNotificationType === "info").append(cssClasses.errorsContainer).append(cssClasses.errorsContainerTop, this.showErrorsAboveQuestion).append(cssClasses.errorsContainerBottom, this.showErrorsBelowQuestion).toString();
+  }
+  hasCssError(includeWarning) {
+    const erros = this.errors;
+    for (let i = 0; i < erros.length; i++) {
+      const er = erros[i];
+      if (er.visible && (includeWarning || er.isError))
+        return true;
+    }
+    return this.hasCssErrorCallback();
+  }
+  updateVisibleErrors() {
+    super.updateVisibleErrors();
+    this.updateQuestionCss();
+  }
+  get isSingleInputQuestionMode() {
+    return !!this.parentQuestion && this.isSingleInputMode;
+  }
+  getIsNested() {
+    if (!!this.isSingleInputQuestionMode)
+      return false;
+    return super.getIsNested();
+  }
+  getHasFrameV2() {
+    if (this.isSingleInputQuestionMode)
+      return true;
+    return super.getHasFrameV2();
+  }
+  getRootCss() {
+    return new CssClassBuilder().append(this.cssRoot, !this.singleInputQuestion).append(this.cssClasses.mobile, this.isMobile).append(this.cssClasses.readOnly, this.isReadOnlyStyle).append(this.cssClasses.disabled, this.isDisabledStyle).append(this.cssClasses.preview, this.isPreviewStyle).append(this.cssClasses.invisible, !this.isDesignMode && this.areInvisibleElementsShowing && !this.visible).toString();
+  }
+  getQuestionRootCss() {
+    return new CssClassBuilder().append(this.cssClasses.root).append(this.cssClasses.rootMobile, this.isMobile).toString();
+  }
+  updateElementCss(reNew) {
+    if (this.wasRendered) {
+      super.updateElementCss(reNew);
+      if (reNew) {
+        this.updateQuestionCss();
+      }
+    } else {
+      this.clearCssClasses();
+    }
+    this.resetIndents();
+  }
+  updateQuestionCss() {
+    if (this.isLoadingFromJson || !this.survey || this.isDisposed)
+      return;
+    if (this.wasRendered) {
+      this.updateElementCssCore(this.cssClasses);
+    }
+  }
+  ensureElementCss() {
+    if (!this.cssClassesValue) {
+      this.updateQuestionCss();
+    }
+  }
+  getCssClasses() {
+    return this.cssClasses;
+  }
+  updateElementCssCore(cssClasses) {
+    this.setCssRoot(this.getCssRoot(cssClasses));
+    this.setCssHeader(this.getCssHeader(cssClasses));
+    this.setCssContent(this.getCssContent(cssClasses));
+    this.resetCssTitle();
+    this.setCssDescription(this.getCssDescription(cssClasses));
+    this.setCssError(this.getCssError(cssClasses));
+  }
+  updateCssClasses(res, css) {
+    if (!css.question)
+      return;
+    const objCss = css[this.getCssType()];
+    const titleBuilder = new CssClassBuilder().append(res.title).append(css.question.titleRequired, this.isRequired);
+    res.title = titleBuilder.toString();
+    const rootBuilder = new CssClassBuilder().append(res.root).append(objCss, this.isRequired && !!css.question.required);
+    if (objCss === void 0 || objCss === null) {
+      res.root = rootBuilder.toString();
+    } else if (typeof objCss === "string" || objCss instanceof String) {
+      res.root = rootBuilder.append(objCss.toString()).toString();
+    } else {
+      res.root = rootBuilder.toString();
+      for (const key in objCss) {
+        res[key] = objCss[key];
+      }
+    }
+  }
+  getCssType() {
+    return this.getType();
+  }
+  get renderCssRoot() {
+    return this.cssClasses.root || void 0;
+  }
+  calcPaddingLeft() {
+    return this.getIndentSize(this.indent);
+  }
+  calcPaddingRight() {
+    return this.getIndentSize(this.rightIndent);
+  }
+  getIndentSize(indent) {
+    if (indent < 1 || !this.getSurvey() || !this.cssClasses || !this.cssClasses.indent)
+      return "";
+    return indent * this.cssClasses.indent + "px";
+  }
+  /**
+   * Moves focus to the input field of this question.
+   * @param onError Pass `true` if you want to focus an input field with the first validation error. Default value: `false` (focuses the first input field). Applies to question types with multiple input fields.
+   */
+  focus(onError = false, scrollIfVisible) {
+    if (this.isDesignMode || !this.isVisible || this.isReadOnly || !this.survey)
+      return;
+    let page = this.page;
+    const shouldChangePage = !!page && this.survey.activePage !== page;
+    const isSingleInput = this.isSingleInputMode;
+    if (shouldChangePage && !isSingleInput) {
+      this.survey.focusQuestionByInstance(this, onError);
+    } else {
+      if (isSingleInput) {
+        this.singleInputBehavior.focusSingleInput(onError);
+      } else {
+        this.expandAllParents();
+        const scrollOptions = this.survey["isSmoothScrollEnabled"] ? { behavior: "smooth" } : void 0;
+        this.survey.scrollElementToTop(this, this, null, this.id, scrollIfVisible, scrollOptions, void 0, () => {
+          this.focusInputElement(onError);
+        });
+      }
+    }
+  }
+  focusInputElement(onError) {
+    var _a2;
+    const id = !onError ? this.getFirstInputElementId() : this.getFirstErrorInputElementId();
+    const surveyRoot = (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.rootElement;
+    const res = SurveyElement.FocusElement(id, false, surveyRoot);
+    if (res || !!this.customWidget) {
+      this.fireCallback(this.focusCallback);
+    }
+  }
+  get isValidateVisitedEmptyFields() {
+    return this.supportEmptyValidation() && !!this.survey && this.validationCallbacks.getValidateVisitedEmptyFields() && this.isEmpty();
+  }
+  supportEmptyValidation() {
+    return false;
+  }
+  onBlur(event) {
+    this.onBlurCore(event);
+  }
+  onFocus(event) {
+    this.onFocusCore(event);
+  }
+  onBlurCore(event) {
+    if (this.isFocusEmpty && this.isEmpty()) {
+      this.validate(true);
+    }
+  }
+  onFocusCore(event) {
+    this.isFocusEmpty = this.isValidateVisitedEmptyFields;
+  }
+  expandAllParents() {
+    this.expandAllParentsCore(this);
+  }
+  expandAllParentsCore(element2) {
+    if (!element2)
+      return;
+    if (element2.isCollapsed) {
+      element2.expand();
+    }
+    this.expandAllParentsCore(element2.parent);
+    this.expandAllParentsCore(element2.parentQuestion);
+  }
+  focusIn() {
+    if (!this.survey || this.isDisposed || this.isContainer)
+      return;
+    this.survey.whenQuestionFocusIn(this);
+  }
+  fireCallback(callback) {
+    if (callback)
+      callback();
+  }
+  getOthersMaxLength() {
+    if (!this.survey)
+      return null;
+    return this.survey.maxCommentLength > 0 ? this.survey.maxCommentLength : null;
+  }
+  onCreating() {
+  }
+  getFirstQuestionToFocus(withError) {
+    return this.hasInput && (!withError || this.currentErrorCount > 0) ? this : null;
+  }
+  getFirstInputElementId() {
+    return this.inputId;
+  }
+  getFirstErrorInputElementId() {
+    return this.getFirstInputElementId();
+  }
+  supportComment() {
+    const prop = this.getPropertyByName("showCommentArea");
+    return !prop || prop.visible;
+  }
+  supportOther() {
+    return false;
+  }
+  /**
+   * Specifies whether to display a comment area.
+   * @see comment
+   * @see commentText
+   * @see showOtherItem
+   */
+  get showCommentArea() {
+    return this.getPropertyValue("showCommentArea", false);
+  }
+  set showCommentArea(val) {
+    if (!this.supportComment())
+      return;
+    this.setPropertyValue("showCommentArea", val);
+  }
+  get hasComment() {
+    return this.showCommentArea;
+  }
+  set hasComment(val) {
+    this.showCommentArea = val;
+  }
+  get ariaTitleId() {
+    return this.id + "_ariaTitle";
+  }
+  get ariaDescriptionId() {
+    return this.id + "_ariaDescription";
+  }
+  get commentId() {
+    return this.id + "_comment";
+  }
+  get requireUpdateCommentValue() {
+    return this.showCommentArea;
+  }
+  get isReadOnly() {
+    const isParentReadOnly = !!this.parent && this.parent.isReadOnly;
+    const isPareQuestionReadOnly = !!this.parentQuestion && this.parentQuestion.isReadOnly;
+    const isSurveyReadOnly = !!this.survey && this.survey.isDisplayMode;
+    const callbackVal = !!this.readOnlyCallback && this.readOnlyCallback();
+    return this.readOnly || isParentReadOnly || isSurveyReadOnly || isPareQuestionReadOnly || callbackVal;
+  }
+  get isInputReadOnly() {
+    if (this.forceIsInputReadOnly !== void 0) {
+      return this.forceIsInputReadOnly;
+    }
+    return this.isReadOnly || this.isDesignMode;
+  }
+  get renderedInputReadOnly() {
+    return this.isInputReadOnly ? "" : void 0;
+  }
+  get renderedInputDisabled() {
+    return this.isInputReadOnly ? "" : void 0;
+  }
+  get isReadOnlyAttr() {
+    return this.isReadOnly;
+  }
+  get isDisabledAttr() {
+    return this.isDesignMode || !!this.readOnlyCallback && this.readOnlyCallback();
+  }
+  onReadOnlyChanged() {
+    this.setPropertyValue("isInputReadOnly", this.isInputReadOnly);
+    super.onReadOnlyChanged();
+    if (this.isReadOnly) {
+      this.clearErrors();
+    }
+    this.updateQuestionCss();
+    this.resetRenderedCommentPlaceholder();
+  }
+  surveyChoiceItemVisibilityChange() {
+  }
+  runCondition(properties) {
+    if (this.isDesignMode)
+      return;
+    if (!properties)
+      properties = {};
+    properties["question"] = this;
+    this.runConditionCore(properties);
+    if (!this.isValueChangedDirectly && (!this.isClearValueOnHidden || this.isVisibleInSurvey)) {
+      this.runDefaultValueExpression(properties);
+    }
+  }
+  get isInDesignMode() {
+    return !this.isContentElement && this.isDesignMode;
+  }
+  /**
+   * A question number or letter (depends on the `questionStartIndex` property of the question container (panel, page, or survey)).
+   *
+   * When the question number, title, or the entire question is invisible, this property returns an empty string.
+   * @see SurveyModel.questionStartIndex
+   * @see showNumber
+   * @see titleLocation
+   * @see visibleIf
+   */
+  get no() {
+    return this.getPropertyValue("no", void 0, () => this.calcNo());
+  }
+  calcNo() {
+    let no = "";
+    const hasTitle = this.getHasTitleOnCalcNo() && this.showNumber && this.visibleIndex >= 0;
+    if (hasTitle) {
+      no = Helpers.getNumberByIndex(this.visibleIndex, this.getStartIndex());
+    }
+    if (this.onGetNoCallback) {
+      return this.onGetNoCallback(no);
+    }
+    if (!hasTitle)
+      return no;
+    if (!!this.parent) {
+      no = this.parent.addNoFromChild(no);
+    }
+    if (!!this.survey) {
+      no = this.titleSettings.getUpdatedQuestionNo(this, no);
+    }
+    return no;
+  }
+  getHasTitleOnCalcNo() {
+    return this.hasTitle;
+  }
+  onSurveyLoad() {
+    this.isCustomWidgetRequested = false;
+    this.fireCallback(this.surveyLoadCallback);
+    this.updateValueWithDefaults();
+    if (this.isEmpty()) {
+      this.initDataFromSurvey();
+    }
+  }
+  onSetData() {
+    super.onSetData();
+    if (!this.isDesignMode && !!this.survey && !this.isLoadingFromJson) {
+      this.initDataFromSurvey();
+      this.onSurveyValueChanged(this.value);
+      this.updateValueWithDefaults();
+      this.updateIsAnswered();
+    }
+  }
+  initDataFromSurvey() {
+    if (!!this.data) {
+      const val = this.data.getValue(this.getValueName());
+      if (!Helpers.isValueEmpty(val) || !this.isLoadingFromJson) {
+        this.updateValueFromSurvey(val);
+      }
+      this.initCommentFromSurvey();
+    }
+  }
+  initCommentFromSurvey() {
+    if (!!this.data && this.requireUpdateCommentValue) {
+      this.updateCommentFromSurvey(this.data.getComment(this.getValueName()));
+    } else {
+      this.updateCommentFromSurvey("");
+    }
+  }
+  runExpression(expression) {
+    if (!this.survey || !expression)
+      return void 0;
+    return this.survey.runExpression(expression);
+  }
+  get commentAreaRows() {
+    return this.survey && this.survey.commentAreaRows;
+  }
+  get autoGrowComment() {
+    return this.survey && this.survey.autoGrowComment;
+  }
+  get allowResizeComment() {
+    return this.survey && this.survey.allowResizeComment;
+  }
+  get questionValue() {
+    return this.getPropertyValueWithoutDefault("value");
+  }
+  set questionValue(val) {
+    this.setPropertyValue("value", val);
+  }
+  get questionComment() {
+    return this.getPropertyValueWithoutDefault("comment");
+  }
+  set questionComment(val) {
+    this.setPropertyValue("comment", val);
+    this.fireCallback(this.commentChangedCallback);
+  }
+  get isValueArray() {
+    return false;
+  }
+  /**
+   * Gets or sets the question value.
+   *
+   * The following table illustrates how the value type depends on the question type:
+   *
+   * | Question type | Value type(s) |
+   * | ------------- | ------------- |
+   * | Checkboxes | <code>Array&lt;string &#124; number&gt;</code> |
+   * | Dropdown | `string` \| `number` |
+   * | Dynamic Matrix | `Array<object>` |
+   * | Dynamic Panel | `Array<object>` |
+   * | Expression | `string` \| `number` \| `boolean` |
+   * | File Upload | `File` \| `Array<File>` |
+   * | Image Picker | <code>Array&lt;string &#124; number&gt;</code> |
+   * | Long Text | `string` |
+   * | Multi-Select Dropdown | <code>Array&lt;string &#124; number&gt;</code> |
+   * | Multi-Select Matrix | `object` |
+   * | Multiple Textboxes | `Array<string>` |
+   * | Radio Button Group | `string` \| `number` |
+   * | Ranking | <code>Array&lt;string &#124; number&gt;</code> |
+   * | Rating Scale | `number` \| `string` |
+   * | Slider | <code>Array&lt;string &#124; number&gt;</code> |
+   * | Signature | `string` (base64-encoded image) |
+   * | Single-Line Input | `string` \| `number` \| `Date` |
+   * | Single-Select Matrix | `object` |
+   * | Yes/No (Boolean) | `boolean` \| `string` |
+   * @hidefor QuestionImageModel, QuestionHtmlModel
+   */
+  get value() {
+    return this.getValueCore();
+  }
+  set value(newValue) {
+    this.setNewValue(newValue);
+  }
+  getStructuredValue(level = -1) {
+    return this.value;
+  }
+  get hasFilteredValue() {
+    return false;
+  }
+  getFilteredValue(isUnwrapped) {
+    return this.value;
+  }
+  getFilteredName() {
+    return this.getValueName();
+  }
+  get valueForSurvey() {
+    return this.valueForSurveyCore(this.value);
+  }
+  valueForSurveyCore(val) {
+    if (!!this.valueToDataCallback) {
+      return this.valueToDataCallback(val);
+    }
+    return val;
+  }
+  valueFromDataCore(val) {
+    if (!!this.valueFromDataCallback) {
+      return this.valueFromDataCallback(val);
+    }
+    return val;
+  }
+  /**
+   * Sets the question's `value` and `comment` properties to `undefined`.
+   * @see value
+   * @see comment
+   */
+  clearValue(keepComment, fromUI) {
+    if (this.value !== void 0) {
+      this.value = void 0;
+    }
+    if (!!this.comment && keepComment !== true) {
+      this.comment = void 0;
+    }
+    this.setValueChangedDirectly(fromUI === true);
+    this.onClearValue();
+  }
+  onClearValue() {
+  }
+  clearValueFromUI() {
+    this.clearValue(true, true);
+  }
+  clearValueOnly() {
+    this.clearValue(true);
+  }
+  unbindValue() {
+    this.clearValue();
+  }
+  createValueCopy() {
+    return this.getUnbindValue(this.value);
+  }
+  initDataUI() {
+  }
+  getUnbindValue(value) {
+    if (this.isValueSurveyElement(value))
+      return value;
+    return Helpers.getUnbindValue(value);
+  }
+  isValueSurveyElement(val) {
+    if (!val)
+      return false;
+    if (Array.isArray(val))
+      return val.length > 0 ? this.isValueSurveyElement(val[0]) : false;
+    return val.isSurveyObj === true;
+  }
+  canClearValueAsInvisible(reason) {
+    if (reason === "onHiddenContainer" && !this.isParentVisible)
+      return true;
+    if (this.isVisibleInSurvey)
+      return false;
+    if (!!this.page && this.page.isStartPage)
+      return false;
+    if (!this.survey)
+      return true;
+    return !this.survey.hasVisibleQuestionByValueName(this);
+  }
+  /**
+   * Returns `true` if a parent element (page or panel) is visible.
+   */
+  get isParentVisible() {
+    if (this.parentQuestion && !this.parentQuestion.isVisible)
+      return false;
+    var parent = this.parent;
+    while (parent) {
+      if (!parent.isVisible)
+        return false;
+      parent = parent.parent;
+    }
+    return true;
+  }
+  clearValueIfInvisible(reason = "onHidden") {
+    const clearIf = this.getClearIfInvisible();
+    if (clearIf === "none")
+      return;
+    if (reason === "onHidden" && clearIf === "onComplete")
+      return;
+    if (reason === "onHiddenContainer" && clearIf !== reason)
+      return;
+    this.clearValueIfInvisibleCore(reason);
+  }
+  clearValueIfInvisibleCore(reason) {
+    if (this.canClearValueAsInvisible(reason)) {
+      this.clearValue();
+    }
+  }
+  getClearIfInvisible() {
+    const res = this.clearIfInvisible;
+    if (!!this.survey)
+      return this.survey.getQuestionClearIfInvisible(res);
+    return res !== "default" ? res : "onComplete";
+  }
+  get displayValue() {
+    if (this.isLoadingFromJson)
+      return "";
+    return this.getDisplayValue(true);
+  }
+  /**
+   * Returns a display text that corresponds to the question value. For example, if you call this method for a Dropdown question, it returns an item text instead of an item value.
+   * @param keysAsText Applies when the question value is an object (in Matrix, Multiple Text, and similar questions). Pass `true` if not only values in the object should be display texts, but also keys. Default value: `false`.
+   * @param value Specify this parameter to get a display text for a specific value, not for the current question value. If the question value is an object, this parameter should be a similar object.
+   */
+  getDisplayValue(keysAsText, value = void 0) {
+    var res = this.calcDisplayValue(keysAsText, value);
+    if (this.survey) {
+      res = this.titleSettings.getQuestionDisplayValue(this, res);
+    }
+    return !!this.displayValueCallback ? this.displayValueCallback(res) : res;
+  }
+  calcDisplayValue(keysAsText, value = void 0) {
+    if (this.customWidget) {
+      var res = this.customWidget.getDisplayValue(this, value);
+      if (res)
+        return res;
+    }
+    value = value == void 0 ? this.createValueCopy() : value;
+    if (this.isValueEmpty(value) && !this.locDefaultDisplayValue.isEmpty) {
+      value = this.defaultDisplayValue;
+    }
+    if (this.isValueEmpty(value, !this.allowSpaceAsAnswer))
+      return this.getDisplayValueEmpty();
+    return this.getDisplayValueCore(keysAsText, value);
+  }
+  getDisplayValueCore(keyAsText, value) {
+    return value;
+  }
+  getDisplayValueEmpty() {
+    return "";
+  }
+  /**
+   * A default value for the question. Ignored for question types that cannot have a [value](https://surveyjs.io/form-library/documentation/question#value) (for example, HTML).
+   *
+   * The default value is used as a question value in the following cases:
+   *
+   * - While the survey is being loaded from JSON.
+   * - The question is just added to the survey and does not yet have an answer.
+   * - The respondent left the answer empty.
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/specify-default-question-value-dynamically (linkStyle))
+   * @see defaultValueExpression
+   */
+  get defaultValue() {
+    return this.getPropertyValue("defaultValue");
+  }
+  set defaultValue(val) {
+    if (this.isValueExpression(val)) {
+      this.defaultValueExpression = val.substring(1);
+      return;
+    }
+    this.setPropertyValue("defaultValue", this.valueToData(val));
+    this.updateValueWithDefaults();
+  }
+  /**
+   * An expression used to calculate the [`defaultValue`](https://surveyjs.io/form-library/documentation/question#defaultValue).
+   *
+   * This expression applies until the question [`value`](https://surveyjs.io/form-library/documentation/question#value) is specified by an end user or programmatically.
+   *
+   * An expression can reference other questions as follows:
+   *
+   * - `{other_question_name}`
+   * - `{panel.other_question_name}` (to access questions inside the same dynamic panel)
+   * - `{row.other_question_name}` (to access questions inside the same dynamic matrix or multi-column dropdown)
+   *
+   * An expression can also include built-in and custom functions for advanced calculations. For example, if the `defaultValue` should be today's date, set the `defaultValueExpression` to `"today()"`, and the corresponding built-in function will be executed each time the survey is loaded. Refer to the following help topic for more information: [Built-In Functions](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#built-in-functions).
+   *
+   * [View Demo](https://surveyjs.io/form-library/examples/specify-default-question-value-dynamically (linkStyle))
+   * @see defaultValue
+   * @see setValueExpression
+   */
+  get defaultValueExpression() {
+    return this.getPropertyValue("defaultValueExpression");
+  }
+  set defaultValueExpression(val) {
+    this.setPropertyValue("defaultValueExpression", val);
+    this.defaultValueRunner = void 0;
+    this.updateValueWithDefaults();
+  }
+  get resizeStyle() {
+    return this.allowResizeComment ? "both" : "none";
+  }
+  /**
+   * Returns the question value as an object in which the question name, title, value, and other parameters are stored as individual properties.
+   *
+   * If the question can have more than one value (Matrix, Multiple Text), the object enables the `isNode` flag and stores information about these values in the `data` property. Refer to the following help topic for more information: [Access Full Survey Results](https://surveyjs.io/form-library/documentation/handle-survey-results-access#access-full-survey-results).
+   *
+   * Pass an object with the `includeEmpty` property set to `false` if you want to skip empty answers.
+   */
+  getPlainData(options2) {
+    if (!options2) {
+      options2 = { includeEmpty: true, includeQuestionTypes: false };
+    }
+    if (options2.includeEmpty || !this.isEmpty()) {
+      var questionPlainData = {
+        name: this.name,
+        title: this.locTitle.renderedHtml,
+        value: this.value,
+        displayValue: this.displayValue,
+        isNode: false,
+        getString: (val) => this.getValueAsString(val)
+      };
+      if (options2.includeQuestionTypes === true) {
+        questionPlainData.questionType = this.getType();
+      }
+      (options2.calculations || []).forEach((calculation2) => {
+        questionPlainData[calculation2.propertyName] = this.getPlainDataCalculatedValue(calculation2.propertyName);
+      });
+      if (this.showCommentArea) {
+        questionPlainData.isNode = true;
+        questionPlainData.data = [
+          {
+            name: 0,
+            isComment: true,
+            title: "Comment",
+            value: settings.commentSuffix,
+            displayValue: this.comment,
+            getString: (val) => this.getValueAsString(val),
+            isNode: false
+          }
+        ];
+      }
+      return questionPlainData;
+    }
+    return void 0;
+  }
+  getPlainDataCalculatedValue(propName) {
+    return this[propName];
+  }
+  /**
+   * The number of quiz questions. A question counts if it is visible, has an input field, and specifies `correctAnswer`.
+   * @see [Create a Quiz](https://surveyjs.io/form-library/documentation/design-survey-create-a-quiz)
+   * @see correctAnswer
+   * @see SurveyModel.getQuizQuestions
+   */
+  get quizQuestionCount() {
+    if (this.isVisible && this.hasInput && !this.isValueEmpty(this.correctAnswer))
+      return this.getQuizQuestionCount();
+    return 0;
+  }
+  get correctAnswerCount() {
+    if (!this.isEmpty() && !this.isValueEmpty(this.correctAnswer))
+      return this.getCorrectAnswerCount();
+    return 0;
+  }
+  getQuizQuestionCount() {
+    return 1;
+  }
+  getCorrectAnswerCount() {
+    return this.checkIfAnswerCorrect() ? 1 : 0;
+  }
+  checkIfAnswerCorrect() {
+    const isEqual = Helpers.isTwoValueEquals(this.value, this.correctAnswer, this.getAnswerCorrectIgnoreOrder(), settings.comparator.caseSensitive, true);
+    const correct = isEqual ? 1 : 0;
+    const incorrect = this.quizQuestionCount - correct;
+    const options2 = {
+      result: isEqual,
+      correctAnswers: correct,
+      correctAnswerCount: correct,
+      incorrectAnswers: incorrect,
+      incorrectAnswerCount: incorrect
+    };
+    if (!!this.survey) {
+      this.survey.onCorrectQuestionAnswer(this, options2);
+    }
+    return options2.result;
+  }
+  getAnswerCorrectIgnoreOrder() {
+    return false;
+  }
+  /**
+  * Returns `true` if a question answer matches the [`correctAnswer`](#correctAnswer) property value.
+  *
+  * [View Demo](https://surveyjs.io/form-library/examples/create-a-scored-quiz (linkStyle))
+  * @see SurveyModel.getQuizQuestions
+  */
+  isAnswerCorrect() {
+    return this.correctAnswerCount == this.quizQuestionCount;
+  }
+  updateValueWithDefaults() {
+    if (this.isLoadingFromJson || !this.isDesignMode && this.isDefaultValueEmpty())
+      return;
+    const isEmpty = this.isEmpty();
+    if (!this.isDesignMode && !isEmpty)
+      return;
+    if (isEmpty && this.isDefaultValueEmpty())
+      return;
+    if (this.isClearValueOnHidden && !this.isVisible)
+      return;
+    if (this.isDesignMode && this.isContentElement && this.isDefaultValueEmpty())
+      return;
+    this.setDefaultValue();
+  }
+  get isValueDefault() {
+    return !this.isEmpty() && (this.isTwoValueEquals(this.defaultValue, this.value) || !this.isValueChangedDirectly && !!this.defaultValueExpression);
+  }
+  get isClearValueOnHidden() {
+    const clearIf = this.getClearIfInvisible();
+    if (clearIf === "none" || clearIf === "onComplete")
+      return false;
+    return clearIf === "onHidden" || clearIf === "onHiddenContainer";
+  }
+  getQuestionFromArray(name, index) {
+    return null;
+  }
+  getDefaultValue() {
+    return this.defaultValue;
+  }
+  isDefaultValueEmpty() {
+    return !this.defaultValueExpression && this.isValueEmpty(this.defaultValue, !this.allowSpaceAsAnswer);
+  }
+  setDefaultValue() {
+    this.setDefaultValueCore((val) => {
+      val = this.convertToCorrectValue(val);
+      if (!this.isTwoValueEquals(this.value, val)) {
+        this.setDefaultIntoValue(val);
+      }
+    });
+  }
+  setDefaultIntoValue(val) {
+    this.value = val;
+  }
+  setDefaultValueCore(setFunc) {
+    const func = (val) => {
+      this.runExpressionSetValueCore(val, setFunc);
+    };
+    if (!this.runDefaultValueExpression(void 0, func)) {
+      func(this.getUnbindValue(this.defaultValue));
+    }
+  }
+  updateValueWithDefaultsOrClear() {
+    if (this.isDesignMode || this.isLoadingFromJson)
+      return;
+    if (this.isDefaultValueEmpty()) {
+      this.clearValue();
+    } else {
+      this.setDefaultValue();
+    }
+  }
+  isValueExpression(val) {
+    return !!val && typeof val == "string" && val.length > 0 && val[0] == "=";
+  }
+  convertFuncValuetoQuestionValue(val) {
+    return Helpers.convertValToQuestionVal(val);
+  }
+  runExpressionSetValueCore(val, setFunc) {
+    setFunc(this.convertFuncValuetoQuestionValue(val));
+  }
+  runExpressionSetValue(val) {
+    this.runExpressionSetValueCore(val, (val2) => {
+      if (!this.isTwoValueEquals(this.value, val2)) {
+        this.startSetValueOnExpression();
+        this.value = val2;
+        this.finishSetValueOnExpression();
+      }
+    });
+  }
+  startSetValueOnExpression() {
+    var _a2;
+    (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.startSetValueOnExpression();
+  }
+  finishSetValueOnExpression() {
+    var _a2;
+    (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.finishSetValueOnExpression();
+  }
+  runDefaultValueExpression(properties = null, setFunc) {
+    if (!this.data)
+      return false;
+    if (!setFunc) {
+      setFunc = (val) => {
+        this.runExpressionSetValue(val);
+      };
+    }
+    if (!properties) {
+      properties = this.defaultValueExpression ? this.data.getFilteredProperties() : {};
+      properties["question"] = this;
+    }
+    return this.runExpressionByProperty("defaultValueExpression", properties, (res) => {
+      if (res == void 0)
+        res = this.defaultValue;
+      this.isChangingViaDefaultValue = true;
+      setFunc(res);
+      this.isChangingViaDefaultValue = false;
+    });
+  }
+  /**
+   * A comment to the selected question value. Enable the `showCommentArea` property to allow users to leave comments.
+   * @see showCommentArea
+   * @see commentText
+   */
+  get comment() {
+    return this.getQuestionComment();
+  }
+  set comment(newValue) {
+    newValue = this.getTrimmedComment(newValue);
+    if (this.comment !== newValue) {
+      this.setNewComment(newValue);
+    }
+  }
+  getTrimmedComment(val) {
+    return typeof val === "string" && !val.trim() ? "" : val;
+  }
+  getCommentAreaCss(isOther = false) {
+    return new CssClassBuilder().append("form-group", isOther).append(this.cssClasses.formGroup, !isOther).append(this.cssClasses.commentArea).append(this.cssClasses.otherArea, isOther).toString();
+  }
+  getQuestionComment() {
+    return this.questionComment;
+  }
+  /**
+   * Returns `true` if the question value is an empty string, array, or object or if it equals `undefined` or `null`.
+   */
+  isEmpty() {
+    return this.isValueEmpty(this.value, !this.allowSpaceAsAnswer);
+  }
+  updateIsAnswered() {
+    const oldVal = this.isAnswered;
+    this.setPropertyValue("isAnswered", this.getIsAnswered());
+    if (oldVal !== this.isAnswered) {
+      this.updateQuestionCss();
+    }
+  }
+  getIsAnswered() {
+    return !this.isEmpty();
+  }
+  /**
+   * Question validators.
+   *
+   * [Data Validation](https://surveyjs.io/form-library/documentation/data-validation (linkStyle))
+   */
+  get validators() {
+    return this.getArrayPropertyValue("validators", (validator) => {
+      validator.owner = this;
+    });
+  }
+  set validators(val) {
+    this.setArrayPropertyValue("validators", val);
+  }
+  getValidators() {
+    return this.validators;
+  }
+  getSupportedValidators() {
+    const res = [];
+    let className = this.getType();
+    while (!!className) {
+      const classValidators = settings.supportedValidators[className];
+      if (!!classValidators) {
+        for (let i = classValidators.length - 1; i >= 0; i--) {
+          res.splice(0, 0, classValidators[i]);
+        }
+      }
+      const classInfo = Serializer.findClass(className);
+      className = classInfo.parentName;
+    }
+    return res;
+  }
+  addConditionObjectsByContext(objects, context2) {
+    objects.push({
+      name: this.getFilteredName(),
+      text: this.processedTitle,
+      question: this
+    });
+  }
+  /**
+   * Returns an array of questions nested within the current question. Use this method to obtain questions within [Multiple Text](https://surveyjs.io/form-library/documentation/api-reference/multiple-text-entry-question-model), [Dynamic Panel](https://surveyjs.io/form-library/documentation/api-reference/dynamic-panel-model), and [Matrix](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-question-model)-like questions.
+   * @param visibleOnly A Boolean value that specifies whether to include only visible nested questions.
+   * @returns An array of nested questions.
+   */
+  getNestedQuestions(visibleOnly = false, includeNested = true, includeItSelf = false) {
+    const res = [];
+    this.collectNestedQuestions(res, visibleOnly, includeNested, includeItSelf);
+    if (!includeItSelf && res.length === 1 && res[0] === this)
+      return [];
+    return res;
+  }
+  collectNestedQuestions(questions, visibleOnly = false, includeNested = true, includeItSelf = false) {
+    if (visibleOnly && !this.isVisible)
+      return;
+    this.collectNestedQuestionsCore(questions, visibleOnly, includeNested, includeItSelf);
+  }
+  collectNestedQuestionsCore(questions, visibleOnly, includeNested, includeItSelf) {
+    questions.push(this);
+  }
+  addNestedQuestion(questions, visibleOnly, includeNested, includeItSelf) {
+    if (includeNested) {
+      this.collectNestedQuestions(questions, visibleOnly, includeNested, includeItSelf);
+    } else {
+      if (!visibleOnly || this.isVisible) {
+        questions.push(this);
+      }
+    }
+  }
+  getConditionJson(operator = null, path2 = null) {
+    const json = new JsonObject().toJsonObject(this);
+    json["type"] = this.getType();
+    return json;
+  }
+  hasErrors(fireCallback = true, focusOnFirstError = false) {
+    return !this.validateCore(fireCallback, false, focusOnFirstError);
+  }
+  /**
+   * Validates this question and returns `false` if the validation fails.
+   * @param fireCallback *(Optional)* Pass `false` if you do not want to show validation errors in the UI.
+   * @see [Data Validation](https://surveyjs.io/form-library/documentation/data-validation)
+   */
+  validate(fireCallback = true, focusFirstError = false, isOnValueChanged = false, callbackResult) {
+    return this.validateCore(fireCallback, true, focusFirstError, isOnValueChanged, callbackResult);
+  }
+  validateCore(fireCallback, isRoot, focusOnFirstError = false, isOnValueChanged = false, callbackResult) {
+    if (isRoot && isOnValueChanged && !!this.parent) {
+      this.parent.validateContainerOnly();
+    }
+    const context2 = new ValidationContext({
+      isOnValueChanged,
+      focusOnFirstError,
+      fireCallback,
+      callbackResult
+    });
+    this.validateElement(context2);
+    context2.finish();
+    return context2.runningResult;
+  }
+  validateElement(context2) {
+    return this.validateElementCore(context2);
+  }
+  validateElementCore(context2) {
+    const errors = this.checkForErrors(context2);
+    if (context2.fireCallback) {
+      this.errors = errors;
+      if (this.errors !== errors) {
+        this.errors.forEach((er) => er.locText.strChanged());
+      }
+    }
+    context2.setErrorElement(this, errors);
+    this.updateContainsErrors();
+    if (this.isCollapsed && context2.fireCallback && errors.length > 0) {
+      this.expand();
+    }
+    return errors.length === 0;
+  }
+  get currentErrorCount() {
+    return this.errors.length;
+  }
+  /**
+   * Returns a character or text string that indicates a required question.
+   * @see SurveyModel.requiredMark
+   * @see isRequired
+   */
+  get requiredMark() {
+    return this.survey != null && this.isRequired ? this.titleSettings.requiredMark : "";
+  }
+  /**
+   * @deprecated Use the [`requiredMark`](https://surveyjs.io/form-library/documentation/api-reference/question#requiredMark) property instead.
+   */
+  get requiredText() {
+    return this.requiredMark;
+  }
+  addError(error3) {
+    if (!error3)
+      return;
+    let newError = null;
+    if (typeof error3 === "string" || error3 instanceof String) {
+      newError = this.addCustomError(error3);
+    } else {
+      newError = error3;
+    }
+    this.errors.push(newError);
+  }
+  addCustomError(error3) {
+    return new CustomError(error3, this.survey);
+  }
+  removeError(error3) {
+    if (!error3)
+      return false;
+    const errors = this.errors;
+    const index = errors.indexOf(error3);
+    if (index !== -1)
+      errors.splice(index, 1);
+    return index !== -1;
+  }
+  checkForErrors(context2) {
+    var qErrors = new Array();
+    if (this.isVisible && this.canCollectErrors()) {
+      this.collectErrors(qErrors, context2);
+    }
+    if (!!this.survey) {
+      if (this.validateValueCallback && qErrors.length === 0) {
+        const error3 = this.validateValueCallback();
+        if (error3) {
+          qErrors.push(error3);
+        }
+      }
+      this.validationCallbacks.validateQuestion(this, qErrors, context2.fireCallback);
+    }
+    return qErrors;
+  }
+  canCollectErrors() {
+    return !this.isReadOnly || settings.readOnly.enableValidation;
+  }
+  collectErrors(qErrors, context2) {
+    this.onCheckForErrors(qErrors, context2.isOnValueChanged, context2.fireCallback);
+    if (qErrors.length > 0 || !this.canRunValidators(context2.isOnValueChanged))
+      return;
+    const errors = this.runValidators(context2);
+    if (errors.length > 0) {
+      qErrors.length = 0;
+      for (var i = 0; i < errors.length; i++) {
+        qErrors.push(errors[i]);
+      }
+    }
+  }
+  canRunValidators(isOnValueChanged) {
+    return true;
+  }
+  onCheckForErrors(errors, isOnValueChanged, fireCallback) {
+    if ((!isOnValueChanged || this.isOldAnswered) && this.hasRequiredError()) {
+      const err = new AnswerRequiredError(this.requiredErrorText, this);
+      err.onUpdateErrorTextCallback = (err2) => {
+        err2.text = this.requiredErrorText;
+      };
+      errors.push(err);
+    }
+    if (!this.isEmpty() && this.customWidget) {
+      const text2 = this.customWidget.validate(this);
+      if (!!text2) {
+        errors.push(this.addCustomError(text2));
+      }
+    }
+  }
+  hasRequiredError() {
+    return this.isRequired && this.isEmpty();
+  }
+  get isRunningValidators() {
+    return this.getIsRunningValidators();
+  }
+  getIsRunningValidators() {
+    return !!this.validatorRunner;
+  }
+  runValidators(context2) {
+    if (!!this.validatorRunner) {
+      this.validatorRunner.onAsyncCompleted = null;
+    }
+    this.validatorRunner = new ValidatorRunner();
+    this.validatorRunner.onAsyncCompleted = (errors) => {
+      this.doOnAsyncCompleted(context2.fireCallback, errors);
+      context2.setErrorElement(this, errors);
+      context2.removeElement(this.id);
+    };
+    context2.addElement(this.id);
+    return this.validatorRunner.run(this);
+  }
+  doOnAsyncCompleted(fireCallback, errors) {
+    if (fireCallback) {
+      errors.forEach((er) => {
+        if (this.errors.indexOf(er) < 0) {
+          this.errors.push(er);
+        }
+      });
+    }
+    this.validatorRunner = null;
+  }
+  setNewValue(newValue) {
+    if (this.survey) {
+      newValue = this.survey.questionValueChanging(this, newValue);
+    }
+    if (this.isNewValueEqualsToValue(newValue))
+      return;
+    if (!this.checkIsValueCorrect(newValue))
+      return;
+    const oldValue = this.getUnbindValue(this.value);
+    this.isOldAnswered = this.isAnswered;
+    this.isSettingQuestionValue = true;
+    this.setNewValueInData(newValue);
+    this.allowNotifyValueChanged && this.onValueChanged();
+    this.isSettingQuestionValue = false;
+    if (this.isAnswered !== this.isOldAnswered) {
+      this.updateQuestionCss();
+    }
+    this.isOldAnswered = void 0;
+    if (this.parent) {
+      this.parent.onQuestionValueChanged(this);
+    }
+    if (this.survey) {
+      this.survey.questionValueChanged(this, oldValue);
+    }
+  }
+  getValueChangingOptions(childQuestion) {
+    return void 0;
+  }
+  checkIsValueCorrect(val) {
+    const res = this.isValueEmpty(val, !this.allowSpaceAsAnswer) || this.isNewValueCorrect(val);
+    if (!res) {
+      ConsoleWarnings.inCorrectQuestionValue(this.name, val);
+    }
+    return res;
+  }
+  isNewValueCorrect(val) {
+    return true;
+  }
+  isNewValueEqualsToValue(newValue) {
+    const val = this.value;
+    if (!this.isTwoValueEquals(newValue, val, false, false))
+      return false;
+    const isObj = newValue === val && !!val && (Array.isArray(val) || typeof val === "object");
+    return !isObj;
+  }
+  isTextValue() {
+    return false;
+  }
+  getIsInputTextUpdate() {
+    return !!this.survey ? this.survey.isUpdateValueTextOnTyping : false;
+  }
+  get requireStrictCompare() {
+    return false;
+  }
+  getExpressionValue(val) {
+    return val;
+  }
+  getDataLocNotification() {
+    return this.isInputTextUpdate ? "text" : false;
+  }
+  get isInputTextUpdate() {
+    return this.getIsInputTextUpdate() && this.isTextValue();
+  }
+  setNewValueInData(newValue) {
+    newValue = this.valueToData(newValue);
+    if (!this.isValueChangedInSurvey) {
+      this.setValueCore(newValue);
+    }
+  }
+  getValueCore() {
+    return this.questionValue;
+  }
+  setValueCore(newValue) {
+    this.setQuestionValue(newValue);
+    if (this.data != null && this.canSetValueToSurvey()) {
+      newValue = this.valueForSurvey;
+      this.data.setValue(this.getValueName(), newValue, this.getDataLocNotification(), this.allowNotifyValueChanged, this.name);
+    }
+    this.isMouseDown = false;
+  }
+  canSetValueToSurvey() {
+    return true;
+  }
+  valueFromData(val) {
+    return val;
+  }
+  valueToData(val) {
+    return val;
+  }
+  convertToCorrectValue(val) {
+    return val;
+  }
+  onValueChanged() {
+  }
+  onMouseDown() {
+    this.isMouseDown = true;
+  }
+  setNewComment(newValue) {
+    if (this.questionComment === newValue)
+      return;
+    this.questionComment = newValue;
+    this.setCommentIntoData(newValue);
+  }
+  setCommentIntoData(newValue) {
+    if (this.data != null) {
+      this.data.setComment(this.getValueName(), newValue, this.getIsInputTextUpdate() ? "text" : false);
+    }
+  }
+  getValidName(name) {
+    return makeNameValid(super.getValidName(name));
+  }
+  updateValueFromSurvey(newValue, clearData = false) {
+    newValue = this.getUnbindValue(newValue);
+    newValue = this.valueFromDataCore(newValue);
+    if (!this.checkIsValueCorrect(newValue))
+      return;
+    const isEmpty = this.isValueEmpty(newValue);
+    this.isUpdateingValueFromSurvey = true;
+    if (!isEmpty && this.defaultValueExpression) {
+      this.setDefaultValueCore((val) => {
+        this.updateValueFromSurveyCore(newValue, this.isTwoValueEquals(newValue, val));
+      });
+    } else {
+      this.updateValueFromSurveyCore(newValue, this.data !== this.getSurvey());
+      if (clearData && isEmpty) {
+        this.isValueChangedDirectly = false;
+      }
+      if (isEmpty) {
+        this.updateBindingsOnClearFromSurveyCore();
+      }
+    }
+    this.isUpdateingValueFromSurvey = false;
+    this.updateDependedQuestions();
+    this.updateIsAnswered();
+  }
+  canUpdateBindings() {
+    return !this.isUpdateingValueFromSurvey;
+  }
+  updateBindingsOnClearFromSurveyCore() {
+    const surveyData = this.data;
+    if (surveyData && !this.isBindingEmpty()) {
+      this.bindings.getNames().forEach((name) => {
+        const valueName = this.bindings.getValueNameByPropertyName(name);
+        const val = surveyData.getValue(valueName);
+        if (!this.isValueEmpty(val)) {
+          this.updateBindingProp(name, val);
+        }
+      });
+    }
+  }
+  updateValueFromSurveyCore(newValue, viaDefaultVal) {
+    this.isChangingViaDefaultValue = viaDefaultVal;
+    newValue = this.valueFromData(newValue);
+    const isEqual = this.isTwoValueEquals(this.questionValue, this.convertToCorrectValue(newValue));
+    this.setQuestionValue(newValue);
+    if (!isEqual) {
+      this.resetSingleInput();
+    }
+    this.isChangingViaDefaultValue = false;
+  }
+  updateCommentFromSurvey(newValue) {
+    this.questionComment = newValue;
+  }
+  onChangeQuestionValue(newValue) {
+  }
+  setValueChangedDirectly(val) {
+    this.isValueChangedDirectly = val;
+    if (!!this.setValueChangedDirectlyCallback) {
+      this.setValueChangedDirectlyCallback(val);
+    }
+  }
+  setQuestionValue(newValue, updateIsAnswered = true) {
+    newValue = this.convertToCorrectValue(newValue);
+    const isEqual = this.isTwoValueEquals(this.questionValue, newValue);
+    if (!isEqual && !this.isChangingViaDefaultValue && !this.isParentChangingViaDefaultValue) {
+      this.setValueChangedDirectly(true);
+    }
+    this.questionValue = newValue;
+    if (!isEqual) {
+      this.onChangeQuestionValue(newValue);
+    }
+    !isEqual && this.allowNotifyValueChanged && this.fireCallback(this.valueChangedCallback);
+    if (updateIsAnswered)
+      this.updateIsAnswered();
+  }
+  get isParentChangingViaDefaultValue() {
+    var _a2;
+    return ((_a2 = this.data) === null || _a2 === void 0 ? void 0 : _a2.isChangingViaDefaultValue) === true;
+  }
+  onSurveyValueChanged(newValue) {
+  }
+  setVisibleIndex(val) {
+    if (this.isVisibleIndexNegative(val)) {
+      val = -1;
+    }
+    this.setPropertyValue("visibleIndex", val);
+    this.resetPropertyValue("no");
+    return val < 0 ? 0 : 1;
+  }
+  isVisibleIndexNegative(val) {
+    return val < 0 || !this.isVisible || !this.getHasTitleOnCalcNo() && !settings.numbering.includeQuestionsWithHiddenTitle || !this.showNumber && !settings.numbering.includeQuestionsWithHiddenNumber;
+  }
+  removeElement(element2) {
+    return false;
+  }
+  // Obsolete
+  supportGoNextPageAutomatic() {
+    return this.supportAutoAdvance();
+  }
+  supportAutoAdvance() {
+    return false;
+  }
+  supportGoNextPageError() {
+    return true;
+  }
+  /**
+   * Removes values that cannot be assigned to this question, for example, choices unlisted in the `choices` array.
+   *
+   * Call this method after you assign new question values in code to ensure that they are acceptable.
+   *
+   * > This method does not remove values that fail validation. Call the `validate()` method to validate newly assigned values.
+   *
+   * @see validate
+   */
+  clearIncorrectValues() {
+  }
+  clearOnDeletingContainer() {
+  }
+  /**
+   * Empties the `errors` array.
+   * @see errors
+   */
+  clearErrors() {
+    this.errors = [];
+  }
+  clearUnusedValues() {
+  }
+  onAnyValueChanged(name, questionName) {
+  }
+  checkBindings(valueName, value) {
+    if (this.bindings.isEmpty() || !this.data)
+      return;
+    var props = this.bindings.getPropertiesByValueName(valueName);
+    for (var i = 0; i < props.length; i++) {
+      const propName = props[i];
+      if (this.isValueEmpty(value) && Helpers.isNumber(this[propName])) {
+        value = 0;
+      }
+      this.updateBindingProp(propName, value);
+    }
+  }
+  updateBindingProp(propName, value) {
+    this[propName] = value;
+  }
+  getComponentName() {
+    return RendererFactory.Instance.getRendererByQuestion(this);
+  }
+  isDefaultRendering() {
+    return !!this.customWidget || this.getComponentName() === "default";
+  }
+  //ISurveyErrorOwner
+  getErrorCustomText(text2, error3) {
+    if (!!this.survey)
+      return this.survey.getSurveyErrorCustomText(this, text2, error3);
+    return text2;
+  }
+  createRegexValidator(validator, pattern, flags) {
+    var _a2;
+    return ((_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.createRegexValidator(this, validator, pattern, flags)) || new RegExp(pattern, flags);
+  }
+  //IValidatorOwner
+  getValidatorTitle() {
+    return null;
+  }
+  get validatedValue() {
+    return this.value;
+  }
+  set validatedValue(val) {
+    this.value = val;
+  }
+  processPopupVisiblilityChanged(popupModel, visible) {
+    this.survey.processPopupVisiblityChanged(this, popupModel, visible);
+  }
+  processOpenDropdownMenu(options2) {
+    this.survey.processOpenDropdownMenu(this, options2);
+  }
+  onTextKeyDownHandler(event) {
+    if (event.keyCode === 13) {
+      this.survey.questionEditFinishCallback(this, event);
+    }
+  }
+  transformToMobileView() {
+  }
+  transformToDesktopView() {
+  }
+  needResponsiveWidth() {
+    return false;
+  }
+  //responsiveness methods
+  supportResponsiveness() {
+    return false;
+  }
+  needResponsiveness() {
+    return this.supportResponsiveness() && !this.isDesignMode;
+  }
+  checkForResponsiveness(el) {
+    if (this.needResponsiveness()) {
+      if (this.isCollapsed) {
+        const onStateChanged = () => {
+          if (this.isExpanded) {
+            this.initResponsiveness(el);
+            this.unregisterPropertyChangedHandlers(["state"], "for-responsiveness");
+          }
+        };
+        this.registerPropertyChangedHandlers(["state"], onStateChanged, "for-responsiveness");
+      } else {
+        this.initResponsiveness(el);
+      }
+    }
+  }
+  getObservedElementSelector() {
+    return ".sd-scrollable-container";
+  }
+  onMobileChanged() {
+    this.onMobileChangedCallback && this.onMobileChangedCallback();
+  }
+  triggerResponsiveness(hard = true) {
+    if (this.triggerResponsivenessCallback) {
+      this.triggerResponsivenessCallback(hard);
+    }
+  }
+  initResponsiveness(el) {
+    if (!DomDocumentHelper.isAvailable()) {
+      return;
+    }
+    this.destroyResizeObserver();
+    if (!!el && this.isDefaultRendering()) {
+      const scrollableSelector = this.getObservedElementSelector();
+      if (!scrollableSelector)
+        return;
+      const defaultRootEl = el.querySelector(scrollableSelector);
+      if (!defaultRootEl)
+        return;
+      let isProcessed = false;
+      let requiredWidth = void 0;
+      this.triggerResponsivenessCallback = (hard) => {
+        if (hard) {
+          requiredWidth = void 0;
+          this.renderAs = "default";
+          isProcessed = false;
+        }
+        const callback = () => {
+          const rootEl = el.querySelector(scrollableSelector);
+          if (this.isDefaultRendering()) {
+            requiredWidth = rootEl.scrollWidth;
+          }
+          if (isProcessed || !isContainerVisible(rootEl)) {
+            isProcessed = false;
+          } else {
+            const availableWidth = getElementWidth(rootEl);
+            isProcessed = this.processResponsiveness(requiredWidth, availableWidth);
+          }
+        };
+        if (hard) {
+          setTimeout(callback, 1);
+        } else {
+          callback();
+        }
+      };
+      this.resizeObserver = new ResizeObserver((entries) => {
+        DomWindowHelper.requestAnimationFrame(() => {
+          this.triggerResponsiveness(false);
+        });
+      });
+      this.onMobileChangedCallback = () => {
+        setTimeout(() => {
+          const rootEl = el.querySelector(scrollableSelector);
+          this.processResponsiveness(requiredWidth, getElementWidth(rootEl));
+        }, 0);
+      };
+      this.resizeObserver.observe(el);
+    }
+  }
+  getCompactRenderAs() {
+    return "default";
+  }
+  getDesktopRenderAs() {
+    return "default";
+  }
+  onBeforeSetCompactRenderer() {
+  }
+  onBeforeSetDesktopRenderer() {
+  }
+  processResponsiveness(requiredWidth, availableWidth) {
+    availableWidth = Math.round(availableWidth);
+    if (Math.abs(requiredWidth - availableWidth) > 2) {
+      const oldRenderAs = this.renderAs;
+      if (requiredWidth > availableWidth) {
+        this.onBeforeSetCompactRenderer();
+        this.renderAs = this.getCompactRenderAs();
+      } else {
+        this.onBeforeSetDesktopRenderer();
+        this.renderAs = this.getDesktopRenderAs();
+      }
+      return oldRenderAs !== this.renderAs;
+    }
+    return false;
+  }
+  destroyResizeObserver() {
+    if (!!this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = void 0;
+      this.onMobileChangedCallback = void 0;
+      this.triggerResponsivenessCallback = void 0;
+      this.renderAs = this.getDesktopRenderAs();
+    }
+  }
+  dispose() {
+    super.dispose();
+    this.resetDependedQuestions();
+    this.destroyResizeObserver();
+  }
+  resetDependedQuestions() {
+    for (var i = 0; i < this.dependedQuestions.length; i++) {
+      this.dependedQuestions[i].resetDependedQuestion();
+    }
+  }
+  //a11y
+  get isNewA11yStructure() {
+    return false;
+  }
+  get ariaLabel() {
+    if (this.isNewA11yStructure || this.hasTitle && !this.parentQuestion)
+      return null;
+    return this.locTitle.renderedHtml;
+  }
+  get ariaRole() {
+    if (this.isNewA11yStructure)
+      return null;
+    return "textbox";
+  }
+  get ariaRequired() {
+    if (this.isNewA11yStructure)
+      return null;
+    return this.isRequired ? "true" : "false";
+  }
+  get ariaInvalid() {
+    if (this.isNewA11yStructure)
+      return null;
+    return this.hasCssError() ? "true" : "false";
+  }
+  get ariaLabelledBy() {
+    if (this.isNewA11yStructure || !this.hasTitle || this.parentQuestion)
+      return null;
+    return this.ariaTitleId;
+  }
+  get ariaDescribedBy() {
+    if (this.isNewA11yStructure)
+      return null;
+    if (this.hasTitle && this.hasDescription) {
+      return this.ariaDescriptionId;
+    } else {
+      return null;
+    }
+  }
+  getContentAriaHidden() {
+    return null;
+  }
+  get contentAriaHidden() {
+    return this.getContentAriaHidden();
+  }
+  get ariaErrormessage() {
+    if (this.isNewA11yStructure)
+      return null;
+    return this.hasCssError() ? this.id + "_errors" : null;
+  }
+  //EO a11y
+  //new a11y
+  get a11y_input_ariaRole() {
+    return null;
+  }
+  get a11y_input_ariaRequired() {
+    return this.isRequired ? "true" : "false";
+  }
+  get a11y_input_ariaInvalid() {
+    return this.hasCssError() ? "true" : "false";
+  }
+  get a11y_input_ariaLabel() {
+    if (this.hasTitle && !this.parentQuestion) {
+      return null;
+    } else {
+      return this.locTitle.renderedHtml;
+    }
+  }
+  get a11y_input_ariaLabelledBy() {
+    if (this.hasTitle && !this.parentQuestion) {
+      return this.ariaTitleId;
+    } else {
+      return null;
+    }
+  }
+  get a11y_input_ariaDescribedBy() {
+    let result = null;
+    if (this.hasCssError()) {
+      result = this.id + "_errors";
+    } else if (this.hasTitle && !this.parentQuestion && this.hasDescription && this.descriptionLocation !== "hidden") {
+      result = this.ariaDescriptionId;
+    }
+    return result;
+  }
+  get a11y_input_ariaErrormessage() {
+    return null;
+  }
+  get a11y_input_ariaExpanded() {
+    return this.getPropertyValue("ariaExpanded");
+  }
+  //EO new a11y
+  get dragDropMatrixAttribute() {
+    return null;
+  }
+}
+__decorate([
+  property({ defaultValue: false })
+], Question.prototype, "_isMobile", void 0);
+__decorate([
+  property()
+], Question.prototype, "forceIsInputReadOnly", void 0);
+__decorate([
+  property({ onSet: (val, obj) => {
+    obj.onVisibleChangedCore();
+    obj.notifySurveyVisibilityChanged();
+  } })
+], Question.prototype, "visible", void 0);
+__decorate([
+  property()
+], Question.prototype, "useDisplayValuesInDynamicTexts", void 0);
+__decorate([
+  property()
+], Question.prototype, "visibleIf", void 0);
+__decorate([
+  property()
+], Question.prototype, "showNumber", void 0);
+__decorate([
+  property()
+], Question.prototype, "errorLocation", void 0);
+__decorate([
+  property()
+], Question.prototype, "descriptionLocation", void 0);
+__decorate([
+  property({ localizable: true })
+], Question.prototype, "requiredErrorText", void 0);
+__decorate([
+  property({ localizable: { defaultStr: true, markdown: true } })
+], Question.prototype, "commentText", void 0);
+__decorate([
+  property({ localizable: true })
+], Question.prototype, "commentPlaceholder", void 0);
+__decorate([
+  property({ localizable: true })
+], Question.prototype, "defaultDisplayValue", void 0);
+__decorate([
+  property()
+], Question.prototype, "startWithNewLine", void 0);
+__decorate([
+  property()
+], Question.prototype, "isRequired", void 0);
+__decorate([
+  property()
+], Question.prototype, "requiredIf", void 0);
+__decorate([
+  property()
+], Question.prototype, "id", void 0);
+__decorate([
+  property()
+], Question.prototype, "enableIf", void 0);
+__decorate([
+  property()
+], Question.prototype, "clearIfInvisible", void 0);
+__decorate([
+  property()
+], Question.prototype, "resetValueIf", void 0);
+__decorate([
+  property()
+], Question.prototype, "setValueIf", void 0);
+__decorate([
+  property()
+], Question.prototype, "setValueExpression", void 0);
+__decorate([
+  property({ onSetting: (val, obj) => obj.valueToData(val) })
+], Question.prototype, "correctAnswer", void 0);
+__decorate([
+  property({ returnValue: false })
+], Question.prototype, "isAnswered", void 0);
+__decorate([
+  property()
+], Question.prototype, "renderAs", void 0);
+__decorate([
+  property({ defaultValue: false })
+], Question.prototype, "inMatrixMode", void 0);
+function makeNameValid(str) {
+  if (!str)
+    return str;
+  str = str.trim().replace(/[\{\}]+/g, "");
+  while (!!str && str[0] === settings.expressionDisableConversionChar) {
+    str = str.substring(1);
+  }
+  return str;
+}
+Serializer.addClass("question", [
+  { name: "!name", onSettingValue: (obj, val) => {
+    return makeNameValid(val);
+  } },
+  {
+    name: "state",
+    default: "default",
+    choices: ["default", "collapsed", "expanded"]
+  },
+  { name: "visible:switch", default: true, overridingProperty: "visibleIf" },
+  { name: "useDisplayValuesInDynamicTexts:boolean", alternativeName: "useDisplayValuesInTitle", default: true, layout: "row" },
+  "visibleIf:condition",
+  { name: "width" },
+  { name: "minWidth", defaultFunc: () => settings.minWidth },
+  { name: "maxWidth", defaultFunc: () => settings.maxWidth },
+  {
+    name: "colSpan:number",
+    visible: false,
+    onSerializeValue: (obj) => {
+      return obj.getPropertyValue("colSpan");
+    }
+  },
+  {
+    name: "effectiveColSpan:number",
+    minValue: 1,
+    isSerializable: false,
+    visibleIf: function(obj) {
+      return !!obj && !!obj.survey && obj.survey.gridLayoutEnabled;
+    }
+  },
+  { name: "startWithNewLine:boolean", default: true, layout: "row" },
+  { name: "indent:number", default: 0, choices: [0, 1, 2, 3], layout: "row" },
+  {
+    name: "page",
+    isSerializable: false,
+    visibleIf: function(obj) {
+      var survey = obj ? obj.survey : null;
+      return !survey || !survey.pages || survey.pages.length > 1;
+    },
+    choices: function(obj) {
+      var survey = obj ? obj.survey : null;
+      return survey ? survey.pages.map((p2) => {
+        return { value: p2.name, text: p2.title };
+      }) : [];
+    }
+  },
+  {
+    name: "title:text",
+    serializationProperty: "locTitle",
+    layout: "row",
+    dependsOn: "name",
+    onPropertyEditorUpdate: function(obj, editor) {
+      if (!!obj && !!editor) {
+        editor.placeholder = obj.locTitle.getPlaceholder();
+      }
+    }
+  },
+  {
+    name: "titleLocation",
+    default: "default",
+    choices: ["default", "top", "bottom", "left", "hidden"],
+    layout: "row"
+  },
+  {
+    name: "showTitle:boolean",
+    isSerializable: false,
+    dependsOn: "titleLocation"
+  },
+  {
+    name: "description:text",
+    serializationProperty: "locDescription",
+    layout: "row"
+  },
+  {
+    name: "descriptionLocation",
+    default: "default",
+    choices: ["default", "underInput", "underTitle"]
+  },
+  {
+    name: "showNumber:boolean",
+    dependsOn: "titleLocation",
+    default: true,
+    visibleIf: function(obj) {
+      if (!obj) {
+        return true;
+      }
+      if (obj.titleLocation === "hidden") {
+        return false;
+      }
+      var parent = obj ? obj.parent : null;
+      var numberingAllowedByParent = !parent || parent.showQuestionNumbers !== "off";
+      if (!numberingAllowedByParent) {
+        return false;
+      }
+      var survey = obj ? obj.survey : null;
+      return !survey || survey.showQuestionNumbers !== "off" || !!parent && parent.showQuestionNumbers === "onpanel";
+    }
+  },
+  { name: "hideNumber:boolean", visible: false, isSerializable: false },
+  { name: "valueName", onSettingValue: (obj, val) => {
+    return makeNameValid(val);
+  } },
+  "enableIf:condition",
+  "resetValueIf:condition",
+  "setValueIf:condition",
+  "setValueExpression:expression",
+  "defaultValue:value",
+  "defaultValueExpression:expression",
+  "correctAnswer:value",
+  {
+    name: "clearIfInvisible",
+    default: "default",
+    choices: ["default", "none", "onComplete", "onHidden", "onHiddenContainer"]
+  },
+  { name: "isRequired:switch", overridingProperty: "requiredIf" },
+  "requiredIf:condition",
+  {
+    name: "requiredErrorText:text",
+    serializationProperty: "locRequiredErrorText"
+  },
+  { name: "errorLocation", default: "default", choices: ["default", "top", "bottom"] },
+  { name: "readOnly:switch", overridingProperty: "enableIf" },
+  {
+    name: "validators:validators",
+    baseClassName: "surveyvalidator",
+    classNamePart: "validator"
+  },
+  {
+    name: "bindings:bindings",
+    serializationProperty: "bindings",
+    isSerializableFunc: (obj) => !obj.isBindingEmpty(),
+    visibleIf: function(obj) {
+      return obj.bindings.getNames().length > 0;
+    }
+  },
+  { name: "renderAs", default: "default", visible: false },
+  { name: "showCommentArea:switch", visible: false, layout: "row", alternativeName: "hasComment" },
+  {
+    name: "commentText",
+    dependsOn: "showCommentArea",
+    visibleIf: function(obj) {
+      return obj.showCommentArea;
+    },
+    serializationProperty: "locCommentText"
+  },
+  {
+    name: "commentPlaceholder",
+    alternativeName: "commentPlaceHolder",
+    serializationProperty: "locCommentPlaceholder",
+    dependsOn: "showCommentArea",
+    visibleIf: function(obj) {
+      return obj.showCommentArea;
+    }
+  },
+  { name: "defaultDisplayValue", serializationProperty: "locDefaultDisplayValue" }
+]);
+Serializer.addAlterNativeClassName("question", "questionbase");
+class ItemValueGetterContext {
+  constructor(item) {
+    this.item = item;
+  }
+  getObj() {
+    return this.item;
+  }
+  getValue(params) {
+    const path2 = params.path;
+    const name = path2.length > 0 ? path2[0].name.toLocaleLowerCase() : "";
+    const expVar = settings.expressionVariables;
+    const isItemVar = [expVar.item, expVar.choice, expVar.self].indexOf(name) > -1;
+    if (path2.length === 1 && isItemVar) {
+      return { isFound: true, value: this.item.value, context: this };
+    }
+    if (params.isProperty && path2.length > 1 && isItemVar) {
+      params.path = path2.slice(1);
+      return new PropertyGetterContext(this.item).getValue(params);
+    }
+    const owner = this.item.locOwner;
+    if (owner && owner.getValueGetterContext) {
+      return owner.getValueGetterContext().getValue(params);
+    }
+    return void 0;
+  }
+  getRootObj() {
+    const owner = this.item.locOwner;
+    if (owner && owner.getValueGetterContext)
+      return owner;
+    return this.item.getSurvey();
+  }
+  getTextValue(name, value, isDisplayValue) {
+    if (isDisplayValue && value === this.item.value)
+      return this.item.textOrHtml;
+    return value !== void 0 && value !== null ? value.toString() : "";
+  }
+}
+class ItemValue extends BaseAction {
+  getMarkdownHtml(text2, name, item) {
+    return !!this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item || this) : void 0;
+  }
+  getRenderer(name) {
+    return !!this.locOwner ? this.locOwner.getRenderer(name, this) : null;
+  }
+  getRendererContext(locStr) {
+    return !!this.locOwner ? this.locOwner.getRendererContext(locStr, this) : locStr;
+  }
+  getProcessedText(text2) {
+    return this.locOwner ? this.locOwner.getProcessedText(text2, this) : text2;
+  }
+  static get Separator() {
+    return settings.itemValueSeparator;
+  }
+  static set Separator(val) {
+    settings.itemValueSeparator = val;
+  }
+  /**
+   * Resets the input array and fills it with values from the values array
+   */
+  static setData(items, values, type2) {
+    items.length = 0;
+    for (let i = 0; i < values.length; i++) {
+      const value = values[i];
+      const itemType = !!value && typeof value.getType === "function" ? value.getType() : type2 !== null && type2 !== void 0 ? type2 : "itemvalue";
+      const item = Serializer.createClass(itemType);
+      item.setData(value);
+      if (!!value.originalItem) {
+        item.originalItem = value.originalItem;
+      }
+      if (!!value.data) {
+        item.data = value.data;
+      }
+      items.push(item);
+    }
+  }
+  static getData(items) {
+    var result = [];
+    for (var i = 0; i < items.length; i++) {
+      result.push(items[i].getData());
+    }
+    return result;
+  }
+  getOwner() {
+    return this.locOwner || super.getOwner();
+  }
+  static getItemByValue(items, val) {
+    if (!Array.isArray(items))
+      return null;
+    const valIsEmpty = Helpers.isValueEmpty(val);
+    for (var i = 0; i < items.length; i++) {
+      if (valIsEmpty && Helpers.isValueEmpty(items[i].value))
+        return items[i];
+      if (Helpers.isTwoValueEquals(items[i].value, val, false, true, false))
+        return items[i];
+    }
+    return null;
+  }
+  static getTextOrHtmlByValue(items, val) {
+    var item = ItemValue.getItemByValue(items, val);
+    return item !== null ? item.textOrHtml : "";
+  }
+  static locStrsChanged(items) {
+    for (var i = 0; i < items.length; i++) {
+      items[i].locStrsChanged();
+    }
+  }
+  static runConditionsForItems(items, filteredItems, runner, properties, useItemExpression = true, onItemCallBack) {
+    return ItemValue.runConditionsForItemsCore(items, filteredItems, runner, properties, true, useItemExpression, onItemCallBack);
+  }
+  static runEnabledConditionsForItems(items, runner, properties, onItemCallBack) {
+    return ItemValue.runConditionsForItemsCore(items, null, runner, properties, false, true, onItemCallBack);
+  }
+  static runConditionsForItemsCore(items, filteredItems, runner, properties, isVisible, useItemExpression = true, onItemCallBack) {
+    var hasChanded = false;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var itemRunner = useItemExpression && !!item.getConditionRunner ? item.getConditionRunner(isVisible) : false;
+      if (!itemRunner) {
+        itemRunner = runner;
+      }
+      var newValue = true;
+      if (itemRunner) {
+        newValue = itemRunner.runContext(item.getValueGetterContext(), properties);
+      }
+      if (!!onItemCallBack) {
+        newValue = onItemCallBack(item, newValue);
+      }
+      if (!!filteredItems && newValue) {
+        filteredItems.push(item);
+      }
+      var oldValue = isVisible ? item.isVisible : item.isEnabled;
+      if (newValue != oldValue) {
+        hasChanded = true;
+        if (isVisible) {
+          if (!!item.setIsVisible)
+            item.setIsVisible(newValue);
+        } else {
+          if (!!item.setIsEnabled)
+            item.setIsEnabled(newValue);
+        }
+      }
+    }
+    return hasChanded;
+  }
+  constructor(value, text2, typeName) {
+    super();
+    this.typeName = typeName;
+    this.ownerPropertyName = "";
+    if (text2)
+      this.locText.text = text2;
+    if (!!value && typeof value === "object") {
+      this.setData(value, true);
+    } else {
+      this.setValue(value, true);
+    }
+    if (this.getType() != this.getBaseType()) {
+      CustomPropertiesCollection.createProperties(this);
+    }
+  }
+  getType() {
+    return this.typeName || this.getBaseType();
+  }
+  getBaseType() {
+    return "itemvalue";
+  }
+  getSurvey(live = false) {
+    return !!this.locOwner && !!this.locOwner["getSurvey"] ? this.locOwner.getSurvey() : null;
+  }
+  getLocale() {
+    return !!this.locOwner && this.locOwner.getLocale ? this.locOwner.getLocale() : "";
+  }
+  getLocalizableString(name) {
+    if (name === "text")
+      return this.locText;
+    return super.getLocalizableString(name);
+  }
+  getValueGetterContext() {
+    return new ItemValueGetterContext(this);
+  }
+  get isInternal() {
+    return this.isGhost === true;
+  }
+  createLocText() {
+    const res = this.createLocalizableStringCore(this, "text", true, "text");
+    res.onGetTextCallback = (txt) => {
+      return this.onGetText(txt);
+    };
+    return res;
+  }
+  onGetText(text2) {
+    return text2 || this.getValueText();
+  }
+  getValueText() {
+    const val = this.value;
+    return !Helpers.isValueEmpty(val) ? val.toString() : null;
+  }
+  get locText() {
+    return this.getLocText();
+  }
+  getLocText() {
+    if (!this.locTextValue) {
+      this.locTextValue = this.createLocText();
+    }
+    return this.locTextValue;
+  }
+  setLocText(locText) {
+    this.locTextValue = locText;
+  }
+  get locOwner() {
+    return this._locOwner;
+  }
+  set locOwner(value) {
+    this._locOwner = value;
+    this.onLocOwnerChanged();
+  }
+  onLocOwnerChanged() {
+  }
+  onDependencyValueChanged(obj, propertyName) {
+    const owner = this.locOwner;
+    if (owner && owner.onDependencyValueChanged) {
+      owner.onDependencyValueChanged(obj, propertyName);
+    } else {
+      super.onDependencyValueChanged(obj, propertyName);
+    }
+  }
+  get value() {
+    return this.getPropertyValue("value");
+  }
+  set value(newValue) {
+    this.setValue(newValue, false);
+  }
+  setValue(newValue, newItem) {
+    let text2 = void 0;
+    newValue = this.getCorrectValue(newValue);
+    const sep = settings.itemValueSeparator;
+    if (!!sep && !Helpers.isValueEmpty(newValue)) {
+      var str = newValue.toString();
+      var index = str.indexOf(sep);
+      if (index > -1) {
+        newValue = str.slice(0, index);
+        text2 = str.slice(index + 1);
+      }
+    }
+    if (newItem) {
+      this.setPropertyValueDirectly("value", newValue);
+    } else {
+      this.setPropertyValue("value", newValue);
+    }
+    if (!!text2) {
+      this.text = text2;
+    }
+    this.id = this.value;
+  }
+  getCorrectValue(value) {
+    return value;
+  }
+  get hasText() {
+    return this.pureText ? true : false;
+  }
+  get pureText() {
+    var _a2;
+    return ((_a2 = this.locTextValue) === null || _a2 === void 0 ? void 0 : _a2.pureText) || "";
+  }
+  set pureText(val) {
+    this.text = val;
+  }
+  get text() {
+    return this.calculatedText;
+  }
+  set text(newText) {
+    this.locText.text = newText;
+  }
+  get textOrHtml() {
+    if (this.locTextValue)
+      return this.locText.textOrHtml;
+    return this.getValueText();
+  }
+  get calculatedText() {
+    if (this.locTextValue)
+      return this.locText.calculatedText;
+    return this.getValueText();
+  }
+  get shortcutText() {
+    return this.text;
+  }
+  canSerializeValue() {
+    const val = this.value;
+    if (val === void 0 || val === null)
+      return false;
+    return !Array.isArray(val) && typeof val !== "object";
+  }
+  getData(options2) {
+    var json = this.toJSON(options2);
+    if (!!json["value"] && !!json["value"]["pos"]) {
+      delete json["value"]["pos"];
+    }
+    if (Helpers.isValueEmpty(json.value))
+      return json;
+    const canSerializeVal = this.canSerializeValue();
+    const canSerializeAsContant = !canSerializeVal || !settings.serialization.itemValueSerializeAsObject && !settings.serialization.itemValueSerializeDisplayText;
+    if (canSerializeAsContant && Object.keys(json).length == 1)
+      return this.value;
+    if (settings.serialization.itemValueSerializeDisplayText && json.text === void 0 && canSerializeVal) {
+      json.text = this.value.toString();
+    }
+    return json;
+  }
+  toJSON(options2) {
+    var res = {};
+    var properties = Serializer.getProperties(this.getType());
+    if (!properties || properties.length == 0) {
+      properties = Serializer.getProperties(this.getBaseType());
+    }
+    var jsoObj = new JsonObject();
+    for (var i = 0; i < properties.length; i++) {
+      const prop = properties[i];
+      if (this.canAddPpropertyToJSON(prop)) {
+        jsoObj.valueToJson(this, res, prop, options2);
+      }
+    }
+    return res;
+  }
+  isPropertyStoredInHash(name) {
+    return name !== "text";
+  }
+  canAddPpropertyToJSON(prop) {
+    if (prop.name === "text" && (!this.locTextValue || !this.locTextValue.hasNonDefaultText() && Helpers.isTwoValueEquals(this.value, this.locTextValue.getLocaleText(""), false, true, false))) {
+      return false;
+    }
+    return true;
+  }
+  setData(value, isNewItem) {
+    var _a2;
+    if (Helpers.isValueEmpty(value))
+      return;
+    if (typeof value.value === "undefined" && typeof value.text !== "undefined" && Object.keys(value).length === 1) {
+      value.value = value.text;
+    }
+    if (typeof value.value !== "undefined") {
+      let json;
+      if (typeof value.toJSON === "function") {
+        json = value.toJSON();
+      } else {
+        if (Array.isArray(value.elements)) {
+          json = {};
+          for (var key in value) {
+            if (key !== "elements") {
+              json[key] = value[key];
+            }
+          }
+        } else {
+          json = value;
+        }
+      }
+      new JsonObject().toObject(json, this);
+    } else {
+      this.setValue(value, isNewItem);
+    }
+    if (!isNewItem) {
+      (_a2 = this.locTextValue) === null || _a2 === void 0 ? void 0 : _a2.strChanged();
+    }
+  }
+  get visibleIf() {
+    return this.getPropertyValueWithoutDefault("visibleIf") || "";
+  }
+  set visibleIf(val) {
+    this.setPropertyValue("visibleIf", val);
+  }
+  get enableIf() {
+    return this.getPropertyValueWithoutDefault("enableIf") || "";
+  }
+  set enableIf(val) {
+    this.setPropertyValue("enableIf", val);
+  }
+  get isVisible() {
+    const res = this.getPropertyValueWithoutDefault("isVisible");
+    return res !== void 0 ? res : true;
+  }
+  setIsVisible(val) {
+    this.setPropertyValue("isVisible", val);
+  }
+  get isEnabled() {
+    const res = this.getPropertyValueWithoutDefault("isEnabled");
+    return res !== void 0 ? res : true;
+  }
+  setIsEnabled(val) {
+    this.setPropertyValue("isEnabled", val);
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+    var _a2;
+    if (name === "value" && !this.hasText) {
+      (_a2 = this.locTextValue) === null || _a2 === void 0 ? void 0 : _a2.strChanged();
+    }
+    var funcName = "itemValuePropertyChanged";
+    if (!this.locOwner || !this.locOwner[funcName])
+      return;
+    this.locOwner[funcName](this, name, oldValue, newValue);
+  }
+  getConditionRunner(isVisible) {
+    if (isVisible)
+      return this.getVisibleConditionRunner();
+    return this.getEnableConditionRunner();
+  }
+  getVisibleConditionRunner() {
+    const expression = this.getExpressionFromSurvey("visibleIf");
+    if (!expression)
+      return null;
+    if (!this.visibleConditionRunner)
+      this.visibleConditionRunner = new ConditionRunner(expression);
+    this.visibleConditionRunner.expression = expression;
+    return this.visibleConditionRunner;
+  }
+  getEnableConditionRunner() {
+    const expression = this.getExpressionFromSurvey("enableIf");
+    if (!expression)
+      return null;
+    if (!this.enableConditionRunner)
+      this.enableConditionRunner = new ConditionRunner(expression);
+    this.enableConditionRunner.expression = expression;
+    return this.enableConditionRunner;
+  }
+  get selected() {
+    const locOwner = this._locOwner;
+    if (locOwner instanceof Question && locOwner.isItemSelected && this.selectedValue === void 0) {
+      this.selectedValue = new ComputedUpdater(() => locOwner.isItemSelected(this));
+    }
+    return this.selectedValue;
+  }
+  getComponent() {
+    if (this._locOwner instanceof Question) {
+      return this.componentValue || this._locOwner.itemComponent;
+    }
+    return this.componentValue;
+  }
+  setComponent(val) {
+    this.componentValue = val;
+  }
+  setRootElement(val) {
+    this._htmlElement = val;
+  }
+  getRootElement() {
+    return this._htmlElement;
+  }
+  getEnabled() {
+    return this.isEnabled;
+  }
+  setEnabled(val) {
+    this.setIsEnabled(val);
+  }
+  getVisible() {
+    const isVisible = this.isVisible === void 0 ? true : this.isVisible;
+    const visible = this._visible === void 0 ? true : this._visible;
+    return isVisible && visible;
+  }
+  setVisible(val) {
+    if (this.visible !== val) {
+      this._visible = val;
+    }
+  }
+  get _visible() {
+    return this.getPropertyValue("visible", true);
+  }
+  set _visible(val) {
+    this.setPropertyValue("visible", val);
+  }
+  getLocTitle() {
+    return this.locText;
+  }
+  getTitle() {
+    return this.text;
+  }
+  setLocTitle(val) {
+  }
+  setTitle(val) {
+  }
+}
+__decorate([
+  property()
+], ItemValue.prototype, "selectedValue", void 0);
+__decorate([
+  property({ defaultValue: "" })
+], ItemValue.prototype, "icon", void 0);
+__decorate([
+  property()
+], ItemValue.prototype, "randomize", void 0);
+__decorate([
+  property()
+], ItemValue.prototype, "randomizeCategory", void 0);
+Base.createItemValue = function(source, type2) {
+  var item = null;
+  if (!!type2) {
+    item = JsonObject.metaData.createClass(type2, {});
+  } else if (typeof source.getType === "function") {
+    item = new ItemValue(null, void 0, source.getType());
+  } else {
+    item = new ItemValue(null);
+  }
+  item.setData(source);
+  return item;
+};
+Base.itemValueLocStrChanged = function(arr2) {
+  ItemValue.locStrsChanged(arr2);
+};
+JsonObjectProperty.getItemValuesDefaultValue = (val, type2) => {
+  const res = new Array();
+  ItemValue.setData(res, Array.isArray(val) ? val : [], type2);
+  return res;
+};
+Serializer.addClass("itemvalue", [
+  { name: "!value", isUnique: true },
+  {
+    name: "text",
+    serializationProperty: "locText"
+  },
+  { name: "visibleIf:condition", locationInTable: "detail" },
+  {
+    name: "enableIf:condition",
+    locationInTable: "detail",
+    visibleIf: (obj) => {
+      return !obj || obj.ownerPropertyName !== "rateValues";
+    }
+  },
+  { name: "randomize:boolean", default: true, visible: false, locationInTable: "detail" },
+  { name: "randomizeCategory:string", visible: false, locationInTable: "detail" }
+], (value) => new ItemValue(value));
+class CalculatedValue extends Base {
+  constructor(name = null, expression = null) {
+    super();
+    this.expressionIsRunning = false;
+    this.isCalculated = false;
+    if (!!name) {
+      this.name = name;
+    }
+    if (!!expression) {
+      this.expression = expression;
+    }
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+    super.onPropertyValueChanged(name, oldValue, newValue);
+    if (name === "expression") {
+      this.rerunExpression();
+    }
+  }
+  setOwner(data2) {
+    this.data = data2;
+    this.rerunExpression();
+  }
+  getOwner() {
+    return this.data;
+  }
+  getType() {
+    return "calculatedvalue";
+  }
+  getSurvey(live = false) {
+    return !!this.data && !!this.data["getSurvey"] ? this.data.getSurvey() : null;
+  }
+  get owner() {
+    return this.data;
+  }
+  locCalculation() {
+    this.expressionIsRunning = true;
+  }
+  unlocCalculation() {
+    this.expressionIsRunning = false;
+  }
+  resetCalculation() {
+    this.isCalculated = false;
+  }
+  doCalculation(calculatedValues, properties) {
+    if (this.isCalculated)
+      return;
+    this.runExpressionCore(calculatedValues, properties);
+    this.isCalculated = true;
+  }
+  runExpression(properties) {
+    this.runExpressionCore(null, properties);
+  }
+  get value() {
+    if (!this.data)
+      return void 0;
+    return this.data.getVariable(this.name);
+  }
+  setValue(val) {
+    if (!this.data)
+      return;
+    this.data.setVariable(this.name, val);
+  }
+  get canRunExpression() {
+    return !!this.data && !this.isLoadingFromJson && !!this.expression && !this.expressionIsRunning && !!this.name;
+  }
+  rerunExpression() {
+    if (!this.canRunExpression)
+      return;
+    this.runExpression({ survey: this.getSurvey() });
+  }
+  runExpressionCore(calculatedValues, properties) {
+    if (!this.canRunExpression || !this.ensureExpression())
+      return;
+    this.locCalculation();
+    if (!!calculatedValues) {
+      this.runDependentExpressions(calculatedValues, properties);
+    }
+    this.expressionRunner.runContext(this.getValueGetterContext(), this.getPropertiesCopy(properties, "expression"));
+  }
+  runDependentExpressions(calculatedValues, properties) {
+    var variables = this.expressionRunner.getVariables();
+    if (!variables)
+      return;
+    for (var i = 0; i < calculatedValues.length; i++) {
+      var calcItem = calculatedValues[i];
+      if (calcItem === this || variables.indexOf(calcItem.name) < 0)
+        continue;
+      calcItem.doCalculation(calculatedValues, properties);
+    }
+  }
+  ensureExpression() {
+    const expression = this.getExpressionFromSurvey("expression");
+    if (!expression)
+      return false;
+    if (!!this.expressionRunner) {
+      this.expressionRunner.expression = expression;
+    } else {
+      this.expressionRunner = this.createExpressionRunner(expression);
+      this.expressionRunner.onRunComplete = (newValue) => {
+        if (!Helpers.isTwoValueEquals(newValue, this.value, false, true, false)) {
+          this.setValue(newValue);
+        }
+        this.unlocCalculation();
+      };
+    }
+    return true;
+  }
+}
+__decorate([
+  property()
+], CalculatedValue.prototype, "name", void 0);
+__decorate([
+  property()
+], CalculatedValue.prototype, "includeIntoResult", void 0);
+__decorate([
+  property()
+], CalculatedValue.prototype, "expression", void 0);
+Serializer.addClass("calculatedvalue", [
+  { name: "!name", isUnique: true },
+  "expression:expression",
+  "includeIntoResult:boolean"
+], function() {
+  return new CalculatedValue();
+}, "base");
+class ExpressionItem extends Base {
+  constructor(expression = null) {
+    super();
+    this.expression = expression;
+  }
+  getType() {
+    return "expressionitem";
+  }
+  getOwner() {
+    return this.locOwner;
+  }
+  runCondition(properties) {
+    let res = false;
+    this.runExpressionByProperty("expression", properties, (val) => {
+      res = val === true;
+    });
+    return res;
+  }
+  get locHtml() {
+    return this.getLocalizableString("html");
+  }
+  getLocale() {
+    return !!this.locOwner ? this.locOwner.getLocale() : "";
+  }
+  getMarkdownHtml(text2, name, item) {
+    return !!this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item) : void 0;
+  }
+  getRenderer(name) {
+    return !!this.locOwner ? this.locOwner.getRenderer(name) : null;
+  }
+  getRendererContext(locStr) {
+    return !!this.locOwner ? this.locOwner.getRendererContext(locStr) : locStr;
+  }
+  getProcessedText(text2) {
+    return this.locOwner ? this.locOwner.getProcessedText(text2) : text2;
+  }
+  getSurvey(isLive = false) {
+    return this.locOwner;
+  }
+}
+__decorate([
+  property({ returnValue: "" })
+], ExpressionItem.prototype, "expression", void 0);
+class HtmlConditionItem extends ExpressionItem {
+  constructor(expression = null, html = null) {
+    super(expression);
+    if (html) {
+      this.html = html;
+    }
+  }
+  getType() {
+    return "htmlconditionitem";
+  }
+}
+__decorate([
+  property({ localizable: { markdown: true } })
+], HtmlConditionItem.prototype, "html", void 0);
+class UrlConditionItem extends ExpressionItem {
+  constructor(expression = null, url = null) {
+    super(expression);
+    if (url) {
+      this.url = url;
+    }
+  }
+  getType() {
+    return "urlconditionitem";
+  }
+}
+__decorate([
+  property({ localizable: true })
+], UrlConditionItem.prototype, "url", void 0);
+Serializer.addClass("expressionitem", ["expression:condition"], function() {
+  return new ExpressionItem();
+}, "base");
+Serializer.addClass("htmlconditionitem", [{ name: "html:html", serializationProperty: "locHtml" }], function() {
+  return new HtmlConditionItem();
+}, "expressionitem");
+Serializer.addClass("urlconditionitem", [{ name: "url:string", serializationProperty: "locUrl" }], function() {
+  return new UrlConditionItem();
+}, "expressionitem");
+class XmlParser {
+  constructor() {
+    this.parser = new DOMParser();
+  }
+  assignValue(target, name, value) {
+    if (Array.isArray(target[name])) {
+      target[name].push(value);
+    } else if (target[name] !== void 0) {
+      target[name] = [target[name]].concat(value);
+    } else if (typeof value === "object" && Object.keys(value).length === 1 && Object.keys(value)[0] === name) {
+      target[name] = value[name];
+    } else {
+      target[name] = value;
+    }
+  }
+  xml2Json(xmlNode, result) {
+    if (xmlNode.children && xmlNode.children.length > 0) {
+      for (let i = 0; i < xmlNode.children.length; i++) {
+        let childNode = xmlNode.children[i];
+        let childObject = {};
+        this.xml2Json(childNode, childObject);
+        this.assignValue(result, childNode.nodeName, childObject);
+      }
+    } else {
+      this.assignValue(result, xmlNode.nodeName, xmlNode.textContent);
+    }
+  }
+  parseXmlString(xmlString) {
+    let xmlRoot = this.parser.parseFromString(xmlString, "text/xml");
+    let json = {};
+    this.xml2Json(xmlRoot, json);
+    return json;
+  }
+}
+class ChoicesRestful extends Base {
+  constructor() {
+    super(...arguments);
+    this.lastObjHash = "";
+    this.isRunningValue = false;
+    this.processedUrl = "";
+    this.processedPath = "";
+    this.isUsingCacheFromUrl = void 0;
+    this.error = null;
+    this.createItemValue = (value) => {
+      return new ItemValue(value);
+    };
+  }
+  static get EncodeParameters() {
+    return settings.web.encodeUrlParams;
+  }
+  static set EncodeParameters(val) {
+    settings.web.encodeUrlParams = val;
+  }
+  static clearCache() {
+    ChoicesRestful.itemsResult = {};
+    ChoicesRestful.sendingSameRequests = {};
+  }
+  static addSameRequest(obj) {
+    if (!obj.isUsingCache)
+      return false;
+    var hash = obj.objHash;
+    var res = ChoicesRestful.sendingSameRequests[hash];
+    if (!res) {
+      ChoicesRestful.sendingSameRequests[obj.objHash] = [];
+      return false;
+    }
+    res.push(obj);
+    obj.isRunningValue = true;
+    return true;
+  }
+  static unregisterSameRequests(obj, items) {
+    if (!obj.isUsingCache)
+      return;
+    var res = ChoicesRestful.sendingSameRequests[obj.objHash];
+    delete ChoicesRestful.sendingSameRequests[obj.objHash];
+    if (!res)
+      return;
+    for (var i = 0; i < res.length; i++) {
+      res[i].isRunningValue = false;
+      if (!!res[i].getResultCallback) {
+        res[i].getResultCallback(items);
+      }
+    }
+  }
+  static get onBeforeSendRequest() {
+    return settings.web.onBeforeRequestChoices;
+  }
+  static set onBeforeSendRequest(val) {
+    settings.web.onBeforeRequestChoices = val;
+  }
+  static getCachedItemsResult(obj) {
+    var hash = obj.objHash;
+    var res = ChoicesRestful.itemsResult[hash];
+    if (!res)
+      return false;
+    if (obj.getResultCallback) {
+      obj.getResultCallback(res);
+    }
+    return true;
+  }
+  onPropertyValueChanged(name, oldValue, newValue) {
+    super.onPropertyValueChanged(name, oldValue, newValue);
+    if (name === "url") {
+      if (this.owner) {
+        this.owner.setPropertyValue("isUsingRestful", !!newValue);
+      }
+      this.isUsingCacheFromUrl = void 0;
+      if (!newValue)
+        return;
+      if (newValue.indexOf(ChoicesRestful.cacheText) > -1) {
+        this.isUsingCacheFromUrl = true;
+      } else {
+        if (newValue.indexOf(ChoicesRestful.noCacheText) > -1) {
+          this.isUsingCacheFromUrl = false;
+        }
+      }
+    }
+  }
+  getSurvey(live = false) {
+    return !!this.owner ? this.owner.survey : null;
+  }
+  run(textProcessor = null) {
+    if (!this.url || !this.getResultCallback)
+      return;
+    this.processedText(textProcessor);
+    if (!this.processedUrl) {
+      this.doEmptyResultCallback({});
+      this.lastObjHash = this.objHash;
+      return;
+    }
+    if (this.lastObjHash === this.objHash)
+      return;
+    this.lastObjHash = this.objHash;
+    this.error = null;
+    if (this.useChangedItemsResults())
+      return;
+    if (ChoicesRestful.addSameRequest(this))
+      return;
+    this.sendRequest();
+  }
+  get isUsingCache() {
+    if (this.isUsingCacheFromUrl === true)
+      return true;
+    if (this.isUsingCacheFromUrl === false)
+      return false;
+    return settings.web.cacheLoadedChoices;
+  }
+  get isRunning() {
+    return this.getIsRunning();
+  }
+  getIsRunning() {
+    return this.isRunningValue;
+  }
+  get isWaitingForParameters() {
+    return this.url && !this.processedUrl;
+  }
+  useChangedItemsResults() {
+    return ChoicesRestful.getCachedItemsResult(this);
+  }
+  doEmptyResultCallback(serverResult) {
+    var items = [];
+    if (this.updateResultCallback) {
+      items = this.updateResultCallback(items, serverResult);
+    }
+    this.getResultCallback(items);
+  }
+  processedText(textProcessor) {
+    var urlText = this.url;
+    if (!!urlText) {
+      urlText = urlText.replace(ChoicesRestful.cacheText, "").replace(ChoicesRestful.noCacheText, "");
+    }
+    if (textProcessor) {
+      var pUrl = textProcessor.processTextEx({ text: urlText, runAtDesign: true });
+      var pPath = textProcessor.processTextEx({ text: this.path, runAtDesign: true });
+      if (!pUrl.hasAllValuesOnLastRun || !pPath.hasAllValuesOnLastRun) {
+        this.processedUrl = "";
+        this.processedPath = "";
+      } else {
+        this.processedUrl = pUrl.text;
+        this.processedPath = pPath.text;
+      }
+    } else {
+      this.processedUrl = urlText;
+      this.processedPath = this.path;
+    }
+    if (this.onProcessedUrlCallback) {
+      this.onProcessedUrlCallback(this.processedUrl, this.processedPath);
+    }
+  }
+  parseResponse(response) {
+    let parsedResponse;
+    if (!!response && typeof response.indexOf === "function" && response.indexOf("<") === 0) {
+      var parser = new XmlParser();
+      parsedResponse = parser.parseXmlString(response);
+    } else {
+      try {
+        parsedResponse = JSON.parse(response);
+      } catch (_a2) {
+        parsedResponse = (response || "").split("\n").map((s) => s.trim(" ")).filter((s) => !!s);
+      }
+    }
+    return parsedResponse;
+  }
+  sendRequest() {
+    if (typeof XMLHttpRequest !== "undefined") {
+      this.sendXmlHttpRequest();
+    } else if (typeof fetch !== "undefined") {
+      this.sendFetchRequest();
+    } else {
+      this.error = new WebRequestError("The browser does not support XMLHttpRequest or fetch API", "", this.owner);
+      this.doEmptyResultCallback("");
+    }
+  }
+  sendXmlHttpRequest() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", this.processedUrl);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    var self2 = this;
+    var loadingObjHash = this.objHash;
+    xhr.onload = function() {
+      self2.beforeLoadRequest();
+      if (xhr.status === 200) {
+        self2.onLoad(self2.parseResponse(xhr.response), loadingObjHash);
+      } else {
+        self2.onError(xhr.statusText, xhr.responseText);
+      }
+    };
+    var options2 = { url: this.processedUrl, request: xhr };
+    if (!!settings.web.onBeforeRequestChoices) {
+      settings.web.onBeforeRequestChoices(this, options2);
+    }
+    this.beforeSendRequest();
+    options2.request.send();
+  }
+  sendFetchRequest() {
+    const self2 = this;
+    const loadingObjHash = this.objHash;
+    let url = this.processedUrl;
+    const fetchOptions = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+    const options2 = { url, fetchOptions };
+    if (settings.web.onBeforeRequestChoices) {
+      settings.web.onBeforeRequestChoices(this, options2);
+    }
+    this.beforeSendRequest();
+    fetch(options2.url, options2.fetchOptions).then((response) => {
+      self2.beforeLoadRequest();
+      if (response.status === 200) {
+        return response.text().then((text2) => {
+          self2.onLoad(self2.parseResponse(text2), loadingObjHash);
+        });
+      } else {
+        return response.text().then((errorText) => {
+          self2.onError(response.statusText, errorText);
+        });
+      }
+    }).catch((error3) => {
+      self2.onError(error3.message, "");
+    });
+  }
+  getType() {
+    return "choicesByUrl";
+  }
+  get isEmpty() {
+    return !this.url && !this.path;
+  }
+  dispose() {
+    super.dispose();
+    this.getResultCallback = null;
+    this.beforeSendRequestCallback = null;
+    this.updateResultCallback = null;
+    this.getItemValueCallback = null;
+  }
+  getCustomPropertiesNames() {
+    var properties = this.getCustomProperties();
+    var res = new Array();
+    for (var i = 0; i < properties.length; i++) {
+      res.push(this.getCustomPropertyName(properties[i].name));
+    }
+    return res;
+  }
+  getCustomPropertyName(propertyName) {
+    return propertyName + "Name";
+  }
+  getCustomProperties() {
+    var properties = Serializer.getProperties(this.itemValueType);
+    var res = [];
+    for (var i = 0; i < properties.length; i++) {
+      if (properties[i].name === "value" || properties[i].name === "text" || properties[i].name === "visibleIf" || properties[i].name === "enableIf")
+        continue;
+      res.push(properties[i]);
+    }
+    return res;
+  }
+  getAllPropertiesNames() {
+    const res = new Array();
+    Serializer.getPropertiesByObj(this).forEach((prop) => res.push(prop.name));
+    this.getCustomPropertiesNames().forEach((prop) => res.push(prop));
+    return res;
+  }
+  setData(json) {
+    if (!json)
+      json = {};
+    this.getAllPropertiesNames().forEach((name) => {
+      this[name] = json[name];
+    });
+    const attach2 = json.attachData || json.attachOriginalItems;
+    if (attach2 !== void 0) {
+      this.attachData = attach2;
+    }
+  }
+  getData() {
+    const res = {};
+    let hasValue = false;
+    this.getAllPropertiesNames().forEach((name) => {
+      const val = this[name];
+      if (!this.isValueEmpty(val) && val !== this.getDefaultPropertyValue(name)) {
+        res[name] = val;
+        hasValue = true;
+      }
+    });
+    return hasValue ? res : null;
+  }
+  get attachOriginalItems() {
+    return this.attachData;
+  }
+  set attachOriginalItems(val) {
+    this.attachData = val;
+  }
+  get itemValueType() {
+    if (!this.owner)
+      return "itemvalue";
+    var prop = Serializer.findProperty(this.owner.getType(), "choices");
+    if (!prop)
+      return "itemvalue";
+    if (prop.type == "itemvalue[]")
+      return "itemvalue";
+    return prop.type;
+  }
+  clear() {
+    this.setData(void 0);
+  }
+  beforeSendRequest() {
+    this.isRunningValue = true;
+    if (!!this.beforeSendRequestCallback) {
+      this.beforeSendRequestCallback();
+    }
+  }
+  beforeLoadRequest() {
+    this.isRunningValue = false;
+  }
+  onLoad(result, loadingObjHash = null) {
+    if (!loadingObjHash) {
+      loadingObjHash = this.objHash;
+    }
+    let items = new Array();
+    const updatedResult = this.getResultAfterPath(result);
+    if (updatedResult && updatedResult["length"]) {
+      for (let i = 0; i < updatedResult.length; i++) {
+        const itemValue = updatedResult[i];
+        if (!itemValue)
+          continue;
+        const value = !!this.getItemValueCallback ? this.getItemValueCallback(itemValue) : this.getValue(itemValue);
+        const item = this.createItemValue(value);
+        this.setTitle(item, itemValue);
+        this.setCustomProperties(item, itemValue);
+        if (this.attachData) {
+          item.originalItem = itemValue;
+          item.data = itemValue;
+        }
+        const imageLink = this.getImageLink(itemValue);
+        if (!!imageLink) {
+          item.imageLink = imageLink;
+        }
+        this.setItemValueProperties(item, itemValue);
+        items.push(item);
+      }
+    } else {
+      if (!this.allowEmptyResponse) {
+        this.error = new WebRequestEmptyError(null, this.owner);
+      }
+    }
+    if (this.updateResultCallback) {
+      items = this.updateResultCallback(items, result);
+    }
+    if (this.isUsingCache) {
+      ChoicesRestful.itemsResult[loadingObjHash] = items;
+    }
+    this.callResultCallback(items, loadingObjHash);
+    ChoicesRestful.unregisterSameRequests(this, items);
+  }
+  setItemValueProperties(item, itemValue) {
+    const props = ["isExclusive", "showCommentArea", "isCommentRequired", "visibleIf", "enableIf"];
+    props.forEach((propName) => {
+      if (itemValue[propName] !== void 0) {
+        item[propName] = itemValue[propName];
+      }
+    });
+  }
+  callResultCallback(items, loadingObjHash) {
+    if (loadingObjHash != this.objHash)
+      return;
+    this.getResultCallback(items);
+  }
+  setCustomProperties(item, itemValue) {
+    var properties = this.getCustomProperties();
+    for (var i = 0; i < properties.length; i++) {
+      var prop = properties[i];
+      var val = this.getValueCore(itemValue, this.getPropertyBinding(prop.name));
+      if (!this.isValueEmpty(val)) {
+        item[prop.name] = val;
+      }
+    }
+  }
+  getPropertyBinding(propertyName) {
+    if (this[this.getCustomPropertyName(propertyName)])
+      return this[this.getCustomPropertyName(propertyName)];
+    if (this[propertyName])
+      return this[propertyName];
+    return propertyName;
+  }
+  onError(status, response) {
+    this.error = new WebRequestError(status, response, this.owner);
+    this.doEmptyResultCallback(response);
+    ChoicesRestful.unregisterSameRequests(this, []);
+  }
+  getResultAfterPath(result) {
+    if (!result)
+      return result;
+    if (!this.processedPath)
+      return result;
+    var pathes = this.getPathes();
+    for (var i = 0; i < pathes.length; i++) {
+      result = result[pathes[i]];
+      if (!result)
+        return null;
+    }
+    return result;
+  }
+  getPathes() {
+    var pathes = [];
+    if (this.processedPath.indexOf(";") > -1) {
+      pathes = this.path.split(";");
+    } else if (this.processedPath.indexOf(",") > -1) {
+      pathes = this.processedPath.split(",");
+    } else {
+      pathes = this.processedPath.split(".");
+    }
+    if (pathes.length == 0)
+      pathes.push(this.processedPath);
+    return pathes;
+  }
+  getValue(item) {
+    if (!item)
+      return null;
+    if (this.valueName)
+      return this.getValueCore(item, this.valueName);
+    if (!(item instanceof Object))
+      return item;
+    var len = Object.keys(item).length;
+    if (len < 1)
+      return null;
+    return item[Object.keys(item)[0]];
+  }
+  setTitle(item, itemValue) {
+    var title = this.titleName ? this.titleName : "title";
+    var val = this.getValueCore(itemValue, title);
+    if (!val)
+      return;
+    item.locText.setJson(val);
+  }
+  getImageLink(item) {
+    var imageLink = this.imageLinkName ? this.imageLinkName : "imageLink";
+    return this.getValueCore(item, imageLink);
+  }
+  getValueCore(item, property2) {
+    if (!item)
+      return null;
+    if (property2.indexOf(".") < 0)
+      return item[property2];
+    var properties = property2.split(".");
+    for (var i = 0; i < properties.length; i++) {
+      item = item[properties[i]];
+      if (!item)
+        return null;
+    }
+    return item;
+  }
+  get objHash() {
+    return this.processedUrl + ";" + this.processedPath + ";" + this.valueName + ";" + this.titleName + ";" + this.imageLinkName + ";" + this.attachData;
+  }
+}
+ChoicesRestful.cacheText = "{CACHE}";
+ChoicesRestful.noCacheText = "{NOCACHE}";
+ChoicesRestful.itemsResult = {};
+ChoicesRestful.sendingSameRequests = {};
+__decorate([
+  property({ returnValue: "" })
+], ChoicesRestful.prototype, "url", void 0);
+__decorate([
+  property({ returnValue: "" })
+], ChoicesRestful.prototype, "path", void 0);
+__decorate([
+  property({ returnValue: "" })
+], ChoicesRestful.prototype, "valueName", void 0);
+__decorate([
+  property({ returnValue: "" })
+], ChoicesRestful.prototype, "titleName", void 0);
+__decorate([
+  property({ returnValue: "" })
+], ChoicesRestful.prototype, "imageLinkName", void 0);
+__decorate([
+  property()
+], ChoicesRestful.prototype, "allowEmptyResponse", void 0);
+__decorate([
+  property()
+], ChoicesRestful.prototype, "attachData", void 0);
+Serializer.addClass("choicesByUrl", [
+  "url",
+  "path",
+  "valueName",
+  "titleName",
+  {
+    name: "imageLinkName",
+    visibleIf: function(obj) {
+      return !!obj && !!obj.owner && obj.owner.getType() == "imagepicker";
+    }
+  },
+  { name: "allowEmptyResponse:boolean" },
+  { name: "attachData:boolean", alternativeName: "attachOriginalItems", visible: false }
+], function() {
+  return new ChoicesRestful();
+});
 class Operand {
   constructor() {
     this._id = Operand.counter++;
@@ -70621,7 +83679,7 @@ class Variable extends Const {
         return res;
     }
     var prefix = this.useValueAsItIs ? Variable.DisableConversionChar : "";
-    return "{" + prefix + this.variableName + "}";
+    return settings.expressionVariableDelimiters.start + prefix + this.variableName + settings.expressionVariableDelimiters.end;
   }
   get variable() {
     return this.variableName;
@@ -73651,7 +86709,23 @@ class ConditionsParserError {
 }
 class ConditionsParser {
   patchExpression(text2) {
+    text2 = this.patchBraces(text2);
     return text2.replace(/=>/g, ">=").replace(/=</g, "<=").replace(/<>/g, "!=").replace(/equals/g, "equal ").replace(/notequals/g, "notequal ");
+  }
+  patchBraces(text2) {
+    const start = settings.expressionVariableDelimiters.start;
+    const end = settings.expressionVariableDelimiters.end;
+    if (start === "{" && end === "}")
+      return text2;
+    if (start === end) {
+      const parts = text2.split(start);
+      let result = parts[0];
+      for (let i = 1; i < parts.length; i++) {
+        result += (i % 2 === 1 ? "{" : "}") + parts[i];
+      }
+      return result;
+    }
+    return text2.split(start).join("{").split(end).join("}");
   }
   createCondition(text2) {
     return this.parseExpression(text2);
@@ -73669,13 +86743,6 @@ class ConditionsParser {
     return this.conditionError;
   }
 }
-var ExpressionErrorType;
-(function(ExpressionErrorType2) {
-  ExpressionErrorType2[ExpressionErrorType2["SyntaxError"] = 0] = "SyntaxError";
-  ExpressionErrorType2[ExpressionErrorType2["UnknownFunction"] = 1] = "UnknownFunction";
-  ExpressionErrorType2[ExpressionErrorType2["UnknownVariable"] = 2] = "UnknownVariable";
-  ExpressionErrorType2[ExpressionErrorType2["SemanticError"] = 3] = "SemanticError";
-})(ExpressionErrorType || (ExpressionErrorType = {}));
 class ExpressionExecutorRunner {
   constructor(operand, id, onComplete, properties, context2) {
     this.operand = operand;
@@ -73761,13 +86828,7 @@ class ExpressionExecutorRunner {
 }
 class ExpressionExecutor {
   static getQuestionErrorText(properties) {
-    if (!!properties) {
-      const question = properties["question"];
-      if (!!question && !!question.name) {
-        return " It is used in the question: '" + question.name + "'.";
-      }
-    }
-    return "";
+    return getQuestionErrorText(properties);
   }
   constructor(expression) {
     this.parser = new ConditionsParser();
@@ -73808,7 +86869,7 @@ class ExpressionExecutor {
   runContext(context2, properties = null, id) {
     if (!this.operand) {
       if (!!this.expression) {
-        ConsoleWarnings.warn("Invalid expression: '" + this.expression + "'." + ExpressionExecutor.getQuestionErrorText(properties));
+        ConsoleWarnings.warn("Invalid expression: '" + this.expression + "'." + getQuestionErrorText(properties));
       }
       return null;
     }
@@ -73855,13201 +86916,7 @@ class ExpressionExecutor {
 ExpressionExecutor.createExpressionExecutor = (expression) => {
   return new ExpressionExecutor(expression);
 };
-class ExpressionRunnerBase {
-  constructor(expression) {
-    this.expression = expression;
-  }
-  get expression() {
-    return !!this.expressionExecutor ? this.expressionExecutor.expression : "";
-  }
-  set expression(value) {
-    if (!!this.expressionExecutor && value === this.expression)
-      return;
-    this.expressionExecutor = ExpressionExecutor.createExpressionExecutor(value);
-    this.expressionExecutor.onComplete = (res, id) => {
-      this.doOnComplete(res, id);
-    };
-    this.variables = void 0;
-    this.containsFunc = void 0;
-  }
-  getVariables() {
-    if (this.variables === void 0) {
-      this.variables = this.expressionExecutor.getVariables();
-    }
-    return this.variables;
-  }
-  hasFunction() {
-    if (this.containsFunc === void 0) {
-      this.containsFunc = this.expressionExecutor.hasFunction();
-    }
-    return this.containsFunc;
-  }
-  get isAsync() {
-    return this.expressionExecutor.isAsync;
-  }
-  canRun() {
-    return this.expressionExecutor.canRun();
-  }
-  runContextCore(context2, properties) {
-    const id = ExpressionRunnerBase.IdRunnerCounter++;
-    if (this.onBeforeAsyncRun && this.isAsync) {
-      this.onBeforeAsyncRun(id);
-    }
-    return this.expressionExecutor.runContext(context2, properties, id);
-  }
-  validate(context2, options2, isCondition) {
-    return this.expressionExecutor.validate(context2, isCondition, options2);
-  }
-  doOnComplete(res, id) {
-    if (this.onAfterAsyncRun && this.isAsync) {
-      this.onAfterAsyncRun(id);
-    }
-  }
-}
-ExpressionRunnerBase.IdRunnerCounter = 1;
-class ConditionRunner extends ExpressionRunnerBase {
-  runValues(values, properties) {
-    return this.runContext(new VariableGetterContextEx(values, properties === null || properties === void 0 ? void 0 : properties.context), properties);
-  }
-  runContext(context2, properties) {
-    return this.runContextCore(context2, properties) == true;
-  }
-  doOnComplete(res, id) {
-    if (!!this.onRunComplete)
-      this.onRunComplete(res == true);
-    super.doOnComplete(res, id);
-  }
-}
-class ExpressionRunner extends ExpressionRunnerBase {
-  runValues(values, properties) {
-    return this.runContext(new VariableGetterContextEx(values, properties === null || properties === void 0 ? void 0 : properties.context), properties);
-  }
-  runContext(context2, properties) {
-    return this.runContextCore(context2, properties);
-  }
-  doOnComplete(res, id) {
-    if (!!this.onRunComplete)
-      this.onRunComplete(res);
-    super.doOnComplete(res, id);
-  }
-}
-function expressionSurveyCachedValue(name, value, isVariable) {
-  FunctionFactory.Instance.addSurveyCachedValue(name, value, isVariable);
-}
-function expressionObjectCachedValue(obj, name, value) {
-  FunctionFactory.Instance.addObjectCachedValue(obj, name, value);
-}
-class Bindings {
-  constructor(obj) {
-    this.obj = obj;
-    this.properties = null;
-    this.values = null;
-  }
-  getType() {
-    return "bindings";
-  }
-  get isSurveyObj() {
-    return true;
-  }
-  getNames() {
-    var res = [];
-    this.fillProperties();
-    for (var i = 0; i < this.properties.length; i++) {
-      if (this.properties[i].isVisible("", this.obj)) {
-        res.push(this.properties[i].name);
-      }
-    }
-    return res;
-  }
-  getProperties() {
-    var res = [];
-    this.fillProperties();
-    for (var i = 0; i < this.properties.length; i++) {
-      res.push(this.properties[i]);
-    }
-    return res;
-  }
-  setBinding(propertyName, valueName) {
-    if (!this.values)
-      this.values = {};
-    const oldValue = this.getJson();
-    if (oldValue === valueName)
-      return;
-    if (!!valueName) {
-      this.values[propertyName] = valueName;
-    } else {
-      delete this.values[propertyName];
-      if (Object.keys(this.values).length == 0) {
-        this.values = null;
-      }
-    }
-    this.onChangedJSON(oldValue);
-  }
-  clearBinding(propertyName) {
-    this.setBinding(propertyName, "");
-  }
-  isEmpty() {
-    if (!this.values)
-      return true;
-    for (var key in this.values)
-      return false;
-    return true;
-  }
-  getValueNameByPropertyName(propertyName) {
-    if (!this.values)
-      return void 0;
-    return this.values[propertyName];
-  }
-  getPropertiesByValueName(valueName) {
-    if (!this.values)
-      return [];
-    var res = [];
-    for (var key in this.values) {
-      if (this.values[key] == valueName) {
-        res.push(key);
-      }
-    }
-    return res;
-  }
-  getJson() {
-    if (this.isEmpty())
-      return void 0;
-    const res = {};
-    this.getNames().forEach((key) => {
-      if (this.values[key] !== void 0) {
-        res[key] = this.values[key];
-      }
-    });
-    return res;
-  }
-  setJson(value, isLoading) {
-    const oldValue = this.getJson();
-    this.values = null;
-    if (!!value) {
-      this.getNames().forEach((key) => {
-        if (value[key] !== void 0) {
-          if (!this.values)
-            this.values = {};
-          this.values[key] = value[key];
-        }
-      });
-    }
-    if (!isLoading && !Helpers.isTwoValueEquals(oldValue, this.values)) {
-      this.onChangedJSON(oldValue);
-    }
-  }
-  fillProperties() {
-    if (this.properties !== null)
-      return;
-    this.properties = [];
-    var objProperties = Serializer.getPropertiesByObj(this.obj);
-    for (var i = 0; i < objProperties.length; i++) {
-      if (objProperties[i].isBindable) {
-        this.properties.push(objProperties[i]);
-      }
-    }
-  }
-  onChangedJSON(oldValue) {
-    if (this.obj) {
-      this.obj.onBindingChanged(oldValue, this.getJson());
-    }
-  }
-}
-class Dependencies {
-  constructor(currentDependency, target, property2) {
-    this.currentDependency = currentDependency;
-    this.target = target;
-    this.property = property2;
-    this.dependencies = [];
-    this.id = "" + ++Dependencies.DependenciesCount;
-  }
-  addDependency(target, property2) {
-    if (this.target === target && this.property === property2)
-      return;
-    if (this.dependencies.some((dependency) => dependency.obj === target && dependency.prop === property2))
-      return;
-    this.dependencies.push({
-      obj: target,
-      prop: property2,
-      id: this.id
-    });
-    target.registerPropertyChangedHandlers([property2], this.currentDependency, this.id);
-  }
-  dispose() {
-    this.dependencies.forEach((dependency) => {
-      dependency.obj.unregisterPropertyChangedHandlers([dependency.prop], dependency.id);
-    });
-  }
-}
-Dependencies.DependenciesCount = 0;
-class ComputedUpdater {
-  constructor(_updater) {
-    this._updater = _updater;
-    this.dependencies = void 0;
-    this.type = ComputedUpdater.ComputedUpdaterType;
-  }
-  get updater() {
-    return this._updater;
-  }
-  setDependencies(dependencies) {
-    this.clearDependencies();
-    this.dependencies = dependencies;
-  }
-  getDependencies() {
-    return this.dependencies;
-  }
-  clearDependencies() {
-    if (this.dependencies) {
-      this.dependencies.dispose();
-      this.dependencies = void 0;
-    }
-  }
-  dispose() {
-    this.clearDependencies();
-    this._updater = void 0;
-  }
-}
-ComputedUpdater.ComputedUpdaterType = "__dependency_computed";
-class Base {
-  static finishCollectDependencies() {
-    const deps = Base.currentDependencis;
-    Base.currentDependencis = void 0;
-    return deps;
-  }
-  static startCollectDependencies(updater, target, property2) {
-    if (Base.currentDependencis !== void 0) {
-      throw new Error("Attempt to collect nested dependencies. Nested dependencies are not supported.");
-    }
-    Base.currentDependencis = new Dependencies(updater, target, property2);
-  }
-  static collectDependency(target, property2) {
-    if (Base.currentDependencis === void 0)
-      return;
-    Base.currentDependencis.addDependency(target, property2);
-  }
-  static get commentSuffix() {
-    return settings.commentSuffix;
-  }
-  static set commentSuffix(val) {
-    settings.commentSuffix = val;
-  }
-  static get commentPrefix() {
-    return Base.commentSuffix;
-  }
-  static set commentPrefix(val) {
-    Base.commentSuffix = val;
-  }
-  /**
-   * Returns `true` if a passed `value` is an empty string, array, or object or if it equals to `undefined` or `null`.
-   *
-   * @param value A value to be checked.
-   * @param trimString *(Optional)* When this parameter is `true`, the method ignores whitespace characters at the beginning and end of a string value. Pass `false` to disable this functionality.
-   */
-  isValueEmpty(value, trimString = true) {
-    if (trimString) {
-      value = this.trimValue(value);
-    }
-    return Helpers.isValueEmpty(value);
-  }
-  equals(obj) {
-    if (!obj)
-      return false;
-    if (this.isDisposed || obj.isDisposed)
-      return false;
-    if (this.getType() != obj.getType())
-      return false;
-    return this.equalsCore(obj);
-  }
-  equalsCore(obj) {
-    if (this.name !== obj.name)
-      return false;
-    return Helpers.isTwoValueEquals(this.toJSON(), obj.toJSON(), false, true, false);
-  }
-  trimValue(value) {
-    if (!!value && (typeof value === "string" || value instanceof String))
-      return value.trim();
-    return value;
-  }
-  static createPropertiesHash() {
-    return {};
-  }
-  constructor() {
-    this.uniqueIdValue = Base.UniqueId++;
-    this.dependencies = {};
-    this.expressionDependencies = {};
-    this.propertyHash = Base.createPropertiesHash();
-    this.eventList = [];
-    this.isLoadingFromJsonValue = false;
-    this.loadingOwner = null;
-    this.onPropertyChanged = this.addEvent();
-    this.onNestedPropertyChanged = this.addEvent();
-    this.onItemValuePropertyChanged = this.addEvent();
-    this.isCreating = true;
-    this.animationAllowedLock = 0;
-    this.supportOnElementRerenderedEvent = true;
-    this.onElementRerenderedEventEnabled = false;
-    this._onElementRerendered = new EventBase();
-    CustomPropertiesCollection.createProperties(this);
-    this.onBaseCreating();
-    this.isCreating = false;
-  }
-  dispose() {
-    for (var i = 0; i < this.eventList.length; i++) {
-      this.eventList[i].clear();
-    }
-    this.onPropertyValueChangedCallback = void 0;
-    this.isDisposedValue = true;
-    Object.keys(this.dependencies).forEach((key) => this.dependencies[key].dispose());
-    Object.keys(this.expressionDependencies).forEach((key) => {
-      const item = this.expressionDependencies[key];
-      if (!item.obj.isDisposed) {
-        item.obj.unRegisterFunctionOnPropertyValueChanged(item.propertyName, key);
-      }
-    });
-    this.expressionDependencies = {};
-    Object.keys(this.propertyHash).forEach((key) => {
-      const propVal = this.getPropertyValueCore(this.propertyHash, key);
-      if (!!propVal && propVal.type == ComputedUpdater.ComputedUpdaterType) {
-        propVal.dispose();
-      }
-    });
-  }
-  get isDisposed() {
-    return this.isDisposedValue === true;
-  }
-  get uniqueId() {
-    return this.uniqueIdValue;
-  }
-  get isSurveyObj() {
-    return true;
-  }
-  addEvent(onCallbacksChanged) {
-    const res = new EventBase();
-    this.eventList.push(res);
-    res.onCallbacksChanged = onCallbacksChanged;
-    return res;
-  }
-  addAsyncEvent() {
-    const res = new EventAsync();
-    this.eventList.push(res);
-    return res;
-  }
-  onBaseCreating() {
-  }
-  /**
-   * Returns the object type as it is used in the JSON schema.
-   */
-  getType() {
-    return "base";
-  }
-  /**
-   * Returns the survey element that owns this element. Returns `undefined` if called on a `SurveyModel` instance.
-   * @returns The owner survey element, or `undefined` if none exists.
-   */
-  getOwner() {
-    return void 0;
-  }
-  /**
-   * Returns `true` if the survey element is a page.
-   *
-   * This property returns `false` for [`PageModel`](https://surveyjs.io/form-library/documentation/api-reference/page-model) objects in the following cases:
-   *
-   * - `SurveyModel`'s [`questionsOnPageMode`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#questionsOnPageMode) is set to `"singlePage"`.
-   * - The page is included in a [preview of given answers](https://surveyjs.io/form-library/documentation/design-survey/create-a-multi-page-survey#preview-page).
-   *
-   * In those cases, the survey creates an internal `PageModel` object to show all questions on one page, and all regular pages become panels.
-   */
-  get isPage() {
-    return false;
-  }
-  /**
-   * Returns `true` if the survey element is a panel or acts as one.
-   *
-   * This property returns `true` for `PageModel` objects in the following cases:
-   *
-   * - `SurveyModel`'s [`questionsOnPageMode`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#questionsOnPageMode) is set to `"singlePage"`.
-   * - The page is included in a [preview of given answers](https://surveyjs.io/form-library/documentation/design-survey/create-a-multi-page-survey#preview-page).
-   *
-   * In those cases, the survey creates an internal `PageModel` object to show all questions on one page, and all regular pages become panels.
-   */
-  get isPanel() {
-    return false;
-  }
-  /**
-   * Returns `true` if the survey element is a question.
-   */
-  get isQuestion() {
-    return false;
-  }
-  /**
-   * Returns `true` if the element is a survey.
-   */
-  get isSurvey() {
-    return false;
-  }
-  /**
-   * Use this method to find out if the current object is of a given `typeName` or inherited from it.
-   *
-   * @param typeName One of the values listed in the [getType()](https://surveyjs.io/form-library/documentation/question#getType) description.
-   * @returns `true` if the current object is of a given `typeName` or inherited from it.
-   * @see getType
-   */
-  isDescendantOf(typeName) {
-    return Serializer.isDescendantOf(this.getType(), typeName);
-  }
-  getSurvey(isLive = false) {
-    return null;
-  }
-  getValueGetterContext() {
-    const survey = this.getSurvey();
-    return !!survey ? survey.getValueGetterContext() : new VariableGetterContext({});
-  }
-  /**
-   * Returns `true` if the survey is being designed in Survey Creator.
-   */
-  get isDesignMode() {
-    const survey = this.getSurvey();
-    return !!survey && survey.isDesignMode;
-  }
-  /**
-   * Returns `true` if the object is included in a survey.
-   *
-   * This property may return `false`, for example, when you [create a survey model dynamically](https://surveyjs.io/form-library/documentation/design-survey-create-a-simple-survey#create-or-change-a-survey-model-dynamically).
-   */
-  get inSurvey() {
-    return !!this.getSurvey(true);
-  }
-  get bindings() {
-    if (!this.bindingsValue) {
-      this.bindingsValue = new Bindings(this);
-    }
-    return this.bindingsValue;
-  }
-  isBindingEmpty() {
-    return !this.bindingsValue || this.bindingsValue.isEmpty();
-  }
-  checkBindings(valueName, value) {
-  }
-  canUpdateBindings() {
-    return true;
-  }
-  updateBindings(propertyName, value) {
-    if (!this.bindingsValue || !this.canUpdateBindings())
-      return;
-    var valueName = this.bindings.getValueNameByPropertyName(propertyName);
-    if (!!valueName) {
-      this.updateBindingValue(valueName, value);
-    }
-  }
-  updateBindingValue(valueName, value) {
-  }
-  getTemplate() {
-    return this.getType();
-  }
-  /**
-   * Returns `true` if the object configuration is being loaded from JSON.
-   */
-  get isLoadingFromJson() {
-    return this.isLoadingFromJsonValue || this.getIsLoadingFromJson();
-  }
-  getIsLoadingFromJson() {
-    if (!!this.loadingOwner && this.loadingOwner.isLoadingFromJson)
-      return true;
-    return this.isLoadingFromJsonValue;
-  }
-  startLoadingFromJson(json) {
-    this.isLoadingFromJsonValue = true;
-    this.jsonObj = json;
-  }
-  endLoadingFromJson() {
-    this.isLoadingFromJsonValue = false;
-  }
-  mergeLocalizationObj(obj, locales) {
-    this.mergeLocalizationInObjectCore(obj, locales);
-    this.mergeLocalizationInArrays(obj, locales);
-    const orgObj = obj.getOriginalObj();
-    const org = this.getOriginalObj();
-    if (orgObj !== obj && org !== this) {
-      org.mergeLocalizationObj(orgObj, locales);
-    }
-  }
-  mergeLocalizationInObjectCore(obj, locales) {
-    if (!this.canMergeObj(obj))
-      return;
-    const locStrs = obj.localizableStrings;
-    if (!locStrs)
-      return;
-    for (const key in locStrs) {
-      const prop = this.getPropertyByName(key);
-      if (!!prop) {
-        const name = prop.serializationProperty || prop.name;
-        const locStr = this[name];
-        if (!!locStr) {
-          locStr.mergeWith(locStrs[key], locales);
-        }
-      }
-    }
-  }
-  canMergeObj(obj) {
-    if (!obj || typeof obj.mergeLocalizationObj !== "function")
-      return false;
-    const self2 = this;
-    if (obj["name"] && self2.name !== obj["name"])
-      return false;
-    return true;
-  }
-  mergeLocalizationInArrays(obj, locales) {
-    const arraysInfo = obj.arraysInfo;
-    if (!arraysInfo)
-      return;
-    for (const key in arraysInfo) {
-      const prop = this.getPropertyByName(key);
-      if (!!prop && prop.isArray) {
-        const src = obj[key];
-        const dest = this[key];
-        if (Array.isArray(src) && Array.isArray(dest)) {
-          for (let i = 0; i < Math.min(src.length, dest.length); i++) {
-            dest[i].mergeLocalizationObj(src[i], locales);
-          }
-        }
-      }
-    }
-  }
-  /**
-   * Returns a JSON schema that corresponds to the current survey element.
-   * @param options An [`ISaveToJSONOptions`](https://surveyjs.io/form-library/documentation/api-reference/isavetojsonoptions) object with configuration options.
-   * @returns A JSON schema of the survey element.
-   * @see fromJSON
-   */
-  toJSON(options2) {
-    return new JsonObject().toJsonObject(this, options2);
-  }
-  /**
-   * Returns a JSON schema that contains only locale strings and the minimal set of properties required to identify survey elements.
-   *
-   * This method is syntactic sugar for calling the [`toJSON()`](#toJSON) method with the `storeLocaleStrings` option set to `"stringsOnly"`.
-   *
-   * To apply a locale-strings-only schema to a survey model, call the [`mergeLocalizationJSON(json, locales)`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#mergeLocalizationJSON) method.
-   * @param locales *(Optional)* An array of locale identifiers to include in the JSON schema.
-   * @returns A locale-strings-only JSON schema.
-   */
-  getLocalizationJSON(locales) {
-    return this.toJSON({ storeLocaleStrings: "stringsOnly", locales });
-  }
-  /**
-   * Assigns a new JSON schema to the current survey element.
-   *
-   * The JSON schema should contain only serializable properties of this survey element. Event handlers and properties that do not belong to the survey element are ignored.
-   *
-   * @param json A JSON schema that you want to apply to the current survey element.
-   * @param options An object with configuration options.
-   * @param {boolean} options.validatePropertyValues Pass `true` if you want to validate property values. Use the [`jsonErrors`](#jsonErrors) array to access validation errors.
-   * @see toJSON
-   */
-  fromJSON(json, options2) {
-    new JsonObject().toObject(json, this, options2);
-    this.onSurveyLoad();
-  }
-  onSurveyLoad() {
-  }
-  /**
-   * Creates a new object that has the same type and properties as the current SurveyJS object.
-   */
-  clone() {
-    var clonedObj = Serializer.createClass(this.getType());
-    clonedObj.fromJSON(this.toJSON());
-    return clonedObj;
-  }
-  /**
-   * Returns a `JsonObjectProperty` object with metadata about a serializable property that belongs to the current SurveyJS object.
-   *
-   * If the property is not found, this method returns `null`.
-   * @param propName A property name.
-   */
-  getPropertyByName(propName) {
-    const type2 = this.getType();
-    if (!this.classMetaData || this.classMetaData.name !== type2) {
-      this.classMetaData = Serializer.findClass(type2);
-    }
-    return !!this.classMetaData ? this.classMetaData.findProperty(propName) : null;
-  }
-  isPropertyVisible(propName) {
-    const prop = this.getPropertyByName(propName);
-    return !!prop ? prop.isVisible("", this) : false;
-  }
-  static createProgressInfo() {
-    return {
-      questionCount: 0,
-      answeredQuestionCount: 0,
-      requiredQuestionCount: 0,
-      requiredAnsweredQuestionCount: 0
-    };
-  }
-  getProgressInfo() {
-    return Base.createProgressInfo();
-  }
-  localeChanged() {
-  }
-  locStrsChanged() {
-    if (!!this.arraysInfo) {
-      for (let key in this.arraysInfo) {
-        let item = this.arraysInfo[key];
-        if (item && item.isItemValues) {
-          var arr2 = this.getPropertyValue(key);
-          if (arr2 && !!Base.itemValueLocStrChanged)
-            Base.itemValueLocStrChanged(arr2);
-        }
-      }
-    }
-    if (!!this.localizableStrings) {
-      for (let key in this.localizableStrings) {
-        let item = this.getLocalizableString(key);
-        if (item)
-          item.strChanged();
-      }
-    }
-  }
-  getValueAsString(value) {
-    if (value === void 0 || value === null)
-      return "";
-    return typeof value === "object" ? JSON.stringify(value) : value.toString();
-  }
-  /**
-   * Returns the value of a property with a specified name.
-   *
-   * If the property is not found or does not have a value, this method returns either `undefined`, `defaultValue` specified in the property configuration, or a value passed as the `defaultValue` parameter.
-   *
-   * @param name A property name.
-   * @param defaultValue *(Optional)* A value to return if the property is not found or does not have a value.
-   */
-  getPropertyValue(name, defaultValue, calcFunc) {
-    const res = this.getPropertyValueWithoutDefault(name);
-    if (!!calcFunc && this.isDisposedValue) {
-      calcFunc = void 0;
-    }
-    if (!!calcFunc && Array.isArray(res) && res.length === 0 && res.isReset === true) {
-      delete res.isReset;
-      this.setArrayPropertyDirectly(name, calcFunc(), false);
-      return res;
-    }
-    if (this.isValueUndefined(res)) {
-      const locStr = this.localizableStrings ? this.localizableStrings[name] : void 0;
-      if (locStr)
-        return locStr.text;
-      if (!this.isValueUndefined(defaultValue))
-        return defaultValue;
-      if (!!calcFunc) {
-        const newVal = calcFunc();
-        if (newVal !== void 0) {
-          if (Array.isArray(newVal)) {
-            const array2 = this.createNewArray(name);
-            array2.splice(0, 0, ...newVal);
-            return array2;
-          } else {
-            this.setPropertyValueDirectly(name, newVal, true);
-            return newVal;
-          }
-        }
-      }
-      const propDefaultValue = this.getDefaultPropertyValue(name);
-      if (propDefaultValue !== void 0)
-        return propDefaultValue;
-    }
-    return res;
-  }
-  isValueUndefined(value) {
-    return Helpers.isValueUndefined(value);
-  }
-  getDefaultPropertyValue(name) {
-    const prop = this.getPropertyByName(name);
-    if (!prop || prop.isCustom && this.isCreating)
-      return void 0;
-    if (!!prop.defaultValueFunc)
-      return prop.defaultValueFunc(this);
-    const dValue = prop.getDefaultValue(this);
-    if (!this.isValueUndefined(dValue) && !Array.isArray(dValue))
-      return dValue;
-    const locStr = this.localizableStrings ? this.localizableStrings[name] : void 0;
-    if (locStr && locStr.localizationName)
-      return this.getLocalizationString(locStr.localizationName);
-    if (prop.type == "boolean" || prop.type == "switch")
-      return false;
-    if (prop.isCustom && !!prop.onGetValue)
-      return prop.onGetValue(this);
-    return void 0;
-  }
-  hasDefaultPropertyValue(name) {
-    return this.getDefaultPropertyValue(name) !== void 0;
-  }
-  resetPropertyValue(name) {
-    const locStr = this.localizableStrings ? this.localizableStrings[name] : void 0;
-    if (locStr) {
-      this.setLocalizableStringText(name, void 0);
-      locStr.clear();
-    } else {
-      this.setPropertyValue(name, void 0);
-    }
-  }
-  doNotSerializeEmptyProperty(prop) {
-    return this.isPropertyStoredInHash(prop.name);
-  }
-  isPropertyStoredInHash(name) {
-    return false;
-  }
-  getIsSerializablePropertyEmpty(prop) {
-    const orgObj = this.getOriginalByProperty(prop.name);
-    if (prop.isLocalizable && !prop.isMultipleText)
-      return !orgObj.getLocalizableString(prop.name);
-    if (orgObj === this && this.doNotSerializeEmptyProperty(prop))
-      return this.getPropertyValueWithoutDefault(prop.name) == void 0;
-    return false;
-  }
-  getOriginalObj() {
-    return this;
-  }
-  getOriginalByProperty(propName) {
-    const obj = this.getOriginalObj();
-    if (obj === this)
-      return this;
-    return !!obj.getPropertyByName(propName) ? obj : this;
-  }
-  getPropertyValueWithoutDefault(name) {
-    const res = this.getPropertyValueCore(this.propertyHash, name);
-    expressionObjectCachedValue(this, name, res);
-    return res;
-  }
-  getPropertyValueCore(propertiesHash, name) {
-    if (!this.isLoadingFromJson) {
-      Base.collectDependency(this, name);
-    }
-    if (this.getPropertyValueCoreHandler)
-      return this.getPropertyValueCoreHandler(propertiesHash, name);
-    else
-      return propertiesHash[name];
-  }
-  geValueFromHash() {
-    return this.propertyHash["value"];
-  }
-  setPropertyValueCore(propertiesHash, name, val, isCalcValue) {
-    let reportError2 = false;
-    if (this.setPropertyValueCoreHandler) {
-      reportError2 = this.isDisposedValue;
-      if (!reportError2) {
-        this.setPropertyValueCoreHandler(propertiesHash, name, val);
-      }
-    } else {
-      if (propertiesHash[name] !== val) {
-        propertiesHash[name] = val;
-        if (!isCalcValue && !!this.onPropertyValueCoreChanged) {
-          reportError2 = this.isDisposedValue;
-          if (!reportError2) {
-            this.onPropertyValueCoreChanged.fire(this, { name, newValue: val });
-          }
-        }
-      }
-    }
-    if (reportError2) {
-      ConsoleWarnings.disposedObjectChangedProperty(name, this.getType());
-    }
-  }
-  getItemValuesPropertyValue(name) {
-    let res = this.getPropertyValue(name);
-    if (!Array.isArray(res)) {
-      res = this.createItemValues(name);
-      this.setPropertyValueDirectly(name, res);
-    }
-    return res;
-  }
-  getArrayPropertyValue(name, onPush, onRemove) {
-    let res = this.getPropertyValue(name);
-    if (!Array.isArray(res)) {
-      res = this.createNewArray(name, onPush, onRemove);
-      this.setPropertyValueDirectly(name, res);
-    }
-    return res;
-  }
-  setArrayPropertyValue(name, val) {
-    const arr2 = this[name];
-    const arrayInfo = this.arraysInfo[name];
-    if (!arrayInfo || this.isTwoValueEquals(arr2, val))
-      return;
-    this.setArray(name, arr2, val, arrayInfo.isItemValues, arrayInfo.onPush);
-  }
-  get isEditingSurveyElement() {
-    var survey = this.getSurvey();
-    return !!survey && survey.isEditingSurveyElement;
-  }
-  iteratePropertiesHash(func) {
-    var keys = [];
-    for (var key in this.propertyHash) {
-      keys.push(key);
-    }
-    keys.forEach((key2) => func(this.propertyHash, key2));
-  }
-  /**
-   * Assigns a new value to a specified property.
-   * @param name A property name.
-   * @param val A new value for the property.
-   */
-  setPropertyValue(name, val) {
-    if (this.isDisposedValue)
-      return;
-    if (!this.isLoadingFromJson) {
-      const prop = this.getPropertyByName(name);
-      if (!!prop) {
-        val = prop.settingValue(this, val);
-      }
-    }
-    var oldValue = this.getPropertyValue(name);
-    if (oldValue && Array.isArray(oldValue) && !!this.arraysInfo && (!val || Array.isArray(val))) {
-      if (!this.isTwoValueEquals(oldValue, val)) {
-        this.setArrayPropertyDirectly(name, val);
-      } else if (val === void 0 && Array.isArray(oldValue)) {
-        oldValue.isReset = true;
-      }
-    } else {
-      if (val !== oldValue) {
-        this.setPropertyValueDirectly(name, val);
-        if (!this.isTwoValueEquals(oldValue, val)) {
-          this.propertyValueChanged(name, oldValue, val);
-        }
-      }
-    }
-  }
-  setArrayPropertyDirectly(name, val, sendNotification = true) {
-    var arrayInfo = this.arraysInfo[name];
-    this.setArray(name, this.getPropertyValue(name), val, arrayInfo ? arrayInfo.isItemValues : false, arrayInfo ? sendNotification && arrayInfo.onPush : null);
-  }
-  setPropertyValueDirectly(name, val, isCalcValue) {
-    this.setPropertyValueCore(this.propertyHash, name, val, isCalcValue);
-  }
-  clearPropertyValue(name) {
-    this.setPropertyValueCore(this.propertyHash, name, null);
-    delete this.propertyHash[name];
-  }
-  onPropertyValueChangedCallback(name, oldValue, newValue, sender, arrayChanges) {
-  }
-  itemValuePropertyChanged(item, name, oldValue, newValue) {
-    this.onItemValuePropertyChanged.fire(this, {
-      obj: item,
-      name,
-      oldValue,
-      newValue,
-      propertyName: item.ownerPropertyName
-    });
-  }
-  executeOnSyncPropertiesChanged(func) {
-    if (!this.isFuncExecuting) {
-      this.isFuncExecuting = true;
-      func();
-      this.isFuncExecuting = false;
-    }
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-  }
-  propertyValueChanged(name, oldValue, newValue, arrayChanges, target) {
-    if (this.isLoadingFromJson)
-      return;
-    this.updateBindings(name, newValue);
-    this.onPropertyValueChanged(name, oldValue, newValue);
-    this.onPropertyChanged.fire(this, {
-      name,
-      oldValue,
-      newValue,
-      arrayChanges,
-      target
-    });
-    this.doPropertyValueChangedCallback(name, oldValue, newValue, arrayChanges, this);
-    this.checkConditionPropertyChanged(name);
-    if (!this.onPropChangeFunctions)
-      return;
-    for (var i = 0; i < this.onPropChangeFunctions.length; i++) {
-      if (this.onPropChangeFunctions[i].name == name)
-        this.onPropChangeFunctions[i].func(newValue, arrayChanges);
-    }
-  }
-  onBindingChanged(oldValue, newValue) {
-    if (this.isLoadingFromJson)
-      return;
-    this.doPropertyValueChangedCallback("bindings", oldValue, newValue);
-  }
-  get isInternal() {
-    return false;
-  }
-  doPropertyValueChangedCallback(name, oldValue, newValue, arrayChanges, target) {
-    const fireCallback = (obj) => {
-      if (!!obj && !!obj.onPropertyValueChangedCallback) {
-        obj.onPropertyValueChangedCallback(name, oldValue, newValue, target, arrayChanges);
-      }
-    };
-    if (this.isInternal) {
-      fireCallback(this);
-      return;
-    }
-    if (!target)
-      target = this;
-    var notifier = this.getSurvey();
-    if (!notifier)
-      notifier = this;
-    fireCallback(notifier);
-    if (notifier !== this) {
-      fireCallback(this);
-    }
-  }
-  addExpressionProperty(name, onExecute, canRun) {
-    if (!this.expressionInfo) {
-      this.expressionInfo = {};
-    }
-    this.expressionInfo[name] = { onExecute, canRun };
-  }
-  validateExpression(name, expression, options2) {
-    if (!expression)
-      return;
-    const prop = this.getPropertyByName(name);
-    const isCondition = !!prop && prop.type == "condition";
-    const runner = this.createExpressionRunner(expression);
-    const errors = runner.validate(this.getValueGetterContext(), options2, isCondition);
-    return errors.length ? { obj: this, propertyName: name, errors } : void 0;
-  }
-  /**
-   * Validates expressions used in the survey.
-   *
-   * This method detects the following types of errors:
-   *
-   * - Unknown variable\
-   * The expression references an undefined variable or an unknown question, panel, or page name.
-   *
-   * - Unknown function\
-   * The expression references an unregistered function.
-   *
-   * - Semantic error\
-   * The expression is syntactically valid but has no meaningful effect because it always evaluates to the same value.
-   *
-   * - Syntax error\
-   * The expression contains invalid syntax, such as unmatched parentheses, missing operands, or invalid operators.
-   *
-   * You can disable checks for unknown variables, unknown functions, and semantic errors by passing an `options` object with the `variables`, `functions`, or `semantics` property set to `false`. Syntax errors are always validated.
-   *
-   * ```js
-   * // ...
-   * // Omitted: `SurveyModel` creation
-   * // ...
-   *
-   * // Validate syntax errors only
-   * const res = survey.validateExpressions({
-   *   variables: false,
-   *   functions: false,
-   *   semantics: false
-   * });
-   * ```
-   * @param options Configuration options that control which validation checks are performed.
-   * @param {boolean} options.variables Pass `false` to disable validation of unknown variables.
-   * @param {boolean} options.functions Pass `false` to disable validation of unknown functions.
-   * @param {boolean} options.semantics Pass `false` to disable validation of semantic errors.
-   * @returns An [`IExpressionValidationResult`](https://surveyjs.io/form-library/documentation/api-reference/IExpressionValidationResult) array.
-   */
-  validateExpressions(options2 = { functions: true, variables: true, semantics: true }) {
-    const result = [];
-    Serializer.getPropertiesByObj(this).forEach((prop) => {
-      if (prop.isExpression) {
-        const errors = this.validateExpression(prop.name, this[prop.name], options2);
-        if (errors) {
-          result.push(errors);
-        }
-      }
-    });
-    for (let child of this.getAllChildren()) {
-      const errors = child.validateExpressions(options2);
-      if (errors && errors.length > 0) {
-        result.push(...errors);
-      }
-    }
-    return result;
-  }
-  getAllChildren() {
-    return [];
-  }
-  getDataFilteredProperties() {
-    return {};
-  }
-  runConditionCore(properties) {
-    if (!this.expressionInfo)
-      return;
-    for (var key in this.expressionInfo) {
-      this.runConditionItemCore(key, properties);
-    }
-  }
-  canRunConditions() {
-    return !this.isDesignMode;
-  }
-  checkConditionPropertyChanged(propName) {
-    if (!this.expressionInfo || !this.expressionInfo[propName])
-      return;
-    if (!this.canRunConditions())
-      return;
-    this.runConditionItemCore(propName, this.getDataFilteredProperties());
-  }
-  runConditionItemCore(propName, properties) {
-    const info = this.expressionInfo[propName];
-    const expression = this.getPropertyValue(propName);
-    if (!expression)
-      return;
-    if (!!info.canRun && !info.canRun(this))
-      return;
-    this.runExpressionByProperty(propName, properties, (res) => {
-      info.onExecute(this, res);
-    });
-  }
-  doBeforeAsynRun(id) {
-    if (!this.asynExpressionHash)
-      this.asynExpressionHash = {};
-    const isChanged = !this.isAsyncExpressionRunning;
-    this.asynExpressionHash[id] = true;
-    if (isChanged) {
-      this.onAsyncRunningChanged();
-    }
-  }
-  doAfterAsynRun(id) {
-    if (!!this.asynExpressionHash) {
-      delete this.asynExpressionHash[id];
-      if (!this.isAsyncExpressionRunning) {
-        this.onAsyncRunningChanged();
-      }
-    }
-  }
-  onAsyncRunningChanged() {
-  }
-  get isAsyncExpressionRunning() {
-    return !!this.asynExpressionHash && Object.keys(this.asynExpressionHash).length > 0;
-  }
-  createExpressionRunner(expression) {
-    const res = new ExpressionRunner(expression);
-    res.onBeforeAsyncRun = (id) => {
-      this.doBeforeAsynRun(id);
-    };
-    res.onAfterAsyncRun = (id) => {
-      this.doAfterAsynRun(id);
-    };
-    return res;
-  }
-  getExpressionFromSurvey(propName) {
-    let expression = this[propName];
-    if (!expression)
-      return "";
-    const survey = this.getSurvey();
-    return !!survey ? survey.beforeExpressionRunning(this, propName, expression) : expression;
-  }
-  runExpressionByProperty(propName, properties, onExecute, canRun) {
-    if (!this[propName])
-      return false;
-    const expression = this.getExpressionFromSurvey(propName);
-    if (!!expression) {
-      const info = this.getExpressionInfoByProperty(propName, expression);
-      const runner = info.runner;
-      if (!info.isRunning && (!canRun || canRun(runner))) {
-        info.isRunning = true;
-        runner.onRunComplete = (value) => {
-          onExecute(value);
-          info.isRunning = false;
-        };
-        runner.runContext(this.getValueGetterContext(), this.getPropertiesCopy(properties, propName));
-      }
-    }
-    return true;
-  }
-  getPropertiesCopy(properties, propName) {
-    const copy2 = {};
-    for (const key in properties) {
-      copy2[key] = properties[key];
-    }
-    if (propName) {
-      copy2.propertyName = propName;
-    }
-    return copy2;
-  }
-  getExpressionByProperty(propName) {
-    const expression = this.getExpressionFromSurvey(propName);
-    if (!expression)
-      return null;
-    return this.getExpressionInfoByProperty(propName, expression).runner;
-  }
-  getExpressionInfoByProperty(propName, expression) {
-    if (!this.runExpressionHash) {
-      this.runExpressionHash = {};
-    }
-    let info = this.runExpressionHash[propName];
-    if (!info) {
-      info = { runner: this.createExpressionRunner(expression) };
-      this.runExpressionHash[propName] = info;
-    } else {
-      info.runner.expression = expression;
-    }
-    return info;
-  }
-  /**
-   * Registers a single value change handler for one or multiple properties.
-   *
-   * The `registerPropertyChangedHandlers` and [`unregisterPropertyChangedHandlers`](#unregisterPropertyChangedHandlers) methods allow you to manage property change event handlers dynamically. If you only need to attach an event handler without removing it afterwards, you can use the [`onPropertyChanged`](#onPropertyChanged) event instead.
-   * @param propertyNames An array of one or multiple property names.
-   * @param handler A function to call when one of the listed properties change. Accepts a new property value as an argument.
-   * @param key *(Optional)* A key that identifies the current registration. If a function for one of the properties is already registered with the same key, the function will be overwritten. You can also use the key to subsequently unregister handlers.
-   * @see unregisterPropertyChangedHandlers
-   */
-  registerPropertyChangedHandlers(propertyNames, handler, key = null) {
-    for (var i = 0; i < propertyNames.length; i++) {
-      this.registerFunctionOnPropertyValueChanged(propertyNames[i], handler, key);
-    }
-  }
-  /**
-   * Unregisters value change event handlers for the specified properties.
-   * @param propertyNames An array of one or multiple property names.
-   * @param key *(Optional)* A key of the registration that you want to cancel.
-   * @see registerPropertyChangedHandlers
-   */
-  unregisterPropertyChangedHandlers(propertyNames, key = null) {
-    for (var i = 0; i < propertyNames.length; i++) {
-      this.unRegisterFunctionOnPropertyValueChanged(propertyNames[i], key);
-    }
-  }
-  registerFunctionOnPropertyValueChanged(name, func, key = null) {
-    if (!this.onPropChangeFunctions) {
-      this.onPropChangeFunctions = [];
-    }
-    if (key) {
-      for (var i = 0; i < this.onPropChangeFunctions.length; i++) {
-        var item = this.onPropChangeFunctions[i];
-        if (item.name == name && item.key == key) {
-          item.func = func;
-          return;
-        }
-      }
-    }
-    this.onPropChangeFunctions.push({ name, func, key });
-  }
-  registerFunctionOnPropertiesValueChanged(names, func, key = null) {
-    this.registerPropertyChangedHandlers(names, func, key);
-  }
-  unRegisterFunctionOnPropertyValueChanged(name, key = null) {
-    if (!this.onPropChangeFunctions)
-      return;
-    for (var i = 0; i < this.onPropChangeFunctions.length; i++) {
-      var item = this.onPropChangeFunctions[i];
-      if (item.name == name && item.key == key) {
-        return this.onPropChangeFunctions.splice(i, 1);
-      }
-    }
-  }
-  unRegisterFunctionOnPropertiesValueChanged(names, key = null) {
-    this.unregisterPropertyChangedHandlers(names, key);
-  }
-  addPropertyDependency(obj, propertyName) {
-    if (!obj || !propertyName)
-      return;
-    const id = this.uniqueId + "_" + propertyName;
-    if (!this.expressionDependencies[id]) {
-      obj.registerFunctionOnPropertyValueChanged(propertyName, () => {
-        this.onDependencyValueChanged(obj, propertyName);
-      }, id);
-      this.expressionDependencies[id] = { obj, propertyName };
-    }
-  }
-  onDependencyValueChanged(obj, propertyName) {
-    this.runConditionCore(this.getDataFilteredProperties());
-    this.locStrsChanged();
-  }
-  createCustomLocalizableObj(name) {
-    const locStr = this.getLocalizableString(name);
-    if (locStr)
-      return locStr;
-    return this.createLocalizableString(name, this, false, true);
-  }
-  getLocale() {
-    const locOwner = this.getSurvey();
-    return !!locOwner ? locOwner.getLocale() : "";
-  }
-  getLocalizationString(strName) {
-    return getLocaleString(strName, this.getLocale());
-  }
-  getLocalizationFormatString(strName, ...args) {
-    const str = this.getLocalizationString(strName);
-    if (!str || !str.format)
-      return "";
-    return str.format(...args);
-  }
-  createLocString(params) {
-    if (params.hasTranslation && !params.translationKey) {
-      params.translationKey = params.name;
-    }
-    return this.createLocalizableString(params.name, params.owner, params.supportsMarkdown, params.translationKey);
-  }
-  createLocalizableString(name, owner, supportsMarkdown = false, defaultStr = false) {
-    if (!owner) {
-      owner = this;
-    }
-    let locName = void 0;
-    if (defaultStr) {
-      locName = defaultStr === true ? name : defaultStr;
-    }
-    const locStr = this.createLocalizableStringCore(owner, name, supportsMarkdown, locName);
-    const prop = this.getPropertyByName(name);
-    locStr.disableLocalization = prop && prop.isLocalizable === false;
-    return locStr;
-  }
-  createLocalizableStringCore(owner, name, supportsMarkdown, locName) {
-    const locStr = new LocalizableString(owner, supportsMarkdown, name, locName);
-    if (!!name) {
-      locStr.onStrChanged = (oldValue, newValue) => {
-        this.propertyValueChanged(name, oldValue, newValue);
-      };
-    }
-    if (!this.localizableStrings) {
-      this.localizableStrings = {};
-    }
-    this.localizableStrings[name] = locStr;
-    return locStr;
-  }
-  removeLocalizableString(name) {
-    if (this.localizableStrings) {
-      delete this.localizableStrings[name];
-    }
-  }
-  getLocalizableString(name) {
-    const ls = this.localizableStrings;
-    return !!ls ? ls[name] : null;
-  }
-  getOrCreateLocStr(name, supportsMarkdown = false, defaultStr = false, onCreate) {
-    let locStr = this.getLocalizableString(name);
-    if (!locStr) {
-      locStr = this.createLocalizableString(name, void 0, supportsMarkdown, defaultStr);
-      if (onCreate) {
-        onCreate(locStr);
-      }
-    }
-    return locStr;
-  }
-  locStrChanged(name) {
-    const locStr = this.getLocalizableString(name);
-    if (locStr) {
-      locStr.strChanged();
-    }
-  }
-  isLocStrEmpty(name) {
-    const locStr = this.getLocalizableString(name);
-    return !locStr || locStr.isEmpty;
-  }
-  getLocalizableStringText(name, defaultStr = "") {
-    return this.getLocStringText(this.getLocalizableString(name), defaultStr);
-  }
-  setLocalizableStringText(name, value) {
-    this.setLocStringText(this.getLocalizableString(name), value);
-  }
-  getLocStringText(locStr, defaultStr = "") {
-    if (!!(locStr === null || locStr === void 0 ? void 0 : locStr.name)) {
-      Base.collectDependency(this, locStr.name);
-    }
-    return (locStr === null || locStr === void 0 ? void 0 : locStr.text) || defaultStr;
-  }
-  setLocStringText(locStr, value) {
-    if (!locStr)
-      return;
-    let oldValue = locStr.text;
-    if (oldValue != value) {
-      locStr.text = value;
-    }
-  }
-  addUsedLocales(locales) {
-    if (!!this.localizableStrings) {
-      for (let key in this.localizableStrings) {
-        let item = this.getLocalizableString(key);
-        if (item)
-          this.addLocStringToUsedLocales(item, locales);
-      }
-    }
-    if (!!this.arraysInfo) {
-      for (let key in this.arraysInfo) {
-        const prop = this.getPropertyByName(key);
-        if (!prop || !prop.isPropertySerializable(this))
-          continue;
-        let items = this.getPropertyValue(key);
-        if (!items || !items.length)
-          continue;
-        for (let i = 0; i < items.length; i++) {
-          let item = items[i];
-          if (item && item.addUsedLocales) {
-            item.addUsedLocales(locales);
-          }
-        }
-      }
-    }
-  }
-  searchText(text2, founded) {
-    var strs = [];
-    this.getSearchableLocalizedStrings(strs);
-    for (var i = 0; i < strs.length; i++) {
-      if (strs[i].setFindText(text2)) {
-        founded.push({ element: this, str: strs[i] });
-      }
-    }
-  }
-  getSearchableLocalizedStrings(arr2) {
-    if (!!this.localizableStrings) {
-      let keys2 = [];
-      this.getSearchableLocKeys(keys2);
-      for (var i = 0; i < keys2.length; i++) {
-        let item = this.getLocalizableString(keys2[i]);
-        if (item)
-          arr2.push(item);
-      }
-    }
-    if (!this.arraysInfo)
-      return;
-    let keys = [];
-    this.getSearchableItemValueKeys(keys);
-    for (var i = 0; i < keys.length; i++) {
-      var items = this.getPropertyValue(keys[i]);
-      if (!items)
-        continue;
-      for (var j2 = 0; j2 < items.length; j2++) {
-        arr2.push(items[j2].locText);
-      }
-    }
-  }
-  getSearchableLocKeys(keys) {
-  }
-  getSearchableItemValueKeys(keys) {
-  }
-  addLocStringToUsedLocales(locStr, locales) {
-    var locs = locStr.getLocales();
-    for (var i = 0; i < locs.length; i++) {
-      if (locales.indexOf(locs[i]) < 0) {
-        locales.push(locs[i]);
-      }
-    }
-  }
-  createItemValues(name) {
-    var self2 = this;
-    var result = this.createNewArray(name, function(item) {
-      item.locOwner = self2;
-      item.ownerPropertyName = name;
-      if (typeof item.getSurvey == "function") {
-        const survey = item.getSurvey();
-        if (!!survey && typeof survey.makeReactive == "function") {
-          survey.makeReactive(item);
-        }
-      }
-    });
-    this.arraysInfo[name].isItemValues = true;
-    return result;
-  }
-  addOnArrayChangedCallback(callback) {
-    if (!this.onArrayChanged) {
-      this.onArrayChanged = new EventBase();
-    }
-    this.onArrayChanged.add(callback);
-  }
-  removeOnArrayChangedCallback(callback) {
-    if (!!this.onArrayChanged) {
-      this.onArrayChanged.remove(callback);
-      if (this.onArrayChanged.isEmpty) {
-        this.onArrayChanged = void 0;
-      }
-    }
-  }
-  notifyArrayChanged(name, ar, arrayChanges) {
-    !!this.onArrayChanged && this.onArrayChanged.fire(this, { arrayChanges, name, newValue: ar, valueFromHash: this.propertyHash[name] });
-  }
-  addOnPropertyValueChangedCallback(callback) {
-    if (!this.onPropertyValueCoreChanged) {
-      this.onPropertyValueCoreChanged = new EventBase();
-    }
-    this.onPropertyValueCoreChanged.add(callback);
-  }
-  removeOnPropertyValueChangedCallback(callback) {
-    if (!!this.onPropertyValueCoreChanged) {
-      this.onPropertyValueCoreChanged.remove(callback);
-      if (this.onPropertyValueCoreChanged.isEmpty) {
-        this.onPropertyValueCoreChanged = void 0;
-      }
-    }
-  }
-  get hasActiveUISubscribers() {
-    return !!this.onPropertyValueCoreChanged;
-  }
-  createNewArrayCore(name) {
-    var res = null;
-    if (!!this.createArrayCoreHandler) {
-      res = this.createArrayCoreHandler(this.propertyHash, name);
-    }
-    if (!res) {
-      res = new Array();
-      this.setPropertyValueCore(this.propertyHash, name, res);
-    }
-    return res;
-  }
-  ensureArray(name, onPush = null, onRemove = null) {
-    if (this.arraysInfo && this.arraysInfo[name]) {
-      return;
-    }
-    return this.createNewArray(name, onPush, onRemove);
-  }
-  createNewArray(name, onPush = null, onRemove = null) {
-    var newArray = this.createNewArrayCore(name);
-    if (!this.arraysInfo) {
-      this.arraysInfo = {};
-    }
-    this.arraysInfo[name] = { onPush, isItemValues: false };
-    var self2 = this;
-    newArray.push = function(value) {
-      var result = Object.getPrototypeOf(newArray).push.call(newArray, value);
-      if (!self2.isDisposedValue) {
-        if (onPush)
-          onPush(value, newArray.length - 1);
-        const arrayChanges = new ArrayChanges(newArray.length - 1, 0, [value], []);
-        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
-        self2.notifyArrayChanged(name, newArray, arrayChanges);
-      }
-      return result;
-    };
-    newArray.shift = function() {
-      var result = Object.getPrototypeOf(newArray).shift.call(newArray);
-      if (!self2.isDisposedValue && result) {
-        if (onRemove)
-          onRemove(result);
-        const arrayChanges = new ArrayChanges(newArray.length - 1, 1, [], []);
-        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
-        self2.notifyArrayChanged(name, newArray, arrayChanges);
-      }
-      return result;
-    };
-    newArray.unshift = function(value) {
-      var result = Object.getPrototypeOf(newArray).unshift.call(newArray, value);
-      if (!self2.isDisposedValue) {
-        if (onPush)
-          onPush(value, newArray.length - 1);
-        const arrayChanges = new ArrayChanges(0, 0, [value], []);
-        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
-        self2.notifyArrayChanged(name, newArray, arrayChanges);
-      }
-      return result;
-    };
-    newArray.pop = function() {
-      var result = Object.getPrototypeOf(newArray).pop.call(newArray);
-      if (!self2.isDisposedValue) {
-        if (onRemove)
-          onRemove(result);
-        const arrayChanges = new ArrayChanges(newArray.length - 1, 1, [], []);
-        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
-        self2.notifyArrayChanged(name, newArray, arrayChanges);
-      }
-      return result;
-    };
-    newArray.splice = function(start, deleteCount, ...items) {
-      if (!start)
-        start = 0;
-      if (!deleteCount)
-        deleteCount = 0;
-      var result = Object.getPrototypeOf(newArray).splice.call(newArray, start, deleteCount, ...items);
-      if (!items)
-        items = [];
-      if (!self2.isDisposedValue) {
-        if (onRemove && result) {
-          for (var i = 0; i < result.length; i++) {
-            onRemove(result[i]);
-          }
-        }
-        if (onPush) {
-          for (var i = 0; i < items.length; i++) {
-            onPush(items[i], start + i);
-          }
-        }
-        const arrayChanges = new ArrayChanges(start, deleteCount, items, result);
-        self2.propertyValueChanged(name, newArray, newArray, arrayChanges);
-        self2.notifyArrayChanged(name, newArray, arrayChanges);
-      }
-      return result;
-    };
-    return newArray;
-  }
-  getItemValueType() {
-    return void 0;
-  }
-  setArray(name, dest, src, isItemValues, onPush) {
-    var deletedItems = [].concat(dest);
-    Object.getPrototypeOf(dest).splice.call(dest, 0, dest.length);
-    if (!!src) {
-      for (var i = 0; i < src.length; i++) {
-        var item = src[i];
-        if (isItemValues) {
-          if (!!Base.createItemValue) {
-            item = Base.createItemValue(item, this.getItemValueType());
-          }
-        }
-        Object.getPrototypeOf(dest).push.call(dest, item);
-        if (onPush)
-          onPush(dest[i]);
-      }
-      delete dest.isReset;
-    } else {
-      dest.isReset = true;
-    }
-    const arrayChanges = new ArrayChanges(0, deletedItems.length, dest, deletedItems);
-    this.propertyValueChanged(name, deletedItems, dest, arrayChanges);
-    this.notifyArrayChanged(name, dest, arrayChanges);
-  }
-  isTwoValueEquals(x2, y, caseInSensitive = false, trimString = false) {
-    return Helpers.checkIfValuesEqual(x2, y, { ignoreOrder: false, caseSensitive: !caseInSensitive, trimStrings: trimString, doNotConvertNumbers: true });
-  }
-  static copyObject(dst, src) {
-    for (var key in src) {
-      var source = src[key];
-      if (typeof source === "object") {
-        source = {};
-        this.copyObject(source, src[key]);
-      }
-      dst[key] = source;
-    }
-  }
-  copyCssClasses(dest, source) {
-    if (!source)
-      return;
-    if (typeof source === "string" || source instanceof String) {
-      dest["root"] = source;
-    } else {
-      Base.copyObject(dest, source);
-    }
-  }
-  getValueInLowCase(val) {
-    if (!!val && typeof val == "string")
-      return val.toLowerCase();
-    return val;
-  }
-  getElementsInDesign(includeHidden = false) {
-    return [];
-  }
-  get animationAllowed() {
-    return this.getIsAnimationAllowed();
-  }
-  getIsAnimationAllowed() {
-    return settings.animationEnabled && this.animationAllowedLock >= 0 && !this.isLoadingFromJson && !this.isDisposed && (!!this.onElementRerendered || !this.supportOnElementRerenderedEvent);
-  }
-  blockAnimations() {
-    this.animationAllowedLock--;
-  }
-  releaseAnimations() {
-    this.animationAllowedLock++;
-  }
-  enableOnElementRerenderedEvent() {
-    this.onElementRerenderedEventEnabled = true;
-  }
-  disableOnElementRerenderedEvent() {
-    var _a2;
-    (_a2 = this.onElementRerendered) === null || _a2 === void 0 ? void 0 : _a2.fire(this, { isCancel: true });
-    this.onElementRerenderedEventEnabled = false;
-  }
-  get onElementRerendered() {
-    return this.supportOnElementRerenderedEvent && this.onElementRerenderedEventEnabled ? this._onElementRerendered : void 0;
-  }
-  afterRerender() {
-    var _a2;
-    (_a2 = this.onElementRerendered) === null || _a2 === void 0 ? void 0 : _a2.fire(this, { isCancel: false });
-  }
-}
-Base.UniqueId = 0;
-Base.currentDependencis = void 0;
-class ArrayChanges {
-  constructor(index, deleteCount, itemsToAdd, deletedItems) {
-    this.index = index;
-    this.deleteCount = deleteCount;
-    this.itemsToAdd = itemsToAdd;
-    this.deletedItems = deletedItems;
-  }
-}
-let Event$1 = class Event2 {
-  get isEmpty() {
-    return this.length === 0;
-  }
-  get length() {
-    return !!this.callbacks ? this.callbacks.length : 0;
-  }
-  fireByCreatingOptions(sender, createOptions) {
-    if (!this.callbacks)
-      return;
-    for (var i = 0; i < this.callbacks.length; i++) {
-      this.callbacks[i](sender, createOptions());
-      if (!this.callbacks)
-        return;
-    }
-  }
-  fire(sender, options2) {
-    if (!this.callbacks)
-      return;
-    const callbacks = [].concat(this.callbacks);
-    for (var i = 0; i < callbacks.length; i++) {
-      callbacks[i](sender, options2);
-      if (!this.callbacks)
-        return;
-    }
-  }
-  clear() {
-    this.callbacks = void 0;
-  }
-  add(func) {
-    if (this.hasFunc(func))
-      return;
-    if (!this.callbacks) {
-      this.callbacks = new Array();
-    }
-    this.callbacks.push(func);
-    this.fireCallbackChanged();
-  }
-  remove(func) {
-    if (this.hasFunc(func)) {
-      var index = this.callbacks.indexOf(func, 0);
-      this.callbacks.splice(index, 1);
-      this.fireCallbackChanged();
-    }
-  }
-  hasFunc(func) {
-    if (this.callbacks == null)
-      return false;
-    return this.callbacks.indexOf(func, 0) > -1;
-  }
-  fireCallbackChanged() {
-    if (!!this.onCallbacksChanged) {
-      this.onCallbacksChanged();
-    }
-  }
-};
-class EventBase extends Event$1 {
-}
-class EventAsync extends EventBase {
-  fire(sender, options2, onComplete, onFirstAsync) {
-    onComplete = onComplete || (() => {
-    });
-    if (!this.callbacks) {
-      onComplete();
-      return;
-    }
-    const promises = [];
-    const callbacks = [].concat(this.callbacks);
-    for (var i = 0; i < callbacks.length; i++) {
-      const res = callbacks[i](sender, options2);
-      if (res && res instanceof Promise) {
-        promises.push(res);
-      }
-      if (!this.callbacks)
-        return;
-    }
-    if (promises.length > 0) {
-      onFirstAsync && onFirstAsync();
-      Promise.all(promises).then(() => {
-        onComplete();
-      });
-    } else {
-      onComplete();
-    }
-  }
-}
-function __decorate(decorators, target, key, desc) {
-  var c4 = arguments.length, r2 = c4 < 3 ? target : desc, d2;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r2 = Reflect.decorate(decorators, target, key, desc);
-  else for (var i = decorators.length - 1; i >= 0; i--) if (d2 = decorators[i]) r2 = (c4 < 3 ? d2(r2) : c4 > 3 ? d2(target, key, r2) : d2(target, key)) || r2;
-  return c4 > 3 && r2 && Object.defineProperty(target, key, r2), r2;
-}
-typeof SuppressedError === "function" ? SuppressedError : function(error3, suppressed, message) {
-  var e2 = new Error(message);
-  return e2.name = "SuppressedError", e2.error = error3, e2.suppressed = suppressed, e2;
-};
-class ResponsivityManager {
-  constructor(container, model, afterInitializeCallback) {
-    this.container = container;
-    this.model = model;
-    this.afterInitializeCallback = afterInitializeCallback;
-    this.resizeObserver = void 0;
-    this.isInitialized = false;
-    this.isResizeObserverStarted = false;
-    this.getComputedStyle = (elt) => {
-      return DomDocumentHelper.getComputedStyle(elt);
-    };
-    this.isDisposed = false;
-    if (typeof ResizeObserver !== "undefined") {
-      this.resizeObserver = new ResizeObserver((entries) => {
-        DomWindowHelper.requestAnimationFrame(() => {
-          this.isResizeObserverStarted = true;
-          this.process();
-        });
-      });
-      this.resizeObserver.observe(this.container.parentElement);
-    }
-  }
-  getDimensions(element2) {
-    return {
-      scroll: element2.scrollWidth,
-      offset: element2.offsetWidth
-    };
-  }
-  getAvailableSpace() {
-    const style = this.getComputedStyle(this.container);
-    let space = this.container.offsetWidth;
-    if (style.boxSizing === "border-box") {
-      space -= parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-    }
-    return space;
-  }
-  getGap() {
-    const computedStyle = this.getComputedStyle(this.container);
-    if (computedStyle.display == "flex") {
-      const gap = parseFloat(computedStyle.rowGap);
-      return !isNaN(gap) ? gap : 0;
-    }
-    return 0;
-  }
-  calcItemSize(item) {
-    return item.offsetWidth || item.getBoundingClientRect().width;
-  }
-  updateItemsDimensions(callback) {
-    if (!this.container)
-      return;
-    const actionsToUpdateDimension = this.isInitialized ? this.model.renderedActions.filter((action) => action.needUpdateMaxDimension || action.needUpdateMinDimension) : this.model.renderedActions;
-    let actionsCounter = actionsToUpdateDimension.length;
-    if (actionsCounter == 0) {
-      callback();
-    }
-    const onItemDimensionsUpdated = () => {
-      if (--actionsCounter <= 0) {
-        callback();
-      }
-    };
-    actionsToUpdateDimension.forEach((action) => {
-      const needUpdateMaxDimension = !this.isInitialized || action.needUpdateMaxDimension;
-      const needUpdateMinDimension = !this.isInitialized || action.needUpdateMinDimension;
-      const modeToCalculate = needUpdateMinDimension ? needUpdateMaxDimension ? void 0 : "small" : "large";
-      action.updateDimensions((el) => this.calcItemSize(el), () => {
-        action.needUpdateMaxDimension = false;
-        action.needUpdateMinDimension = false;
-        onItemDimensionsUpdated();
-      }, modeToCalculate);
-    });
-  }
-  get isContainerVisible() {
-    return !!this.container && isContainerVisible(this.container);
-  }
-  shouldProcessResponsiveness() {
-    return this.isContainerVisible && !this.model.isResponsivenessDisabled && !this.isDisposed;
-  }
-  process() {
-    if (this.shouldProcessResponsiveness()) {
-      this.updateItemsDimensions(() => {
-        if (this.shouldProcessResponsiveness()) {
-          this.model.fit({ availableSpace: this.getAvailableSpace(), gap: this.getGap() });
-        }
-        if (!this.isInitialized) {
-          this.isInitialized = true;
-          this.afterInitializeCallback && this.afterInitializeCallback();
-        }
-      });
-    }
-  }
-  update(forceUpdate) {
-    if (!this.isResizeObserverStarted)
-      return;
-    if (!this.model.isResponsivenessDisabled) {
-      if (forceUpdate) {
-        this.isInitialized = false;
-      }
-      this.process();
-    }
-  }
-  dispose() {
-    this.isDisposed = true;
-    if (!!this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
-    this.isResizeObserverStarted = false;
-    this.resizeObserver = void 0;
-    this.container = void 0;
-  }
-}
-class CssClassBuilder {
-  constructor() {
-    this.classes = [];
-  }
-  isEmpty() {
-    return this.toString() === "";
-  }
-  append(value, condition = true) {
-    if (!!value && condition) {
-      if (typeof value === "string") {
-        value = value.trim();
-      }
-      this.classes.push(value);
-    }
-    return this;
-  }
-  toString() {
-    return this.classes.join(" ");
-  }
-}
-function debounce(func) {
-  let isSheduled = false;
-  let isCanceled = false;
-  let funcArgs;
-  const cancelCallback = () => {
-    isCanceled = true;
-    funcArgs = void 0;
-  };
-  return {
-    run: ((...args) => {
-      isCanceled = false;
-      funcArgs = args;
-      if (!isSheduled) {
-        isSheduled = true;
-        queueMicrotask(() => {
-          if (!isCanceled) {
-            func.apply(this, funcArgs);
-          }
-          funcArgs = void 0;
-          isCanceled = false;
-          isSheduled = false;
-        });
-      }
-    }),
-    cancel: cancelCallback,
-    getLastArguments: () => funcArgs,
-    flushSync: () => {
-      if (!isCanceled && isSheduled) {
-        func.apply(this, funcArgs);
-        cancelCallback();
-      }
-    }
-  };
-}
-let defaultActionBarCss = {
-  root: "sv-action-bar",
-  defaultSizeMode: "sv-action-bar--default-size-mode",
-  smallSizeMode: "sv-action-bar--small-size-mode",
-  item: "sv-action-bar-item",
-  itemWithTitle: "",
-  itemAsIcon: "sv-action-bar-item--icon",
-  itemActive: "sv-action-bar-item--active",
-  itemPressed: "sv-action-bar-item--pressed",
-  itemIcon: "sv-action-bar-item__icon",
-  itemTitle: "sv-action-bar-item__title",
-  itemTitleWithIcon: "sv-action-bar-item__title--with-icon"
-};
-class ActionContainer extends Base {
-  constructor() {
-    super(...arguments);
-    this.id = ActionContainer.ContainerID++;
-    this.visibleActions = [];
-    this.sizeMode = "default";
-    this.raiseUpdateCallback = debounce((isResetInitialized) => {
-      this.update(isResetInitialized);
-    });
-    this.onActionPropertyChangedCallback = this.onActionPropertyChanged.bind(this);
-    this.createActionCallback = null;
-  }
-  getMarkdownHtml(text2, name, item) {
-    return !!this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item) : void 0;
-  }
-  getRenderer(name) {
-    return !!this.locOwner ? this.locOwner.getRenderer(name) : null;
-  }
-  getRendererContext(locStr) {
-    return !!this.locOwner ? this.locOwner.getRendererContext(locStr) : locStr;
-  }
-  getProcessedText(text2) {
-    return this.locOwner ? this.locOwner.getProcessedText(text2) : text2;
-  }
-  getLocale() {
-    return !!this.locOwner ? this.locOwner.getLocale() : "";
-  }
-  getRenderedActions() {
-    return this.visibleActions;
-  }
-  locStrsChanged() {
-    super.locStrsChanged();
-    this.actions.forEach((item) => {
-      if (item.locTitle)
-        item.locTitle.strChanged();
-      item.locStrsChanged();
-    });
-  }
-  flushUpdates() {
-    this.raiseUpdateCallback.flushSync();
-  }
-  raiseUpdate(options2) {
-    var _a2;
-    const lastArguments = this.raiseUpdateCallback.getLastArguments();
-    const lastOptions = (_a2 = lastArguments && lastArguments[0]) !== null && _a2 !== void 0 ? _a2 : {};
-    this.raiseUpdateCallback.run(this.mergeUpdateOptions(options2, lastOptions));
-  }
-  mergeUpdateOptions(nextOptions, prevOptions) {
-    const options2 = Object.assign({}, nextOptions);
-    options2.needUpdateActions = !!options2.needUpdateActions || !!prevOptions.needUpdateActions;
-    options2.needUpdateIsEmpty = !!options2.needUpdateIsEmpty || !!prevOptions.needUpdateIsEmpty;
-    return options2;
-  }
-  update(options2) {
-    if (options2 === null || options2 === void 0 ? void 0 : options2.needUpdateActions) {
-      this.updateVisibleActions();
-    }
-    if (options2 === null || options2 === void 0 ? void 0 : options2.needUpdateIsEmpty) {
-      this.updateIsEmpty();
-    }
-  }
-  updateVisibleActions() {
-    this.visibleActions = this.getVisibleActions();
-  }
-  updateIsEmpty() {
-    this.isEmpty = this.getIsEmpty();
-  }
-  getIsEmpty() {
-    return this.visibleActions.length <= 0;
-  }
-  getVisibleActions() {
-    return this.actions.filter((action) => action.visible !== false);
-  }
-  onSet() {
-    this.actions.forEach((action) => {
-      this.patchAction(action);
-    });
-  }
-  onPush(action) {
-    this.patchAction(action);
-    this.raiseUpdate({ needUpdateActions: true, needUpdateIsEmpty: true });
-  }
-  onRemove(action) {
-    this.unPatchAction(action);
-    this.raiseUpdate({ needUpdateActions: true, needUpdateIsEmpty: true });
-  }
-  onActionPropertyChanged(action, options2) {
-    if (options2.name == "_visible") {
-      this.raiseUpdate({ needUpdateActions: true, needUpdateIsEmpty: true });
-    }
-  }
-  patchAction(action) {
-    this.setActionCssClasses(action);
-    action.owner = this;
-    action.onPropertyChanged.add(this.onActionPropertyChangedCallback);
-  }
-  unPatchAction(action) {
-    action.owner = null;
-    action.onPropertyChanged.remove(this.onActionPropertyChangedCallback);
-  }
-  setActionCssClasses(item) {
-    item.cssClasses = this.cssClasses;
-  }
-  get hasActions() {
-    return (this.actions || []).length > 0;
-  }
-  get hasVisibleActions() {
-    return !this.isEmpty;
-  }
-  get renderedActions() {
-    return this.getRenderedActions();
-  }
-  getRootStyle() {
-    return void 0;
-  }
-  getRootCss() {
-    const sizeModeClass = this.sizeMode === "small" ? this.cssClasses.smallSizeMode : this.cssClasses.defaultSizeMode;
-    return new CssClassBuilder().append(this.cssClasses.root + (!!sizeModeClass ? " " + sizeModeClass : "") + (!!this.containerCss ? " " + this.containerCss : "")).append(this.cssClasses.root + "--empty", this.isEmpty).toString();
-  }
-  getDefaultCssClasses() {
-    return defaultActionBarCss;
-  }
-  getAllActions() {
-    return this.actions;
-  }
-  setCssClasses(val, mergeWithDefault = true) {
-    this.cssClassesValue = {};
-    if (mergeWithDefault) {
-      this.copyCssClasses(this.cssClassesValue, this.getDefaultCssClasses());
-    }
-    mergeValues$1(val, this.cssClasses);
-    this.getAllActions().forEach((action) => {
-      this.setActionCssClasses(action);
-    });
-  }
-  set cssClasses(val) {
-    this.setCssClasses(val);
-  }
-  get cssClasses() {
-    if (!this.cssClassesValue) {
-      this.cssClassesValue = this.getDefaultCssClasses();
-    }
-    return this.cssClassesValue;
-  }
-  createAction(item) {
-    return item instanceof BaseAction ? item : this.createActionCore(this, item);
-  }
-  createActionCore(owner, item) {
-    if (this.createActionCallback)
-      return this.createActionCallback(item);
-    return new Action(item);
-  }
-  addAction(val, sortByVisibleIndex = true) {
-    const res = this.createAction(val);
-    if (sortByVisibleIndex && !this.isActionVisible(res))
-      return res;
-    const items = [].concat(this.actions, res);
-    this.sortItems(items);
-    this.actions = items;
-    return res;
-  }
-  removeActionById(id) {
-    const index = this.getActionIndexById(id);
-    if (index < 0)
-      return false;
-    this.actions.splice(index, 1);
-    return true;
-  }
-  setItems(items, sortByVisibleIndex = true) {
-    const newActions = [];
-    items.forEach((item) => {
-      if (!sortByVisibleIndex || this.isActionVisible(item)) {
-        newActions.push(this.createAction(item));
-      }
-    });
-    if (sortByVisibleIndex) {
-      this.sortItems(newActions);
-    }
-    this.actions = newActions;
-  }
-  sortItems(items) {
-    if (this.hasSetVisibleIndex(items)) {
-      items.sort(this.compareByVisibleIndex);
-    }
-  }
-  hasSetVisibleIndex(items) {
-    for (let i = 0; i < items.length; i++) {
-      const index = items[i].visibleIndex;
-      if (index !== void 0 && index >= 0)
-        return true;
-    }
-    return false;
-  }
-  compareByVisibleIndex(first, second) {
-    return first.visibleIndex - second.visibleIndex;
-  }
-  isActionVisible(item) {
-    return item.visibleIndex >= 0 || item.visibleIndex === void 0;
-  }
-  popupAfterShowCallback(itemValue) {
-  }
-  mouseOverHandler(itemValue) {
-    itemValue.isHovered = true;
-    let needToShowPopup = false;
-    let otherPopupVisible = false;
-    this.actions.forEach((action) => {
-      if (action === itemValue && !!itemValue.popupModel) {
-        needToShowPopup = true;
-      }
-      if (action.popupModel && action.popupModel.isVisible) {
-        otherPopupVisible = true;
-      }
-    });
-    if (needToShowPopup) {
-      const delay = otherPopupVisible ? Math.max(this.subItemsShowDelay, this.subItemsHideDelay) : this.subItemsShowDelay;
-      itemValue.showPopupDelayed(delay);
-      this.popupAfterShowCallback(itemValue);
-    }
-  }
-  initResponsivityManager(container, delayedUpdateFunction) {
-    return;
-  }
-  resetResponsivityManager() {
-  }
-  getActionById(id) {
-    const index = this.getActionIndexById(id);
-    return index > -1 ? this.actions[index] : null;
-  }
-  getActionIndexById(id) {
-    for (var i = 0; i < this.actions.length; i++) {
-      if (this.actions[i].id === id)
-        return i;
-    }
-    return -1;
-  }
-  dispose() {
-    super.dispose();
-    this.resetResponsivityManager();
-    this.actions.forEach((action) => action.dispose());
-    this.actions.length = 0;
-  }
-}
-ActionContainer.ContainerID = 1;
-__decorate([
-  propertyArray({})
-], ActionContainer.prototype, "visibleActions", void 0);
-__decorate([
-  propertyArray({
-    onSet: (_23, target) => {
-      target.onSet();
-    },
-    onPush: (item, i, target) => {
-      target.onPush(item);
-    },
-    onRemove: (item, i, target) => {
-      target.onRemove(item);
-    }
-  })
-], ActionContainer.prototype, "actions", void 0);
-__decorate([
-  property({})
-], ActionContainer.prototype, "containerCss", void 0);
-__decorate([
-  property({ defaultValue: true })
-], ActionContainer.prototype, "isEmpty", void 0);
-__decorate([
-  property({ defaultValue: 300 })
-], ActionContainer.prototype, "subItemsShowDelay", void 0);
-__decorate([
-  property({ defaultValue: 300 })
-], ActionContainer.prototype, "subItemsHideDelay", void 0);
-class ElementHelper {
-  static focusElement(element2) {
-    element2 && element2.focus();
-  }
-  static visibility(node) {
-    var style = DomDocumentHelper.getComputedStyle(node);
-    if (style.display === "none" || style.visibility === "hidden")
-      return false;
-    return node.parentElement ? this.visibility(node.parentElement) : true;
-  }
-  static getNextElementPreorder(element2) {
-    const result = !!element2.nextElementSibling ? element2.nextElementSibling : element2.parentElement.firstElementChild;
-    if (this.visibility(result)) {
-      return result;
-    } else {
-      return this.getNextElementPreorder(result);
-    }
-  }
-  static getNextElementPostorder(element2) {
-    const result = !!element2.previousElementSibling ? element2.previousElementSibling : element2.parentElement.lastElementChild;
-    if (this.visibility(result)) {
-      return result;
-    } else {
-      return this.getNextElementPostorder(result);
-    }
-  }
-  static hasHorizontalScroller(element2) {
-    if (!!element2) {
-      return element2.scrollWidth > element2.offsetWidth;
-    }
-    return false;
-  }
-  static hasVerticalScroller(element2) {
-    if (!!element2) {
-      return element2.scrollHeight > element2.offsetHeight;
-    }
-    return false;
-  }
-}
-let _isMobile = false;
-let vendor = null;
-if (typeof navigator !== "undefined" && !!navigator && DomWindowHelper.isAvailable()) {
-  vendor = navigator.userAgent || navigator.vendor || DomWindowHelper.hasOwn("opera");
-}
-(function(a2) {
-  if (!a2)
-    return;
-  if (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 0 || navigator.platform === "iPad") {
-    _isMobile = true;
-  } else if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a2) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a2.substring(0, 4)))
-    _isMobile = true;
-})(vendor);
-let _IPad = false;
-const IsMobile = _isMobile || _IPad;
-var mouseInfo = {
-  get isTouch() {
-    return !this.hasMouse && this.hasTouchEvent;
-  },
-  get hasTouchEvent() {
-    return DomWindowHelper.isAvailable() && (DomWindowHelper.hasOwn("ontouchstart") || navigator.maxTouchPoints > 0);
-  },
-  hasMouse: true
-};
-const matchMediaMethod = DomWindowHelper.matchMedia;
-mouseInfo.hasMouse = detectMouseSupport(matchMediaMethod);
-let IsTouch = mouseInfo.isTouch;
-function calculateIsTablet(windowWidth, windowHeight, tabletSizeBreakpoint = 600) {
-  const _windowWidth = windowWidth || DomWindowHelper.getInnerWidth();
-  const _windowHeight = windowHeight || DomWindowHelper.getInnerHeight();
-  const width = Math.min(_windowWidth, _windowHeight);
-  const isTablet = width >= tabletSizeBreakpoint;
-  return isTablet;
-}
-function detectMouseSupport(matchMedia2) {
-  if (!matchMedia2)
-    return false;
-  if (IsMobile)
-    return false;
-  const pointerQuery = matchMedia2("(pointer:fine)");
-  const hoverQuery = matchMedia2("(any-hover:hover)");
-  return !!pointerQuery && pointerQuery.matches || !!hoverQuery && hoverQuery.matches;
-}
-let defaultListCss = {
-  root: "sv-list__container",
-  item: "sv-list__item",
-  searchClearButtonIcon: "sv-list__filter-clear-button",
-  loadingIndicator: "sv-list__loading-indicator",
-  itemSelected: "sv-list__item--selected",
-  itemGroup: "sv-list__item--group",
-  itemGroupSelected: "sv-list__item--group-selected",
-  itemWithIcon: "sv-list__item--with-icon",
-  itemDisabled: "sv-list__item--disabled",
-  itemFocused: "sv-list__item--focused",
-  itemHovered: "sv-list__item--hovered",
-  itemTextWrap: "sv-list__item-text--wrap",
-  itemIcon: "sv-list__item-icon",
-  itemMarkerIcon: "sv-list-item__marker-icon",
-  itemSeparator: "sv-list__item-separator",
-  itemBody: "sv-list__item-body",
-  itemsContainer: "sv-list",
-  itemsContainerFiltering: "sv-list--filtering",
-  filter: "sv-list__filter",
-  filterIcon: "sv-list__filter-icon",
-  filterInput: "sv-list__input",
-  emptyContainer: "sv-list__empty-container",
-  emptyText: "sv-list__empty-text"
-};
-class ListModel extends ActionContainer {
-  hasText(item, filterStringInLow) {
-    if (!filterStringInLow)
-      return true;
-    const text2 = item.title || "";
-    if (this.onTextSearchCallback)
-      return this.onTextSearchCallback(item, filterStringInLow);
-    let textInLow = text2.toLocaleLowerCase();
-    textInLow = settings.comparator.normalizeTextCallback(textInLow, "filter");
-    return textInLow.indexOf(filterStringInLow.toLocaleLowerCase()) > -1;
-  }
-  isItemVisible(item) {
-    if (item.id === this.loadingIndicator.id)
-      return item.visible;
-    if (this.disableSearch)
-      return item.visible;
-    return item.visible && this.hasText(item, this.filterString);
-  }
-  getRenderedActions() {
-    let actions = super.getRenderedActions();
-    if (this.filterString) {
-      let newActions = [];
-      actions.forEach((action) => {
-        newActions.push(action);
-        if (action.items) {
-          action.items.forEach((item) => {
-            const a2 = new Action(item);
-            if (!a2.iconName) {
-              a2.iconName = action.iconName;
-            }
-            newActions.push(a2);
-          });
-        }
-      });
-      return newActions;
-    }
-    return actions;
-  }
-  get visibleItems() {
-    return this.actions.filter((item) => this.isItemVisible(item));
-  }
-  onFilterStringChanged(text2) {
-    if (!!this.onFilterStringChangedCallback) {
-      this.onFilterStringChangedCallback(text2);
-    }
-    this.raiseUpdate({ needUpdateIsEmpty: true });
-  }
-  getIsEmpty() {
-    return !this.renderedActions.some((action) => this.isItemVisible(action));
-  }
-  scrollToItem(classes, ms = 0) {
-    setTimeout(() => {
-      if (!this.listContainerHtmlElement)
-        return;
-      const item = this.listContainerHtmlElement.querySelector(classesToSelector(classes));
-      if (item) {
-        setTimeout(() => {
-          item.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
-        }, ms);
-      }
-    }, ms);
-  }
-  constructor(items, onSelectionChanged, allowSelection, selectedItem, elementId) {
-    super();
-    this.onSelectionChanged = onSelectionChanged;
-    this.allowSelection = allowSelection;
-    this.elementId = elementId;
-    this.onItemClick = (itemValue) => {
-      if (this.isItemDisabled(itemValue)) {
-        return;
-      }
-      this.isExpanded = false;
-      if (this.allowSelection) {
-        this.selectedItem = itemValue;
-      }
-      if (!!this.onSelectionChanged) {
-        this.onSelectionChanged(itemValue);
-      }
-      const action = itemValue.action;
-      if (!!action) {
-        action(itemValue);
-      }
-    };
-    this.onItemHover = (itemValue) => {
-      this.mouseOverHandler(itemValue);
-    };
-    this.isItemDisabled = (itemValue) => {
-      return itemValue.enabled !== void 0 && !itemValue.enabled;
-    };
-    this.getA11yItemAriaSelected = (itemValue) => {
-      if (this.listItemRole == "option")
-        return this.isItemSelected(itemValue) ? "true" : "false";
-      return void 0;
-    };
-    this.getA11yItemAriaChecked = (itemValue) => {
-      if (this.listItemRole == "menuitemradio")
-        return this.isItemSelected(itemValue) ? "true" : "false";
-      return void 0;
-    };
-    this.isItemSelected = (itemValue) => {
-      return this.areSameItems(this.selectedItem, itemValue);
-    };
-    this.isItemFocused = (itemValue) => {
-      return this.areSameItems(this.focusedItem, itemValue);
-    };
-    this.getListClass = () => {
-      return new CssClassBuilder().append(this.cssClasses.itemsContainer).append(this.cssClasses.itemsContainerFiltering, !!this.filterString && this.visibleActions.length !== this.visibleItems.length).toString();
-    };
-    this.getItemClass = (itemValue) => {
-      const isSelected = this.isItemSelected(itemValue);
-      return new CssClassBuilder().append(this.cssClasses.item).append(this.cssClasses.itemWithIcon, !!itemValue.iconName).append(this.cssClasses.itemDisabled, this.isItemDisabled(itemValue)).append(this.cssClasses.itemFocused, this.isItemFocused(itemValue)).append(this.cssClasses.itemSelected, !itemValue.hasSubItems && isSelected).append(this.cssClasses.itemGroup, itemValue.hasSubItems).append(this.cssClasses.itemGroupSelected, itemValue.hasSubItems && isSelected).append(this.cssClasses.itemHovered, itemValue.isHovered).append(this.cssClasses.itemTextWrap, this.textWrapEnabled).append(itemValue.css).toString();
-    };
-    this.getItemStyle = (itemValue) => {
-      const level = itemValue.level || 0;
-      return {
-        "--sjs-list-item-level": level + 1
-      };
-    };
-    if (Object.keys(items).indexOf("items") !== -1) {
-      const options2 = items;
-      Object.keys(options2).forEach((key) => {
-        switch (key) {
-          case "items":
-            this.setItems(options2.items);
-            break;
-          case "onFilterStringChangedCallback":
-            this.setOnFilterStringChangedCallback(options2.onFilterStringChangedCallback);
-            break;
-          case "onTextSearchCallback":
-            this.setOnTextSearchCallback(options2.onTextSearchCallback);
-            break;
-          default:
-            this[key] = options2[key];
-        }
-      });
-      this.updateActionsIds();
-    } else {
-      this.setItems(items);
-      this.selectedItem = selectedItem;
-    }
-  }
-  setOnFilterStringChangedCallback(callback) {
-    this.onFilterStringChangedCallback = callback;
-  }
-  setOnTextSearchCallback(callback) {
-    this.onTextSearchCallback = callback;
-  }
-  setItems(items, sortByVisibleIndex = true) {
-    super.setItems(items, sortByVisibleIndex);
-    this.updateActionsIds();
-    if (!this.isAllDataLoaded && !!this.actions.length) {
-      this.actions.push(this.loadingIndicator);
-    }
-  }
-  updateActionsIds() {
-    if (this.elementId) {
-      this.actions.forEach((action) => {
-        action.elementId = this.elementId + action.id;
-      });
-    }
-  }
-  setSearchEnabled(newValue) {
-    this.searchEnabled = newValue;
-    this.showSearchClearButton = newValue;
-  }
-  onSet() {
-    this.showFilter = this.searchEnabled && (this.forceShowFilter || (this.actions || []).length > ListModel.MINELEMENTCOUNT);
-    super.onSet();
-  }
-  getDefaultCssClasses() {
-    return defaultListCss;
-  }
-  popupAfterShowCallback(itemValue) {
-    this.addScrollEventListener(() => {
-      itemValue.hidePopup();
-    });
-  }
-  onItemLeave(itemValue) {
-    itemValue.hidePopupDelayed(this.subItemsHideDelay);
-  }
-  areSameItems(item1, item2) {
-    if (!!this.areSameItemsCallback)
-      return this.areSameItemsCallback(item1, item2);
-    return !!item1 && !!item2 && item1.id == item2.id;
-  }
-  get a11ya11y_input_ariaLabel() {
-    return this.listAriaLabel;
-  }
-  get filterStringPlaceholder() {
-    return this.getLocalizationString("filterStringPlaceholder");
-  }
-  get emptyMessage() {
-    return this.isAllDataLoaded ? this.getLocalizationString("emptyMessage") : this.getLocalizationString("loadingData");
-  }
-  get scrollableContainer() {
-    return this.listContainerHtmlElement.querySelector(classesToSelector(this.cssClasses.itemsContainer));
-  }
-  get loadingIndicator() {
-    if (!this.loadingIndicatorValue) {
-      const _loadingIndicator = new Action({
-        id: "loadingIndicator",
-        title: this.getLocalizationString("loadingPage"),
-        action: () => {
-        },
-        css: this.cssClasses.loadingIndicator
-      });
-      _loadingIndicator.initLoadingIndicatorVisibilityObserver(this.loadingIndicatorVisibilityObserver);
-      this.loadingIndicatorValue = _loadingIndicator;
-    }
-    return this.loadingIndicatorValue;
-  }
-  goToItems(event) {
-    if (event.key === "ArrowDown" || event.keyCode === 40) {
-      const currentElement = event.target.parentElement;
-      const listElement = currentElement.parentElement.querySelector("ul");
-      const firstChild = getFirstVisibleChild(listElement);
-      if (!!listElement && !!firstChild) {
-        ElementHelper.focusElement(firstChild);
-        event.preventDefault();
-      }
-    }
-  }
-  onMouseMove(event) {
-    this.resetFocusedItem();
-  }
-  onKeyDown(event) {
-    const currentElement = event.target;
-    if (event.key === "ArrowDown" || event.keyCode === 40) {
-      ElementHelper.focusElement(ElementHelper.getNextElementPreorder(currentElement));
-      event.preventDefault();
-    } else if (event.key === "ArrowUp" || event.keyCode === 38) {
-      ElementHelper.focusElement(ElementHelper.getNextElementPostorder(currentElement));
-      event.preventDefault();
-    }
-  }
-  onPointerDown(event, item) {
-  }
-  refresh() {
-    if (this.filterString == "") {
-      this.raiseUpdate({ needUpdateIsEmpty: true });
-    }
-    this.resetFocusedItem();
-  }
-  onClickSearchClearButton(event) {
-    event.currentTarget.parentElement.querySelector("input").focus();
-    this.refresh();
-  }
-  resetFocusedItem() {
-    this.focusedItem = void 0;
-  }
-  focusFirstVisibleItem() {
-    if (!IsTouch) {
-      this.focusedItem = this.visibleItems[0];
-    }
-  }
-  focusLastVisibleItem() {
-    this.focusedItem = this.visibleItems[this.visibleItems.length - 1];
-  }
-  initFocusedItem() {
-    this.focusedItem = this.visibleItems.filter((item) => item.visible && this.isItemSelected(item))[0];
-    if (!this.focusedItem) {
-      this.focusFirstVisibleItem();
-    }
-  }
-  focusNextVisibleItem() {
-    if (!this.focusedItem) {
-      this.initFocusedItem();
-    } else {
-      const items = this.visibleItems;
-      const currentFocusedItemIndex = items.indexOf(this.focusedItem);
-      const nextItem = items[currentFocusedItemIndex + 1];
-      if (nextItem) {
-        this.focusedItem = nextItem;
-      } else {
-        this.focusFirstVisibleItem();
-      }
-    }
-  }
-  focusPrevVisibleItem() {
-    if (!this.focusedItem) {
-      this.initFocusedItem();
-    } else {
-      const items = this.visibleItems;
-      const currentFocusedItemIndex = items.indexOf(this.focusedItem);
-      const prevItem = items[currentFocusedItemIndex - 1];
-      if (prevItem) {
-        this.focusedItem = prevItem;
-      } else {
-        this.focusLastVisibleItem();
-      }
-    }
-  }
-  selectFocusedItem() {
-    !!this.focusedItem && this.onItemClick(this.focusedItem);
-  }
-  initListContainerHtmlElement(htmlElement) {
-    this.listContainerHtmlElement = htmlElement;
-  }
-  onItemRended(item, element2) {
-    if (this.isAllDataLoaded)
-      return;
-    if (item === this.actions[this.actions.length - 1] && !!this.listContainerHtmlElement) {
-      this.hasVerticalScroller = ElementHelper.hasVerticalScroller(this.scrollableContainer);
-    }
-    if (item.id === this.loadingIndicator.id && element2 && this.loadingIndicator["intersectionVisibilityObserver"]) {
-      this.loadingIndicator["intersectionVisibilityObserver"].observe(element2);
-    }
-  }
-  scrollToFocusedItem() {
-    this.scrollToItem(this.cssClasses.itemFocused);
-  }
-  scrollToSelectedItem() {
-    if (!!this.selectedItem && this.selectedItem.items && this.selectedItem.items.length > 0) {
-      this.scrollToItem(this.cssClasses.itemGroupSelected, 110);
-    } else {
-      this.scrollToItem(this.cssClasses.itemSelected, 110);
-    }
-  }
-  setLoadingIndicatorVisibilityObserver(handler) {
-    if (!!handler) {
-      this.loadingIndicatorVisibilityObserver = handler;
-    }
-  }
-  addScrollEventListener(handler) {
-    if (!!handler) {
-      this.removeScrollEventListener();
-      this.scrollHandler = handler;
-    }
-    if (!!this.scrollHandler) {
-      this.scrollableContainer.addEventListener("scroll", this.scrollHandler);
-    }
-  }
-  removeScrollEventListener() {
-    if (!!this.scrollHandler) {
-      this.scrollableContainer.removeEventListener("scroll", this.scrollHandler);
-    }
-  }
-  dispose() {
-    super.dispose();
-    if (!!this.loadingIndicatorValue) {
-      this.loadingIndicatorValue.dispose();
-    }
-    this.listContainerHtmlElement = void 0;
-  }
-}
-ListModel.INDENT = 16;
-ListModel.MINELEMENTCOUNT = 10;
-__decorate([
-  property({
-    defaultValue: true,
-    onSet: (newValue, target) => {
-      target.onSet();
-    }
-  })
-], ListModel.prototype, "searchEnabled", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "showFilter", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "forceShowFilter", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "isExpanded", void 0);
-__decorate([
-  property({})
-], ListModel.prototype, "selectedItem", void 0);
-__decorate([
-  property()
-], ListModel.prototype, "focusedItem", void 0);
-__decorate([
-  property({
-    onSet: (_23, target) => {
-      target.onFilterStringChanged(target.filterString);
-    }
-  })
-], ListModel.prototype, "filterString", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "hasVerticalScroller", void 0);
-__decorate([
-  property({ defaultValue: true })
-], ListModel.prototype, "isAllDataLoaded", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "showSearchClearButton", void 0);
-__decorate([
-  property({ defaultValue: true })
-], ListModel.prototype, "renderElements", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "textWrapEnabled", void 0);
-__decorate([
-  property({ defaultValue: "sv-list-item-content" })
-], ListModel.prototype, "itemComponent", void 0);
-__decorate([
-  property({ defaultValue: "listbox" })
-], ListModel.prototype, "listRole", void 0);
-__decorate([
-  property({ defaultValue: "option" })
-], ListModel.prototype, "listItemRole", void 0);
-__decorate([
-  property()
-], ListModel.prototype, "listAriaLabel", void 0);
-__decorate([
-  property({ defaultValue: false })
-], ListModel.prototype, "disableSearch", void 0);
-class PopupModel extends Base {
-  refreshInnerModel() {
-    const innerModel = this.contentComponentData["model"];
-    innerModel && innerModel.refresh && innerModel.refresh();
-  }
-  constructor(contentComponentName, contentComponentData, options2) {
-    super();
-    this.focusFirstInputSelector = "";
-    this.onCancel = () => {
-    };
-    this.onApply = () => {
-      return true;
-    };
-    this.onHide = () => {
-    };
-    this.onShow = () => {
-    };
-    this.onBlur = () => {
-    };
-    this.onDispose = () => {
-    };
-    this.onVisibilityChanged = this.addEvent();
-    this.onFooterActionsCreated = this.addEvent();
-    this.onRecalculatePosition = this.addEvent();
-    this.contentComponentName = contentComponentName;
-    this.contentComponentData = contentComponentData;
-    if (!!options2) {
-      for (var key in options2) {
-        this[key] = options2[key];
-      }
-    }
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "isVisible") {
-      this.onVisibilityChanged.fire(this, { model: this, isVisible: newValue });
-    }
-  }
-  toggleVisibility() {
-    this.isVisible = !this.isVisible;
-  }
-  show() {
-    if (!this.isVisible)
-      this.isVisible = true;
-  }
-  hide() {
-    if (this.isVisible)
-      this.isVisible = false;
-  }
-  recalculatePosition(isResetHeight) {
-    this.onRecalculatePosition.fire(this, { isResetHeight });
-  }
-  updateFooterActions(footerActions) {
-    const options2 = { actions: footerActions };
-    this.onFooterActionsCreated.fire(this, options2);
-    return options2.actions;
-  }
-  getDisplayMode() {
-    if (this.isModal) {
-      return this.displayMode === "popup" ? "modal-popup" : "modal-overlay";
-    } else {
-      if (this.displayMode === "popup") {
-        return "menu-popup";
-      } else {
-        let result;
-        switch (this.overlayDisplayMode) {
-          case "plain": {
-            result = "menu-popup";
-            break;
-          }
-          case "dropdown-overlay": {
-            result = "menu-overlay";
-            break;
-          }
-          case "tablet-dropdown-overlay": {
-            result = "menu-popup-overlay";
-            break;
-          }
-          case "auto": {
-            if (!IsTouch) {
-              result = "menu-popup";
-            } else {
-              result = "menu-popup-overlay";
-            }
-            break;
-          }
-        }
-        return result;
-      }
-    }
-  }
-  updateDisplayMode(menuType) {
-    let newDisplayMode;
-    let newOverlayDisplayMode;
-    switch (menuType) {
-      case "dropdown": {
-        newDisplayMode = "popup";
-        newOverlayDisplayMode = "auto";
-        break;
-      }
-      case "popup": {
-        newDisplayMode = "overlay";
-        newOverlayDisplayMode = "tablet-dropdown-overlay";
-        break;
-      }
-      case "overlay": {
-        newDisplayMode = "overlay";
-        newOverlayDisplayMode = "dropdown-overlay";
-        break;
-      }
-    }
-    if (this.displayMode !== newDisplayMode) {
-      const isDropdown = menuType === "dropdown";
-      this.setWidthByTarget = isDropdown;
-      this.isFocusedContent = !isDropdown;
-    }
-    if (this.displayMode !== newDisplayMode || this.overlayDisplayMode !== newOverlayDisplayMode) {
-      this.displayMode = newDisplayMode;
-      this.overlayDisplayMode = newOverlayDisplayMode;
-      return true;
-    } else {
-      return false;
-    }
-  }
-  onHiding() {
-    this.refreshInnerModel();
-    this.onHide();
-  }
-  dispose() {
-    super.dispose();
-    this.onDispose();
-  }
-}
-__decorate([
-  property()
-], PopupModel.prototype, "contentComponentName", void 0);
-__decorate([
-  property()
-], PopupModel.prototype, "contentComponentData", void 0);
-__decorate([
-  property({ defaultValue: "bottom" })
-], PopupModel.prototype, "verticalPosition", void 0);
-__decorate([
-  property({ defaultValue: "left" })
-], PopupModel.prototype, "horizontalPosition", void 0);
-__decorate([
-  property({ defaultValue: true })
-], PopupModel.prototype, "showPointer", void 0);
-__decorate([
-  property({ defaultValue: false })
-], PopupModel.prototype, "showCloseButton", void 0);
-__decorate([
-  property({ defaultValue: false })
-], PopupModel.prototype, "isModal", void 0);
-__decorate([
-  property({ defaultValue: true })
-], PopupModel.prototype, "canShrink", void 0);
-__decorate([
-  property({ defaultValue: true })
-], PopupModel.prototype, "isFocusedContent", void 0);
-__decorate([
-  property({ defaultValue: true })
-], PopupModel.prototype, "isFocusedContainer", void 0);
-__decorate([
-  property({ defaultValue: "" })
-], PopupModel.prototype, "cssClass", void 0);
-__decorate([
-  property({ defaultValue: "" })
-], PopupModel.prototype, "title", void 0);
-__decorate([
-  property({ defaultValue: "auto" })
-], PopupModel.prototype, "overlayDisplayMode", void 0);
-__decorate([
-  property({ defaultValue: "popup" })
-], PopupModel.prototype, "displayMode", void 0);
-__decorate([
-  property({ defaultValue: "flex" })
-], PopupModel.prototype, "positionMode", void 0);
-__decorate([
-  property({ defaultValue: false })
-], PopupModel.prototype, "isVisible", void 0);
-function createDropdownActionModelAdvanced(actionOptions, listOptions, popupOptions) {
-  var _a2;
-  const originalSelectionChanged = listOptions.onSelectionChanged;
-  listOptions.onSelectionChanged = (item, ...params) => {
-    if (newAction.hasTitle) {
-      newAction.title = item.title;
-    }
-    if (originalSelectionChanged) {
-      originalSelectionChanged(item, params);
-    }
-  };
-  const popupModel = createPopupModelWithListModel(listOptions, popupOptions);
-  popupModel.getTargetCallback = getActionDropdownButtonTarget;
-  const newActionOptions = Object.assign({}, actionOptions, {
-    component: "sv-action-bar-item-dropdown",
-    popupModel,
-    action: (action, isUserAction) => {
-      !!actionOptions.action && actionOptions.action();
-      popupModel.isFocusedContent = popupModel.isFocusedContent || !isUserAction;
-      popupModel.show();
-    }
-  });
-  const newAction = new Action(newActionOptions);
-  newAction.data = (_a2 = popupModel.contentComponentData) === null || _a2 === void 0 ? void 0 : _a2.model;
-  return newAction;
-}
-function createPopupModelWithListModel(listOptions, popupOptions) {
-  if (!listOptions.listRole)
-    listOptions.listRole = "menu";
-  if (!listOptions.listItemRole)
-    listOptions.listItemRole = !!listOptions.allowSelection ? "menuitemradio" : "menuitem";
-  const listModel = new ListModel(listOptions);
-  listModel.onSelectionChanged = (item) => {
-    if (listOptions.onSelectionChanged) {
-      listOptions.onSelectionChanged(item);
-    }
-    popupModel.hide();
-  };
-  const _popupOptions = popupOptions || {};
-  _popupOptions.onDispose = () => {
-    listModel.dispose();
-  };
-  const popupModel = new PopupModel("sv-list", { model: listModel }, _popupOptions);
-  popupModel.isFocusedContent = listModel.showFilter;
-  popupModel.onShow = () => {
-    if (!!_popupOptions.onShow)
-      _popupOptions.onShow();
-    listModel.scrollToSelectedItem();
-  };
-  popupModel.onHide = () => {
-    if (!!_popupOptions.onHide)
-      _popupOptions.onHide();
-    listModel.filterString = "";
-  };
-  return popupModel;
-}
-function getActionDropdownButtonTarget(container) {
-  return container === null || container === void 0 ? void 0 : container.previousElementSibling;
-}
-class BaseAction extends Base {
-  constructor() {
-    super(...arguments);
-    this.rendredIdValue = BaseAction.getNextRendredId();
-  }
-  static getNextRendredId() {
-    return BaseAction.renderedId++;
-  }
-  get data() {
-    return this._data;
-  }
-  set data(val) {
-    this._data = val;
-  }
-  get id() {
-    return this.getId();
-  }
-  set id(val) {
-    this.setId(val);
-  }
-  getId() {
-    return this.idValue;
-  }
-  setId(val) {
-    this.idValue = val;
-  }
-  addVisibilityChangedCallback(callback) {
-  }
-  removeVisibilityChangedCallback(callback) {
-  }
-  get renderedId() {
-    return this.rendredIdValue;
-  }
-  get owner() {
-    return this.ownerValue;
-  }
-  set owner(val) {
-    if (val !== this.owner) {
-      this.ownerValue = val;
-      this.locStrsChanged();
-    }
-  }
-  get visible() {
-    return this.getVisible();
-  }
-  set visible(val) {
-    this.setVisible(val);
-  }
-  get enabled() {
-    return this.getEnabled();
-  }
-  set enabled(val) {
-    this.setEnabled(val);
-  }
-  get component() {
-    return this.getComponent();
-  }
-  set component(val) {
-    this.setComponent(val);
-  }
-  get locTitle() {
-    return this.getLocTitle();
-  }
-  set locTitle(val) {
-    this.setLocTitle(val);
-  }
-  get title() {
-    return this.getTitle();
-  }
-  set title(val) {
-    this.setTitle(val);
-  }
-  get titles() {
-    return this.locTitle.getJson();
-  }
-  set titles(val) {
-    this.locTitle.setJson(val);
-  }
-  set cssClasses(val) {
-    this.cssClassesValue = val;
-  }
-  get cssClasses() {
-    return this.cssClassesValue || defaultActionBarCss;
-  }
-  get isVisible() {
-    return this.visible && this.mode !== "popup" && this.mode !== "removed";
-  }
-  get disabled() {
-    return this.enabled !== void 0 && !this.enabled;
-  }
-  get canShrink() {
-    return !this.disableShrink && !!this.iconName;
-  }
-  get hasTitle() {
-    return (this.mode != "small" && (this.showTitle || this.showTitle === void 0) || !this.iconName) && !!this.title;
-  }
-  get hasSubItems() {
-    return !!this.items && this.items.length > 0;
-  }
-  getActionBarItemTitleCss() {
-    return new CssClassBuilder().append(this.cssClasses.itemTitle).append(this.cssClasses.itemTitleWithIcon, !!this.iconName).toString();
-  }
-  getActionBarItemCss() {
-    const hasTitle = this.hasTitle;
-    return new CssClassBuilder().append(this.cssClasses.item).append(this.cssClasses.itemWithTitle, hasTitle).append(this.cssClasses.itemAsIcon, !hasTitle).append(this.cssClasses.itemActive, !!this.active).append(this.cssClasses.itemPressed, !!this.pressed).append(this.innerCss).toString();
-  }
-  getActionRootCss() {
-    return new CssClassBuilder().append("sv-action").append(this.css).append("sv-action--space", this.needSpace).append("sv-action--hidden", !this.isVisible).toString();
-  }
-  getTooltip() {
-    return this.tooltip || this.title;
-  }
-  getIsTrusted(args) {
-    if (!!args.originalEvent) {
-      return args.originalEvent.isTrusted;
-    }
-    return args.isTrusted;
-  }
-  showPopup() {
-    if (!!this.popupModel) {
-      this.popupModel.show();
-    }
-  }
-  hidePopup() {
-    if (!!this.popupModel) {
-      this.popupModel.hide();
-    }
-  }
-  clearPopupTimeouts() {
-    if (this.showPopupTimeout)
-      clearTimeout(this.showPopupTimeout);
-    if (this.hidePopupTimeout)
-      clearTimeout(this.hidePopupTimeout);
-  }
-  showPopupDelayed(delay) {
-    this.clearPopupTimeouts();
-    this.showPopupTimeout = setTimeout(() => {
-      this.clearPopupTimeouts();
-      this.showPopup();
-    }, delay);
-  }
-  hidePopupDelayed(delay) {
-    var _a2;
-    if ((_a2 = this.popupModel) === null || _a2 === void 0 ? void 0 : _a2.isVisible) {
-      this.clearPopupTimeouts();
-      this.hidePopupTimeout = setTimeout(() => {
-        this.clearPopupTimeouts();
-        this.hidePopup();
-        this.isHovered = false;
-      }, delay);
-    } else {
-      this.clearPopupTimeouts();
-      this.isHovered = false;
-    }
-  }
-}
-BaseAction.renderedId = 1;
-__decorate([
-  property()
-], BaseAction.prototype, "tooltip", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "showTitle", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "innerCss", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "active", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "pressed", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "popupModel", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "needSeparator", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "template", void 0);
-__decorate([
-  property({ defaultValue: "large" })
-], BaseAction.prototype, "mode", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "visibleIndex", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "disableTabStop", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "disableShrink", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "disableHide", void 0);
-__decorate([
-  property({ defaultValue: false })
-], BaseAction.prototype, "needSpace", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "ariaChecked", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "ariaExpanded", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "ariaLabelledBy", void 0);
-__decorate([
-  property({ defaultValue: "button" })
-], BaseAction.prototype, "ariaRole", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "iconName", void 0);
-__decorate([
-  property({ defaultValue: 24 })
-], BaseAction.prototype, "iconSize", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "markerIconName", void 0);
-__decorate([
-  property()
-], BaseAction.prototype, "css", void 0);
-__decorate([
-  property({ defaultValue: false })
-], BaseAction.prototype, "isPressed", void 0);
-__decorate([
-  property({ defaultValue: false })
-], BaseAction.prototype, "isHovered", void 0);
-class Action extends BaseAction {
-  constructor(innerItemData) {
-    super();
-    this.locTitleChanged = () => {
-      const val = this.locTitle.renderedHtml;
-      this.setPropertyValue("_title", !!val ? val : void 0);
-    };
-    this.needUpdateMaxDimension = false;
-    this.needUpdateMinDimension = false;
-    const innerItem = innerItemData instanceof Action ? innerItemData.innerItem : innerItemData;
-    this.innerItem = innerItem;
-    this.locTitle = !!innerItem ? innerItem["locTitle"] : null;
-    if (!!innerItem) {
-      for (var key in innerItem) {
-        if (key === "locTitle" || key === "title" && !!this.title)
-          continue;
-        this[key] = innerItem[key];
-      }
-    }
-    if (!!this.locTitleName) {
-      this.locTitleChanged();
-    }
-    this.locStrChangedInPopupModel();
-  }
-  createLocTitle() {
-    return this.createLocalizableString("title", this, true);
-  }
-  setSubItems(options2) {
-    this.markerIconName = "icon-next_16x16";
-    this.items = [...options2.items];
-    if (!this.popupModel) {
-      this.createPopupForSubitems(options2);
-    } else {
-      const list = this.popupModel.contentComponentData.model;
-      list.setItems(this.items);
-    }
-    this.component = this.getGroupComponentName();
-  }
-  createPopupForSubitems(options2) {
-    const listOptions = Object.assign({}, options2);
-    listOptions.searchEnabled = false;
-    const popupModel = createPopupModelWithListModel(listOptions, { horizontalPosition: "right", showPointer: false, canShrink: false });
-    popupModel.cssClass = "sv-popup-inner";
-    this.popupModel = popupModel;
-  }
-  getId() {
-    return this.getPropertyValue("id");
-  }
-  setId(val) {
-    this.setPropertyValue("id", val);
-  }
-  getLocTitle() {
-    return this.locTitleValue;
-  }
-  setLocTitle(val) {
-    if (!val && !this.locTitleValue) {
-      val = this.createLocTitle();
-    }
-    if (!!this.locTitleValue) {
-      this.locTitleValue.onStringChanged.remove(this.locTitleChanged);
-    }
-    this.locTitleValue = val;
-    this.locTitleValue.onStringChanged.add(this.locTitleChanged);
-    this.locTitleChanged();
-  }
-  getTitle() {
-    return this._title;
-  }
-  setTitle(val) {
-    this._title = val;
-  }
-  get locTitleName() {
-    return this.locTitle.localizationName;
-  }
-  set locTitleName(val) {
-    this.locTitle.localizationName = val;
-  }
-  locStrsChanged() {
-    super.locStrsChanged();
-    this.locTooltipChanged();
-    this.locStrChangedInPopupModel();
-  }
-  doAction(args) {
-    const evt = !!args.originalEvent ? args.originalEvent : args;
-    this.action(this, evt.isTrusted);
-    evt.preventDefault();
-    evt.stopPropagation();
-    return true;
-  }
-  doMouseDown(args) {
-    this.isMouseDown = true;
-  }
-  doFocus(args) {
-    if (!!this.onFocus) {
-      const evt = !!args.originalEvent ? args.originalEvent : args;
-      this.onFocus(this.isMouseDown, evt);
-    }
-    this.isMouseDown = false;
-  }
-  locStrChangedInPopupModel() {
-    if (!this.popupModel || !this.popupModel.contentComponentData || !this.popupModel.contentComponentData.model)
-      return;
-    const model = this.popupModel.contentComponentData.model;
-    if (Array.isArray(model.actions)) {
-      const actions = model.actions;
-      actions.forEach((item) => {
-        if (!!item.locStrsChanged) {
-          item.locStrsChanged();
-        }
-      });
-    }
-  }
-  locTooltipChanged() {
-    if (!this.locTooltipName)
-      return;
-    this.tooltip = getLocaleString(this.locTooltipName, this.locTitle.locale);
-  }
-  //ILocalizableOwner
-  getLocale() {
-    return this.owner ? this.owner.getLocale() : "";
-  }
-  getMarkdownHtml(text2, name, item) {
-    return this.owner ? this.owner.getMarkdownHtml(text2, name, item) : void 0;
-  }
-  getProcessedText(text2) {
-    return this.owner ? this.owner.getProcessedText(text2) : text2;
-  }
-  getRenderer(name) {
-    return this.owner ? this.owner.getRenderer(name) : null;
-  }
-  getRendererContext(locStr) {
-    return this.owner ? this.owner.getRendererContext(locStr) : locStr;
-  }
-  setVisible(val) {
-    if (this.visible !== val) {
-      this._visible = val;
-    }
-  }
-  getVisible() {
-    return this._visible;
-  }
-  setEnabled(val) {
-    this._enabled = val;
-  }
-  getEnabled() {
-    if (this.enabledIf)
-      return this.enabledIf();
-    return this._enabled;
-  }
-  setComponent(val) {
-    this._component = val;
-  }
-  getComponent() {
-    return this._component;
-  }
-  getGroupComponentName() {
-    return "sv-list-item-group";
-  }
-  initLoadingIndicatorVisibilityObserver(handler) {
-    if (typeof IntersectionObserver !== "undefined") {
-      this.intersectionVisibilityObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          const isIntersecting = entry.isIntersecting;
-          handler(isIntersecting);
-        });
-      }, { trackVisibility: true, delay: 100 });
-    }
-  }
-  dispose() {
-    if (!!this.locTitleValue) {
-      this.locTitleValue.onStringChanged.remove(this.locTitleChanged);
-    }
-    this.locTitleChanged = void 0;
-    this.action = void 0;
-    super.dispose();
-    if (this.popupModel) {
-      this.popupModel.dispose();
-    }
-    if (this.intersectionVisibilityObserver) {
-      this.intersectionVisibilityObserver.disconnect();
-      this.intersectionVisibilityObserver = void 0;
-    }
-  }
-  updateDimension(mode, htmlElement, calcDimension) {
-    const property2 = mode == "small" ? "minDimension" : "maxDimension";
-    if (htmlElement) {
-      const actionContainer = htmlElement;
-      if (actionContainer.classList.contains("sv-action--hidden")) {
-        actionContainer.classList.remove("sv-action--hidden");
-        this[property2] = calcDimension(htmlElement);
-        actionContainer.classList.add("sv-action--hidden");
-      } else {
-        this[property2] = calcDimension(htmlElement);
-      }
-    }
-  }
-  afterRender() {
-    this.afterRenderCallback && this.afterRenderCallback();
-  }
-  updateMode(mode, callback) {
-    if (this.updateModeCallback) {
-      this.updateModeCallback(mode, callback);
-    } else {
-      this.afterRenderCallback = () => {
-        this.updateModeCallback(mode, callback);
-        this.afterRenderCallback = void 0;
-      };
-    }
-  }
-  updateDimensions(calcDimension, callback, modeToCalculate) {
-    const mode = !modeToCalculate || modeToCalculate == "large" && this.mode !== "small" ? this.mode : modeToCalculate;
-    this.updateMode(mode, (mode2, htmlElement) => {
-      this.updateDimension(mode2, htmlElement, calcDimension);
-      if (!modeToCalculate) {
-        this.updateMode(mode2 !== "small" ? "small" : "large", (mode3, htmlElement2) => {
-          this.updateDimension(mode3, htmlElement2, calcDimension);
-          callback();
-        });
-      } else {
-        callback();
-      }
-    });
-  }
-}
-__decorate([
-  property({ defaultValue: true })
-], Action.prototype, "_visible", void 0);
-__decorate([
-  property({
-    onSet: (_23, target) => {
-      target.locTooltipChanged();
-    }
-  })
-], Action.prototype, "locTooltipName", void 0);
-__decorate([
-  property()
-], Action.prototype, "_enabled", void 0);
-__decorate([
-  property()
-], Action.prototype, "action", void 0);
-__decorate([
-  property()
-], Action.prototype, "onFocus", void 0);
-__decorate([
-  property()
-], Action.prototype, "_component", void 0);
-__decorate([
-  property()
-], Action.prototype, "items", void 0);
-__decorate([
-  property({
-    onSet: (val, target) => {
-      if (target.locTitleValue.text === val)
-        return;
-      target.locTitleValue.text = val;
-    }
-  })
-], Action.prototype, "_title", void 0);
-class ActionDropdownViewModel {
-  constructor(item) {
-    this.item = item;
-    this.funcKey = "sv-dropdown-action";
-    this.setupPopupCallbacks();
-  }
-  setupPopupCallbacks() {
-    const popupModel = this.popupModel = this.item.popupModel;
-    if (!popupModel)
-      return;
-    popupModel.registerPropertyChangedHandlers(["isVisible"], () => {
-      if (!popupModel.isVisible) {
-        this.item.pressed = false;
-      } else {
-        this.item.pressed = true;
-      }
-    }, this.funcKey);
-  }
-  removePopupCallbacks() {
-    if (!!this.popupModel) {
-      this.popupModel.unregisterPropertyChangedHandlers(["isVisible"], this.funcKey);
-    }
-  }
-  dispose() {
-    this.removePopupCallbacks();
-  }
-}
-var UpdateResponsivenessMode;
-(function(UpdateResponsivenessMode2) {
-  UpdateResponsivenessMode2[UpdateResponsivenessMode2["None"] = 0] = "None";
-  UpdateResponsivenessMode2[UpdateResponsivenessMode2["Light"] = 1] = "Light";
-  UpdateResponsivenessMode2[UpdateResponsivenessMode2["Hard"] = 3] = "Hard";
-})(UpdateResponsivenessMode || (UpdateResponsivenessMode = {}));
-class AdaptiveActionContainer extends ActionContainer {
-  hideItemsGreaterN(visibleItemsCount) {
-    const actionsToHide = this.getActionsToHide();
-    visibleItemsCount = Math.max(visibleItemsCount, this.minVisibleItemsCount - (this.visibleActions.length - actionsToHide.length));
-    const hiddenItems = [];
-    actionsToHide.forEach((item) => {
-      if (visibleItemsCount <= 0) {
-        item.mode = "popup";
-        hiddenItems.push(item.innerItem);
-      }
-      visibleItemsCount--;
-    });
-    this.hiddenItemsListModel.setItems(hiddenItems);
-  }
-  getActionsToHide() {
-    return this.visibleActions.filter((action) => !action.disableHide);
-  }
-  updateItemMode(availableSpace, maxItemsSize) {
-    const items = this.visibleActions;
-    for (let index = items.length - 1; index >= 0; index--) {
-      if (maxItemsSize > availableSpace && !items[index].disableShrink) {
-        maxItemsSize -= items[index].maxDimension - items[index].minDimension;
-        items[index].mode = "small";
-      } else {
-        items[index].mode = "large";
-      }
-    }
-  }
-  constructor() {
-    super();
-    this.minVisibleItemsCount = 0;
-    this.isResponsivenessDisabled = false;
-    this.isInitialized = false;
-    this.dotsItem = createDropdownActionModelAdvanced({
-      id: "dotsItem-id" + this.id++,
-      css: "sv-dots",
-      innerCss: "sv-dots__item",
-      iconName: "icon-more",
-      visible: false,
-      tooltip: getLocaleString("more")
-    }, {
-      items: [],
-      allowSelection: false
-    });
-    this.hiddenItemsListModel.createActionCallback = (item) => this.createActionCore(this.hiddenItemsListModel, item);
-  }
-  get hiddenItemsListModel() {
-    return this.dotsItem.data;
-  }
-  onSet() {
-    super.onSet();
-    this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Hard });
-  }
-  onPush(action) {
-    super.onPush(action);
-    this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Hard });
-  }
-  onRemove(action) {
-    super.onRemove(action);
-    this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Hard });
-  }
-  onActionPropertyChanged(action, options2) {
-    super.onActionPropertyChanged(action, options2);
-    if (options2.name == "_visible" || options2.name == "_title") {
-      action.needUpdateMaxDimension = action.visible;
-      action.needUpdateMinDimension = action.visible;
-      this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Light });
-    }
-    if (options2.name == "disableHide" && options2.newValue && action.mode == "popup") {
-      this.raiseUpdate({ updateResponsivenessMode: UpdateResponsivenessMode.Light });
-    }
-  }
-  getRenderedActions() {
-    const actions = super.getRenderedActions();
-    if (actions.length == 0 || actions.length === 1 && !!actions[0].iconName)
-      return actions;
-    return actions.concat([this.dotsItem]);
-  }
-  getAllActions() {
-    return this.actions.concat(this.dotsItem);
-  }
-  getActionMinDimension(action) {
-    return action.disableShrink ? action.maxDimension : action.minDimension;
-  }
-  getVisibleItemsCount(options2) {
-    let { availableSpace, gap } = options2;
-    availableSpace -= this.dotsItem.minDimension + gap;
-    let currentItemsSize = 0;
-    if (this.visibleActions[0].disableHide) {
-      availableSpace += gap;
-    } else {
-      currentItemsSize -= gap;
-    }
-    this.visibleActions.filter((action) => action.disableHide).forEach((action) => {
-      return availableSpace -= this.getActionMinDimension(action) + gap;
-    });
-    const actionsToHide = this.getActionsToHide();
-    if (actionsToHide.length === 1 && !!actionsToHide[0].iconName) {
-      return 1;
-    }
-    for (let i = 0; i < actionsToHide.length; i++) {
-      currentItemsSize += this.getActionMinDimension(actionsToHide[i]) + gap;
-      if (currentItemsSize > availableSpace) {
-        return i;
-      }
-    }
-  }
-  fit(options2) {
-    var _a2;
-    if (options2.availableSpace <= 0)
-      return;
-    options2.gap = (_a2 = options2.gap) !== null && _a2 !== void 0 ? _a2 : 0;
-    const { availableSpace, gap } = options2;
-    this.dotsItem.visible = false;
-    const actions = this.visibleActions;
-    let minSize = -1 * options2.gap;
-    let maxSize = -1 * options2.gap;
-    actions.forEach((action) => {
-      minSize += this.getActionMinDimension(action) + gap;
-      maxSize += action.maxDimension + gap;
-    });
-    if (availableSpace >= maxSize) {
-      this.setActionsMode("large");
-    } else if (availableSpace < minSize) {
-      this.setActionsMode("small");
-      this.hideItemsGreaterN(this.getVisibleItemsCount(options2));
-      this.dotsItem.visible = !!this.hiddenItemsListModel.actions.length;
-    } else {
-      this.updateItemMode(options2.availableSpace, maxSize);
-    }
-  }
-  createResponsivityManager(container) {
-    return new ResponsivityManager(container, this);
-  }
-  mergeUpdateOptions(nextOptions, prevOptions) {
-    const options2 = super.mergeUpdateOptions(nextOptions, prevOptions);
-    options2.updateResponsivenessMode = options2.updateResponsivenessMode | prevOptions.updateResponsivenessMode;
-    return options2;
-  }
-  raiseUpdate(options2) {
-    super.raiseUpdate(options2);
-  }
-  update(options2) {
-    var _a2;
-    super.update(options2);
-    if (options2.updateResponsivenessMode) {
-      (_a2 = this.responsivityManager) === null || _a2 === void 0 ? void 0 : _a2.update(options2.updateResponsivenessMode == UpdateResponsivenessMode.Hard);
-    }
-  }
-  initResponsivityManager(container) {
-    if (!!this.responsivityManager) {
-      if (this.responsivityManager.container == container) {
-        return;
-      }
-      this.responsivityManager.dispose();
-    }
-    this.isInitialized = false;
-    this.responsivityManager = this.createResponsivityManager(container);
-    this.responsivityManager.afterInitializeCallback = () => {
-      this.isInitialized = true;
-    };
-  }
-  resetResponsivityManager() {
-    if (!!this.responsivityManager) {
-      this.responsivityManager.dispose();
-      this.responsivityManager = void 0;
-    }
-  }
-  getRootStyle() {
-    if (!this.isInitialized && !this.isResponsivenessDisabled) {
-      return { opacity: 0 };
-    } else {
-      return void 0;
-    }
-  }
-  setActionsMode(mode) {
-    this.actions.forEach((action) => {
-      if (mode == "small" && action.disableShrink) {
-        action.mode = "large";
-      } else {
-        action.mode = mode;
-      }
-    });
-  }
-  dispose() {
-    super.dispose();
-    this.dotsItem.data.dispose();
-    this.dotsItem.dispose();
-    this.resetResponsivityManager();
-  }
-}
-__decorate([
-  property()
-], AdaptiveActionContainer.prototype, "isInitialized", void 0);
-class AnimationUtils2 {
-  constructor() {
-    this.cancelQueue = [];
-  }
-  getMsFromRule(value) {
-    if (value === "auto")
-      return 0;
-    return Number(value.slice(0, -1).replace(",", ".")) * 1e3;
-  }
-  reflow(element2) {
-    return element2.offsetHeight;
-  }
-  getAnimationsCount(element2) {
-    let animationName = "";
-    if (getComputedStyle) {
-      animationName = getComputedStyle(element2).animationName;
-    }
-    return animationName && animationName != "none" ? animationName.split(", ").length : 0;
-  }
-  getAnimationDuration(element2) {
-    const style = getComputedStyle(element2);
-    const delays = style["animationDelay"].split(", ");
-    const durations = style["animationDuration"].split(", ");
-    let duration2 = 0;
-    for (let i = 0; i < Math.max(durations.length, delays.length); i++) {
-      duration2 = Math.max(duration2, this.getMsFromRule(durations[i % durations.length]) + this.getMsFromRule(delays[i % delays.length]));
-    }
-    return duration2;
-  }
-  addCancelCallback(callback) {
-    this.cancelQueue.push(callback);
-  }
-  removeCancelCallback(callback) {
-    if (this.cancelQueue.indexOf(callback) >= 0) {
-      this.cancelQueue.splice(this.cancelQueue.indexOf(callback), 1);
-    }
-  }
-  onAnimationEnd(element2, callback, options2) {
-    let cancelTimeout;
-    let animationsCount = this.getAnimationsCount(element2);
-    const onEndCallback = (isCancel = true) => {
-      callback(isCancel);
-      clearTimeout(cancelTimeout);
-      this.removeCancelCallback(onEndCallback);
-      element2.removeEventListener("animationend", onAnimationEndCallback);
-    };
-    const onAnimationEndCallback = (event) => {
-      if (event.target == event.currentTarget && --animationsCount <= 0) {
-        onEndCallback(false);
-      }
-    };
-    if (animationsCount > 0) {
-      element2.addEventListener("animationend", onAnimationEndCallback);
-      this.addCancelCallback(onEndCallback);
-      cancelTimeout = setTimeout(() => {
-        onEndCallback(false);
-      }, this.getAnimationDuration(element2) + 10);
-    } else {
-      callback(true);
-    }
-  }
-  afterAnimationRun(element2, options2) {
-    if (element2 && options2) {
-      options2.onAfterRunAnimation && options2.onAfterRunAnimation(element2);
-    }
-  }
-  beforeAnimationRun(element2, options2) {
-    if (element2 && options2) {
-      options2.onBeforeRunAnimation && options2.onBeforeRunAnimation(element2);
-    }
-  }
-  getCssClasses(options2) {
-    return options2.cssClass.replace(/\s+$/, "").split(/\s+/);
-  }
-  runAnimation(element2, options2, callback) {
-    if (element2 && (options2 === null || options2 === void 0 ? void 0 : options2.cssClass)) {
-      this.reflow(element2);
-      this.getCssClasses(options2).forEach((cssClass) => {
-        element2.classList.add(cssClass);
-      });
-      this.onAnimationEnd(element2, callback, options2);
-    } else {
-      callback(true);
-    }
-  }
-  clearHtmlElement(element2, options2) {
-    if (element2 && options2.cssClass) {
-      this.getCssClasses(options2).forEach((cssClass) => {
-        element2.classList.remove(cssClass);
-      });
-    }
-    this.afterAnimationRun(element2, options2);
-  }
-  onNextRender(callback, isCancel = false) {
-    if (!isCancel && DomWindowHelper.isAvailable()) {
-      let latestRAF;
-      const cancelCallback = () => {
-        callback(true);
-        cancelAnimationFrame(latestRAF);
-      };
-      latestRAF = DomWindowHelper.requestAnimationFrame(() => {
-        latestRAF = DomWindowHelper.requestAnimationFrame(() => {
-          callback(false);
-          this.removeCancelCallback(cancelCallback);
-        });
-      });
-      this.addCancelCallback(cancelCallback);
-    } else {
-      callback(true);
-    }
-  }
-  cancel() {
-    const cancelQueue = [].concat(this.cancelQueue);
-    cancelQueue.forEach((callback) => callback());
-    this.cancelQueue = [];
-  }
-}
-class AnimationPropertyUtils extends AnimationUtils2 {
-  onEnter(options2) {
-    const htmlElement = options2.getAnimatedElement();
-    const enterOptions = options2.getEnterOptions ? options2.getEnterOptions() : {};
-    this.beforeAnimationRun(htmlElement, enterOptions);
-    this.runAnimation(htmlElement, enterOptions, () => {
-      this.clearHtmlElement(htmlElement, enterOptions);
-    });
-  }
-  onLeave(options2, callback) {
-    const htmlElement = options2.getAnimatedElement();
-    const leaveOptions = options2.getLeaveOptions ? options2.getLeaveOptions() : {};
-    this.beforeAnimationRun(htmlElement, leaveOptions);
-    this.runAnimation(htmlElement, leaveOptions, (isCancel) => {
-      callback();
-      this.onNextRender(() => {
-        this.clearHtmlElement(htmlElement, leaveOptions);
-      }, isCancel);
-    });
-  }
-}
-class AnimationGroupUtils extends AnimationUtils2 {
-  runGroupAnimation(options2, addedItems, removedItems, reorderedItems, callback) {
-    const info = {
-      isAddingRunning: addedItems.length > 0,
-      isDeletingRunning: removedItems.length > 0,
-      isReorderingRunning: reorderedItems.length > 0
-    };
-    const addedHtmlElements = addedItems.map((el) => options2.getAnimatedElement(el));
-    const enterOptions = addedItems.map((el) => options2.getEnterOptions ? options2.getEnterOptions(el, info) : {});
-    const removedHtmlElements = removedItems.map((el) => options2.getAnimatedElement(el));
-    const leaveOptions = removedItems.map((el) => options2.getLeaveOptions ? options2.getLeaveOptions(el, info) : {});
-    const reorderedHtmlElements = reorderedItems.map((el) => options2.getAnimatedElement(el.item));
-    const reorderedOptions = reorderedItems.map((el) => options2.getReorderOptions ? options2.getReorderOptions(el.item, el.movedForward, info) : {});
-    addedItems.forEach((_23, i) => {
-      this.beforeAnimationRun(addedHtmlElements[i], enterOptions[i]);
-    });
-    removedItems.forEach((_23, i) => {
-      this.beforeAnimationRun(removedHtmlElements[i], leaveOptions[i]);
-    });
-    reorderedItems.forEach((_23, i) => {
-      this.beforeAnimationRun(reorderedHtmlElements[i], reorderedOptions[i]);
-    });
-    let counter = addedItems.length + removedItems.length + reorderedHtmlElements.length;
-    const onAnimationEndCallback = (isCancel) => {
-      if (--counter <= 0) {
-        callback && callback();
-        this.onNextRender(() => {
-          addedItems.forEach((_23, i) => {
-            this.clearHtmlElement(addedHtmlElements[i], enterOptions[i]);
-          });
-          removedItems.forEach((_23, i) => {
-            this.clearHtmlElement(removedHtmlElements[i], leaveOptions[i]);
-          });
-          reorderedItems.forEach((_23, i) => {
-            this.clearHtmlElement(reorderedHtmlElements[i], reorderedOptions[i]);
-          });
-        }, isCancel);
-      }
-    };
-    addedItems.forEach((_23, i) => {
-      this.runAnimation(addedHtmlElements[i], enterOptions[i], onAnimationEndCallback);
-    });
-    removedItems.forEach((_23, i) => {
-      this.runAnimation(removedHtmlElements[i], leaveOptions[i], onAnimationEndCallback);
-    });
-    reorderedItems.forEach((_23, i) => {
-      this.runAnimation(reorderedHtmlElements[i], reorderedOptions[i], onAnimationEndCallback);
-    });
-  }
-}
-class AnimationProperty {
-  constructor(animationOptions, update2, getCurrentValue) {
-    this.animationOptions = animationOptions;
-    this.update = update2;
-    this.getCurrentValue = getCurrentValue;
-    this._debouncedSync = debounce((newValue) => {
-      this.cancelAnimations();
-      try {
-        this._sync(newValue);
-      } catch (_a2) {
-        this.update(newValue);
-      }
-    });
-  }
-  onNextRender(callback, onCancel) {
-    const rerenderEvent = this.animationOptions.getRerenderEvent();
-    if (!rerenderEvent) {
-      if (DomWindowHelper.isAvailable()) {
-        const raf = DomWindowHelper.requestAnimationFrame(() => {
-          callback();
-          this.cancelCallback = void 0;
-        });
-        this.cancelCallback = () => {
-          onCancel && onCancel();
-          cancelAnimationFrame(raf);
-          this.cancelCallback = void 0;
-        };
-      } else {
-        throw new Error("Can't get next render");
-      }
-    } else {
-      const clear = () => {
-        rerenderEvent.remove(nextRenderCallback);
-        this.cancelCallback = void 0;
-      };
-      const nextRenderCallback = (_23, options2) => {
-        if (options2.isCancel) {
-          onCancel && onCancel();
-        } else {
-          callback();
-        }
-        clear();
-      };
-      this.cancelCallback = () => {
-        onCancel && onCancel();
-        clear();
-      };
-      rerenderEvent.add(nextRenderCallback);
-    }
-  }
-  sync(newValue) {
-    if (this.animationOptions.isAnimationEnabled()) {
-      this._debouncedSync.run(newValue);
-    } else {
-      this.cancel();
-      this.update(newValue);
-    }
-  }
-  cancel() {
-    this._debouncedSync.cancel();
-    this.cancelAnimations();
-  }
-  cancelAnimations() {
-    this.cancelCallback && this.cancelCallback();
-    this.animation.cancel();
-  }
-}
-class AnimationBoolean extends AnimationProperty {
-  constructor() {
-    super(...arguments);
-    this.animation = new AnimationPropertyUtils();
-  }
-  _sync(newValue) {
-    if (newValue !== this.getCurrentValue()) {
-      if (newValue) {
-        this.onNextRender(() => {
-          this.animation.onEnter(this.animationOptions);
-        });
-        this.update(newValue);
-      } else {
-        this.animation.onLeave(this.animationOptions, () => {
-          this.update(newValue);
-        });
-      }
-    } else {
-      this.update(newValue);
-    }
-  }
-}
-class AnimationGroup extends AnimationProperty {
-  constructor() {
-    super(...arguments);
-    this.animation = new AnimationGroupUtils();
-  }
-  _sync(newValue) {
-    var _a2, _b2;
-    newValue = [].concat(newValue);
-    const oldValue = [].concat(this.getCurrentValue());
-    const allowSyncRemovalAddition = (_a2 = this.animationOptions.allowSyncRemovalAddition) !== null && _a2 !== void 0 ? _a2 : true;
-    let compareResult = compareArrays(oldValue, newValue, (_b2 = this.animationOptions.getKey) !== null && _b2 !== void 0 ? _b2 : ((item) => item));
-    if (!allowSyncRemovalAddition && (compareResult.reorderedItems.length > 0 || compareResult.addedItems.length > 0)) {
-      compareResult.deletedItems = [];
-      compareResult.mergedItems = newValue;
-    }
-    if (!!this.animationOptions.onCompareArrays) {
-      this.animationOptions.onCompareArrays(compareResult);
-    }
-    let { addedItems, reorderedItems, deletedItems, mergedItems } = compareResult;
-    const runAnimationCallback = () => {
-      this.animation.runGroupAnimation(this.animationOptions, addedItems, deletedItems, reorderedItems, () => {
-        if (deletedItems.length > 0) {
-          this.update(newValue);
-        }
-      });
-    };
-    if ([addedItems, deletedItems, reorderedItems].some((arr2) => arr2.length > 0)) {
-      if (deletedItems.length <= 0 || reorderedItems.length > 0 || addedItems.length > 0) {
-        this.onNextRender(runAnimationCallback, () => {
-          this.update(newValue);
-        });
-        this.update(mergedItems);
-      } else {
-        runAnimationCallback();
-      }
-    } else {
-      this.update(newValue);
-    }
-  }
-}
-class AnimationTab extends AnimationProperty {
-  constructor(animationOptions, update2, getCurrentValue, mergeValues2) {
-    super(animationOptions, update2, getCurrentValue);
-    this.mergeValues = mergeValues2;
-    this.animation = new AnimationGroupUtils();
-  }
-  _sync(newValue) {
-    const oldValue = [].concat(this.getCurrentValue());
-    if (oldValue[0] !== newValue[0]) {
-      const tempValue = !!this.mergeValues ? this.mergeValues(newValue, oldValue) : [].concat(oldValue, newValue);
-      this.onNextRender(() => {
-        this.animation.runGroupAnimation(this.animationOptions, newValue, oldValue, [], () => {
-          this.update(newValue);
-        });
-      }, () => this.update(newValue));
-      this.update(tempValue, true);
-    } else {
-      this.update(newValue);
-    }
-  }
-}
-class SurveyElementCore extends Base {
-  constructor() {
-    super();
-    this.createLocTitleProperty();
-  }
-  createLocTitleProperty() {
-    return this.createLocalizableString("title", this, true);
-  }
-  /**
-   * A title for the survey element. If `title` is undefined, the `name` property value is displayed instead.
-   *
-   * Empty pages and panels do not display their titles or names.
-   *
-   * @see [Configure Question Titles](https://surveyjs.io/form-library/documentation/design-survey-question-titles)
-  */
-  get title() {
-    return this.getLocalizableStringText("title", this.getDefaultTitleValue());
-  }
-  set title(val) {
-    this.setTitleValue(val);
-  }
-  get locTitle() {
-    return this.getLocalizableString("title");
-  }
-  get locRenderedTitle() {
-    return this.locTitle;
-  }
-  getDefaultTitleValue() {
-    return void 0;
-  }
-  setTitleValue(val) {
-    this.setLocalizableStringText("title", val);
-  }
-  /**
-   * Returns `true` if the survey element has a description.
-   * @see description
-  */
-  get hasDescription() {
-    return this.getPropertyValue("hasDescription", void 0, () => this.calcDescriptionVisibility());
-  }
-  set hasDescription(val) {
-    this.setPropertyValue("hasDescription", val);
-  }
-  calcDescriptionVisibility() {
-    const newDescription = this.description;
-    let showPlaceholder = false;
-    if (this.isDesignMode) {
-      const property2 = Serializer.findProperty(this.getType(), "description");
-      showPlaceholder = !!(property2 === null || property2 === void 0 ? void 0 : property2.placeholder);
-    }
-    return !!newDescription || showPlaceholder && this.isDesignMode;
-  }
-  resetDescriptionVisibility() {
-    this.resetPropertyValue("hasDescription");
-  }
-  get locDescription() {
-    return this.getLocalizableString("description");
-  }
-  get titleTagName() {
-    let titleTagName = this.getDefaultTitleTagName();
-    const survey = this.getSurvey();
-    return !!survey ? survey.getElementTitleTagName(this, titleTagName) : titleTagName;
-  }
-  getDefaultTitleTagName() {
-    return settings.titleTags[this.getType()];
-  }
-  get hasTitle() {
-    return this.title.length > 0;
-  }
-  get hasTitleActions() {
-    return false;
-  }
-  get hasTitleEvents() {
-    return this.hasTitleActions;
-  }
-  getTitleToolbar() {
-    return null;
-  }
-  getTitleOwner() {
-    return void 0;
-  }
-  get isTitleOwner() {
-    return !!this.getTitleOwner();
-  }
-  get isTitleRenderedAsString() {
-    return this.getIsTitleRenderedAsString();
-  }
-  toggleState() {
-    return void 0;
-  }
-  get cssClasses() {
-    return {};
-  }
-  get cssTitle() {
-    return "";
-  }
-  get ariaTitleId() {
-    return void 0;
-  }
-  get ariaDescriptionId() {
-    return void 0;
-  }
-  get titleTabIndex() {
-    return void 0;
-  }
-  get titleAriaExpanded() {
-    return void 0;
-  }
-  get titleAriaRole() {
-    return void 0;
-  }
-  get ariaLabel() {
-    return this.locTitle.renderedHtml;
-  }
-  get titleAriaLabel() {
-    return this.ariaLabel;
-  }
-  getIsTitleRenderedAsString() {
-    return !this.isTitleOwner;
-  }
-}
-__decorate([
-  property({
-    localizable: { markdown: true },
-    onSet: (newDescription, self2) => {
-      self2.resetDescriptionVisibility();
-    }
-  })
-], SurveyElementCore.prototype, "description", void 0);
-class SurveyElement extends SurveyElementCore {
-  static getProgressInfoByElements(children, isRequired) {
-    const info = Base.createProgressInfo();
-    for (let i = 0; i < children.length; i++) {
-      if (!children[i].isVisible)
-        continue;
-      const childInfo = children[i].getProgressInfo();
-      info.questionCount += childInfo.questionCount;
-      info.answeredQuestionCount += childInfo.answeredQuestionCount;
-      info.requiredQuestionCount += childInfo.requiredQuestionCount;
-      info.requiredAnsweredQuestionCount += childInfo.requiredAnsweredQuestionCount;
-    }
-    if (isRequired && info.questionCount > 0) {
-      if (info.requiredQuestionCount == 0)
-        info.requiredQuestionCount = 1;
-      if (info.answeredQuestionCount > 0)
-        info.requiredAnsweredQuestionCount = 1;
-    }
-    return info;
-  }
-  static IsNeedScrollIntoView(el, checkLeft, scrollIfVisible) {
-    const elTop = scrollIfVisible ? -1 : el.getBoundingClientRect().top;
-    let needScroll = elTop < 0;
-    let elLeft = -1;
-    if (!needScroll && checkLeft) {
-      elLeft = el.getBoundingClientRect().left;
-      needScroll = elLeft < 0;
-    }
-    if (!needScroll && DomWindowHelper.isAvailable()) {
-      const height = DomWindowHelper.getInnerHeight();
-      needScroll = height > 0 && height < elTop;
-      if (!needScroll && checkLeft) {
-        const width = DomWindowHelper.getInnerWidth();
-        needScroll = width > 0 && width < elLeft;
-      }
-    }
-    return needScroll;
-  }
-  static ScrollIntoView(el, scrollIntoViewOptions, doneCallback) {
-    el.scrollIntoView(scrollIntoViewOptions);
-    if (typeof doneCallback === "function") {
-      let lastPos = null;
-      let same = 0;
-      const checkPos = () => {
-        const newPos = el.getBoundingClientRect().top;
-        if (newPos === lastPos) {
-          if (same++ > 2) {
-            doneCallback();
-            return;
-          }
-        } else {
-          lastPos = newPos;
-          same = 0;
-        }
-        requestAnimationFrame(checkPos);
-      };
-      DomWindowHelper.requestAnimationFrame(checkPos);
-    }
-  }
-  static ScrollElementToTop(element2, scrollIfVisible, scrollIntoViewOptions, doneCallback) {
-    return SurveyElement.ScrollElementToViewCore(element2, false, scrollIfVisible, scrollIntoViewOptions, doneCallback);
-  }
-  static ScrollElementToViewCore(el, checkLeft, scrollIfVisible, scrollIntoViewOptions, doneCallback) {
-    if (!el || !el.scrollIntoView) {
-      doneCallback && doneCallback();
-      return false;
-    }
-    const needScroll = SurveyElement.IsNeedScrollIntoView(el, checkLeft, scrollIfVisible);
-    if (needScroll) {
-      SurveyElement.ScrollIntoView(el, scrollIntoViewOptions, doneCallback);
-    } else {
-      doneCallback && doneCallback();
-    }
-    return needScroll;
-  }
-  static GetFirstNonTextElement(elements, removeSpaces = false) {
-    if (!elements || !elements.length || elements.length == 0)
-      return null;
-    if (removeSpaces) {
-      let tEl = elements[0];
-      if (tEl.nodeName === "#text")
-        tEl.data = "";
-      tEl = elements[elements.length - 1];
-      if (tEl.nodeName === "#text")
-        tEl.data = "";
-    }
-    for (let i = 0; i < elements.length; i++) {
-      if (elements[i].nodeName != "#text" && elements[i].nodeName != "#comment")
-        return elements[i];
-    }
-    return null;
-  }
-  static FocusElement(elementId, isTimeOut, containerEl) {
-    if (!elementId || !DomDocumentHelper.isAvailable())
-      return false;
-    const res = !isTimeOut ? SurveyElement.focusElementCore(elementId, containerEl) : false;
-    if (!res) {
-      setTimeout(() => {
-        SurveyElement.focusElementCore(elementId, containerEl);
-      }, isTimeOut ? 100 : 10);
-    }
-    return res;
-  }
-  static focusElementCore(elementId, containerEl) {
-    const { root: root2 } = settings.environment;
-    if (!root2 && !containerEl)
-      return false;
-    const el = containerEl ? containerEl.querySelector(`#${CSS.escape(elementId)}`) : root2.getElementById(elementId);
-    if (el && !el["disabled"] && el.style.display !== "none" && el.offsetParent !== null) {
-      SurveyElement.ScrollElementToViewCore(el, true, false);
-      el.focus();
-      return true;
-    }
-    return false;
-  }
-  get effectiveColSpan() {
-    const res = this.getPropertyValueWithoutDefault("effectiveColSpan");
-    if (res !== void 0)
-      return res;
-    this.setRootStyle();
-    return this.getPropertyValue("effectiveColSpan");
-  }
-  constructor(name) {
-    super();
-    this.selectedElementInDesignValue = this;
-    this.parentQuestionValue = null;
-    this.isContentElement = false;
-    this.isEditableTemplateElement = false;
-    this.isInteractiveDesignElement = true;
-    this._renderedIsExpanded = true;
-    this._isAnimatingCollapseExpand = false;
-    this.animationCollapsed = new AnimationBoolean(this.getExpandCollapseAnimationOptions(), (val) => {
-      this._renderedIsExpanded = val;
-      if (this.animationAllowed) {
-        if (val) {
-          this.isAnimatingCollapseExpand = true;
-        } else {
-          this.updateElementCss(false);
-        }
-      }
-    }, () => this.renderedIsExpanded);
-    this.onAfterRenderElement = this.addEvent();
-    this.setPropertyValueDirectly("name", this.getValidName(name));
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    const updateRootStyleProps = ["minWidth", "maxWidth", "renderWidth", "allowRootStyle", "parent"];
-    if (updateRootStyleProps.indexOf(name) > -1) {
-      this.updateRootStyle();
-    }
-    if (name === "state") {
-      this.updateElementCss(false);
-      this.notifyStateChanged(oldValue);
-      if (this.stateChangedCallback)
-        this.stateChangedCallback();
-    }
-    if (name === "isReadOnly") {
-      this.onReadOnlyChanged();
-    }
-    if (name === "errors") {
-      this.updateVisibleErrors();
-    }
-    if (name === "isSingleInRow") {
-      this.updateElementCss(false);
-    }
-    if (name === "effectiveColSpan") {
-      this.colSpan = newValue;
-    }
-  }
-  isPropertyStoredInHash(name) {
-    return name !== "bindings";
-  }
-  getSkeletonComponentNameCore() {
-    if (this.survey) {
-      return this.survey.getSkeletonComponentName(this);
-    }
-    return "sv-skeleton";
-  }
-  canUpdateValueOnVisibleChanged() {
-    return !this.isLoadingFromJson && !!this.survey && !this.survey.isSettingData();
-  }
-  /**
-   * A Dynamic Panel, Dynamic Matrix, or Dropdown Matrix that includes the current question.
-   *
-   * This property is `null` for standalone questions.
-   */
-  get parentQuestion() {
-    return this.parentQuestionValue;
-  }
-  setParentQuestion(val) {
-    this.parentQuestionValue = val;
-    this.onParentQuestionChanged();
-  }
-  onParentQuestionChanged() {
-  }
-  getPanelInDesignMode() {
-    return null;
-  }
-  updateElementVisibility() {
-    this.setPropertyValue("isVisible", this.isVisible);
-  }
-  get skeletonComponentName() {
-    return this.getSkeletonComponentNameCore();
-  }
-  /**
-   * Gets and sets the survey element's expand state.
-   *
-   * Possible values:
-   *
-   * - `"default"` (default) - The survey element is displayed in full and cannot be collapsed in the UI.
-   * - `"expanded"` - The survey element is displayed in full and can be collapsed in the UI.
-   * - `"collapsed"` - The survey element displays only `title` and `description` and can be expanded in the UI.
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/set-properties-on-multiple-questions-using-panel/ (linkStyle))
-   * @hidefor PageModel
-   * @see toggleState
-   * @see collapse
-   * @see expand
-   * @see isCollapsed
-   * @see isExpanded
-   */
-  get state() {
-    return this.getPropertyValue("state");
-  }
-  set state(val) {
-    this.setPropertyValue("state", val);
-    this.renderedIsExpanded = !this.isCollapsed;
-  }
-  notifyStateChanged(prevState) {
-    if (this.survey) {
-      this.survey.elementContentVisibilityChanged(this);
-    }
-  }
-  /**
-   * Returns `true` if the survey element is collapsed.
-   * @hidefor PageModel
-   * @see state
-   * @see toggleState
-   * @see collapse
-   * @see expand
-   * @see isExpanded
-   */
-  get isCollapsed() {
-    return this.state === "collapsed" && !this.isDesignMode && !this.isSingleInputMode;
-  }
-  get isSingleInputMode() {
-    var _a2;
-    return (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.isSingleVisibleInput;
-  }
-  /**
-   * Returns `true` if the survey element is expanded.
-   * @hidefor PageModel
-   * @see state
-   * @see toggleState
-   * @see collapse
-   * @see expand
-   * @see isCollapsed
-   */
-  get isExpanded() {
-    return this.state === "expanded" && !this.isSingleInputMode;
-  }
-  /**
-   * Collapses the survey element.
-   *
-   * In collapsed state, the element displays only `title` and `description`.
-   * @hidefor PageModel
-   * @see title
-   * @see description
-   * @see state
-   * @see toggleState
-   * @see expand
-   * @see isCollapsed
-   * @see isExpanded
-   */
-  collapse() {
-    if (this.isDesignMode)
-      return;
-    this.state = "collapsed";
-  }
-  /**
-   * Expands the survey element.
-   * @see state
-   * @see toggleState
-   * @see collapse
-   * @see isCollapsed
-   * @see isExpanded
-   */
-  expand() {
-    this.state = "expanded";
-  }
-  /**
-   * Toggles the survey element's `state` between collapsed and expanded.
-   * @hidefor PageModel
-   * @see state
-   * @see collapse
-   * @see expand
-   * @see isCollapsed
-   * @see isExpanded
-   */
-  toggleState() {
-    if (this.isCollapsed) {
-      this.expand();
-      return true;
-    }
-    if (this.isExpanded) {
-      this.collapse();
-      return false;
-    }
-    return true;
-  }
-  get hasStateButton() {
-    return this.isExpanded || this.isCollapsed;
-  }
-  get uiState() {
-    return this.getUIState();
-  }
-  set uiState(data2) {
-    this.setUIState(data2);
-  }
-  getUIState() {
-    if (this.state !== "default") {
-      return { collapsed: this.state === "collapsed" };
-    }
-    return void 0;
-  }
-  setUIState(data2) {
-    if (data2 && data2.collapsed !== void 0) {
-      this.state = data2.collapsed ? "collapsed" : "expanded";
-    }
-  }
-  get shortcutText() {
-    return this.title || this.name;
-  }
-  getTitleToolbar() {
-    if (!this.titleToolbarValue) {
-      this.titleToolbarValue = this.createActionContainer(true);
-      this.titleToolbarValue.locOwner = this;
-      this.titleToolbarValue.containerCss = (this.isPanel ? this.cssClasses.panel.titleBar : this.cssClasses.titleBar) || "sv-action-title-bar";
-      this.titleToolbarValue.setItems(this.getTitleActions());
-      this.titleToolbarValue.flushUpdates();
-    }
-    return this.titleToolbarValue;
-  }
-  createActionContainer(allowAdaptiveActions) {
-    const actionContainer = allowAdaptiveActions ? new AdaptiveActionContainer() : new ActionContainer();
-    if (this.survey && !!this.survey.getCss().actionBar) {
-      actionContainer.cssClasses = this.survey.getCss().actionBar;
-    }
-    return actionContainer;
-  }
-  get titleActions() {
-    return this.getArrayPropertyValue("titleActions");
-  }
-  getTitleActions() {
-    if (!this.isTitleActionRequested) {
-      this.updateTitleActions();
-      this.isTitleActionRequested = true;
-    }
-    return this.titleActions;
-  }
-  getDefaultTitleActions() {
-    return [];
-  }
-  updateTitleActions() {
-    let actions = this.getDefaultTitleActions();
-    if (!!this.survey) {
-      actions = this.survey.getUpdatedElementTitleActions(this, actions);
-    }
-    this.setArrayPropertyValue("titleActions", actions);
-  }
-  locStrsChanged() {
-    super.locStrsChanged();
-    if (!!this.titleToolbarValue) {
-      this.titleToolbarValue.locStrsChanged();
-    }
-  }
-  get hasTitleActions() {
-    return this.getTitleActions().length > 0;
-  }
-  get hasTitleEvents() {
-    return this.state !== void 0 && this.state !== "default";
-  }
-  get titleTabIndex() {
-    return !this.isPage && this.state !== "default" ? 0 : void 0;
-  }
-  get titleAriaExpanded() {
-    if (this.isPage || this.state === "default")
-      return void 0;
-    return this.state === "expanded" ? "true" : "false";
-  }
-  get titleAriaRole() {
-    if (this.isPage || this.state === "default")
-      return void 0;
-    return "button";
-  }
-  setSurveyImpl(value, isLight) {
-    this.surveyImplValue = value;
-    if (!this.surveyImplValue) {
-      this.setSurveyCore(null);
-      this.surveyDataValue = null;
-      this.textProcessorValue = null;
-    } else {
-      this.surveyDataValue = this.surveyImplValue.getSurveyData();
-      this.setSurveyCore(this.surveyImplValue.getSurvey());
-      this.textProcessorValue = this.createTextProcessor();
-      this.onSetData();
-    }
-    if (!!this.survey) {
-      this.resetDescriptionVisibility();
-      this.clearCssClasses();
-    }
-    this.blockAnimations();
-    this.renderedIsExpanded = !this.isCollapsed;
-    this.releaseAnimations();
-  }
-  getValueGetterContext() {
-    const data2 = this.data;
-    return !!data2 ? data2.getValueGetterContext() : super.getValueGetterContext();
-  }
-  createTextProcessor() {
-    return this.surveyImplValue.getTextProcessor();
-  }
-  canRunConditions() {
-    return super.canRunConditions() && !!this.data;
-  }
-  getDataFilteredProperties() {
-    var props = !!this.data ? this.data.getFilteredProperties() : {};
-    props.question = this;
-    return props;
-  }
-  get surveyImpl() {
-    return this.surveyImplValue;
-  }
-  /* You shouldn't use this method ever */
-  __setData(data2) {
-    this.surveyDataValue = data2;
-  }
-  get data() {
-    return this.surveyDataValue;
-  }
-  /**
-   * Returns the survey object.
-   */
-  get survey() {
-    return this.getSurvey();
-  }
-  getSurvey(live = false) {
-    if (!!this.surveyValue)
-      return this.surveyValue;
-    if (!!this.surveyImplValue) {
-      this.setSurveyCore(this.surveyImplValue.getSurvey());
-    }
-    return this.surveyValue;
-  }
-  setSurveyCore(value) {
-    this.surveyValue = value;
-    if (!!this.surveyChangedCallback) {
-      this.surveyChangedCallback();
-    }
-  }
-  get skeletonHeight() {
-    let skeletonHeight = void 0;
-    if (!!this.survey && this.survey.skeletonHeight) {
-      skeletonHeight = this.survey.skeletonHeight + "px";
-    }
-    return skeletonHeight;
-  }
-  get isInternal() {
-    return this.isContentElement;
-  }
-  get areInvisibleElementsShowing() {
-    const pQ = this.parentQuestion;
-    if (!!pQ && pQ.areInvisibleElementsShowing === false)
-      return false;
-    return !!this.survey && this.survey.areInvisibleElementsShowing && (!this.isDesignMode || !this.isContentElement);
-  }
-  get isVisible() {
-    return true;
-  }
-  /**
-   * Returns `true` if the survey element or its parent element is read-only.
-   *
-   * If you want to switch a survey element to the read-only state based on a condition, specify the [`enableIf`](https://surveyjs.io/form-library/documentation/question#enableIf) property. Refer to the following help topic for information: [Conditional Visibility](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#conditional-visibility).
-   * @see readOnly
-   */
-  get isReadOnly() {
-    return this.readOnly;
-  }
-  /**
-   * Makes the survey element read-only.
-   *
-   * If you want to switch a survey element to the read-only state based on a condition, specify the [`enableIf`](https://surveyjs.io/form-library/documentation/question#enableIf) property. Refer to the following help topic for information: [Conditional Visibility](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#conditional-visibility).
-   * @see isReadOnly
-   */
-  get readOnly() {
-    return this.getPropertyValue("readOnly");
-  }
-  set readOnly(val) {
-    if (this.readOnly == val)
-      return;
-    this.setPropertyValue("readOnly", val);
-    if (!this.isLoadingFromJson) {
-      this.setPropertyValue("isReadOnly", this.isReadOnly);
-    }
-  }
-  onReadOnlyChanged() {
-    if (!!this.readOnlyChangedCallback) {
-      this.readOnlyChangedCallback();
-    }
-  }
-  get css() {
-    return !!this.survey ? this.survey.getCss() : {};
-  }
-  get cssClassesValue() {
-    return this.getPropertyValue("cssClassesValue", void 0, () => this.createCssClassesValue());
-  }
-  createCssClassesValue() {
-    const callOnCalc = this.isCalculatingCssClasses;
-    this.isCalculatingCssClasses = true;
-    const res = this.calcCssClasses(this.css);
-    if (!callOnCalc) {
-      this.onCalcCssClasses(res);
-    }
-    this.updateElementCssCore(res);
-    this.isCalculatingCssClasses = false;
-    return res;
-  }
-  onCalcCssClasses(classes) {
-  }
-  /**
-   * Returns an object in which keys are UI elements and values are CSS classes applied to them.
-   *
-   * Use the following events of the [`SurveyModel`](https://surveyjs.io/form-library/documentation/surveymodel) object to override CSS classes:
-   *
-   * - [`onUpdateQuestionCssClasses`](https://surveyjs.io/form-library/documentation/surveymodel#onUpdateQuestionCssClasses)
-   * - [`onUpdatePanelCssClasses`](https://surveyjs.io/form-library/documentation/surveymodel#onUpdatePanelCssClasses)
-   * - [`onUpdatePageCssClasses`](https://surveyjs.io/form-library/documentation/surveymodel#onUpdatePageCssClasses)
-   * - [`onUpdateChoiceItemCss`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#onUpdateChoiceItemCss)
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/customize-survey-with-css/ (linkStyle))
-   */
-  get cssClasses() {
-    if (!this.survey)
-      return this.calcCssClasses(this.css);
-    return this.cssClassesValue;
-  }
-  get cssTitleNumber() {
-    const css = this.cssClasses;
-    if (css.number)
-      return css.number;
-    return css.panel ? css.panel.number : void 0;
-  }
-  get cssRequiredMark() {
-    const css = this.cssClasses;
-    return css.requiredMark || css.panel && css.panel.requiredMark;
-  }
-  getCssTitleExpandableSvg() {
-    if (this.state === "default" || this.isSingleInputMode)
-      return null;
-    return this.cssClasses.titleExpandableSvg;
-  }
-  calcCssClasses(css) {
-    return void 0;
-  }
-  updateElementCssCore(cssClasses) {
-  }
-  get cssError() {
-    return "";
-  }
-  updateElementCss(reNew) {
-    this.clearCssClasses();
-  }
-  clearCssClasses() {
-    this.resetPropertyValue("cssClassesValue");
-  }
-  getIsLoadingFromJson() {
-    if (super.getIsLoadingFromJson())
-      return true;
-    return this.surveyValue ? this.surveyValue.isLoadingFromJson : false;
-  }
-  /**
-   * A survey element identifier.
-   *
-   * > Question names must be unique.
-   */
-  get name() {
-    return this.getPropertyValue("name", "");
-  }
-  set name(val) {
-    var oldValue = this.name;
-    this.setPropertyValue("name", this.getValidName(val));
-    if (!this.isLoadingFromJson && !!oldValue) {
-      this.onNameChanged(oldValue);
-    }
-  }
-  getValidName(name) {
-    if (!!name) {
-      name = name.trim();
-      const sep = settings.itemValueSeparator;
-      if (!!sep && name.indexOf(sep) > -1) {
-        name = name.replace(sep, "");
-      }
-    }
-    return name;
-  }
-  onNameChanged(oldValue) {
-  }
-  updateBindingValue(valueName, value) {
-    if (!!this.data && !this.isTwoValueEquals(value, this.data.getValue(valueName))) {
-      this.data.setValue(valueName, value, false);
-    }
-  }
-  /**
-   * Validation errors. Call the `validate()` method to validate survey element data.
-   * @see validate
-   */
-  get errors() {
-    return this.getArrayPropertyValue("errors");
-  }
-  set errors(val) {
-    this.setArrayPropertyValue("errors", val);
-  }
-  get renderedErrors() {
-    return this.getArrayPropertyValue("renderedErrors");
-  }
-  set renderedErrors(val) {
-    this.setArrayPropertyValue("renderedErrors", val);
-  }
-  calcRenderedErrors() {
-    const currentType = this.currentNotificationType;
-    return this.errors.filter(((e2) => {
-      return e2.visible && e2.notificationType === currentType;
-    }));
-  }
-  get currentNotificationType() {
-    return this.getPropertyValue("currentNotificationType", void 0, () => this.calcCurrentNotificationType());
-  }
-  calcCurrentNotificationType() {
-    let currentType = "";
-    const types2 = ["info", "warning", "error"];
-    for (let i = 0; i < this.errors.length; i++) {
-      const error3 = this.errors[i];
-      if (!error3.visible)
-        continue;
-      const newType = error3.notificationType;
-      if (!currentType) {
-        currentType = newType;
-        continue;
-      }
-      const newTypeIndex = types2.indexOf(newType);
-      const currentTypeIndex = types2.indexOf(currentType);
-      if (newTypeIndex > currentTypeIndex)
-        currentType = newType;
-    }
-    return currentType;
-  }
-  updateVisibleErrors() {
-    this.resetPropertyValue("currentNotificationType");
-    var counter = 0;
-    for (var i = 0; i < this.errors.length; i++) {
-      if (this.errors[i].visible)
-        counter++;
-    }
-    this.hasVisibleErrors = counter > 0;
-    this.renderedErrors = this.calcRenderedErrors();
-  }
-  /**
-   * Returns `true` if the survey element or its child elements have validation errors.
-   *
-   * This property contains the result of the most recent validation. This result may be outdated. Call the `validate` method to get an up-to-date value.
-   * @see errors
-   */
-  get containsErrors() {
-    return this.getPropertyValue("containsErrors", false);
-  }
-  updateContainsErrors() {
-    this.setPropertyValue("containsErrors", this.getContainsErrors());
-  }
-  getContainsErrors() {
-    return this.errors.length > 0;
-  }
-  get selectedElementInDesign() {
-    return this.selectedElementInDesignValue;
-  }
-  set selectedElementInDesign(val) {
-    this.selectedElementInDesignValue = val;
-  }
-  updateCustomWidgets() {
-  }
-  onSurveyLoad() {
-  }
-  get wasRendered() {
-    return !!this.wasRenderedValue;
-  }
-  resetWasRendered() {
-    this.wasRenderedValue = false;
-  }
-  onFirstRendering() {
-    if (!this.wasRendered && !this.isLoadingFromJson) {
-      this.wasRenderedValue = true;
-      this.onFirstRenderingCore();
-    }
-  }
-  onFirstRenderingCore() {
-  }
-  endLoadingFromJson() {
-    super.endLoadingFromJson();
-    if (!this.survey) {
-      this.onSurveyLoad();
-    }
-  }
-  setVisibleIndex(index) {
-    return 0;
-  }
-  getPageVisibleIndex() {
-    return -1;
-  }
-  getStartIndex() {
-    if (!!this.parent)
-      return this.parent.getQuestionStartIndex();
-    if (!!this.survey)
-      return this.survey.getQuestionStartIndex(this.getPageVisibleIndex());
-    return "";
-  }
-  delete(doDispose) {
-  }
-  /**
-   * Returns the survey's [locale](https://surveyjs.io/form-library/documentation/surveymodel#locale).
-   *
-   * If a default locale is used, this method returns an empty string. To get the applied locale in this case, use the following code:
-   *
-   * ```js
-   * import { surveyLocalization } from 'survey-core';
-   * const defaultLocale = surveyLocalization.defaultLocale;
-   * ```
-   *
-   * @see [Localization & Globalization](https://surveyjs.io/form-library/documentation/localization)
-   */
-  getLocale() {
-    return this.survey ? this.survey.getLocale() : this.locOwner ? this.locOwner.getLocale() : "";
-  }
-  getMarkdownHtml(text2, name, item) {
-    return this.survey ? this.survey.getSurveyMarkdownHtml(this, text2, name, item) : this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item) : void 0;
-  }
-  getRenderer(name, item) {
-    return this.survey && typeof this.survey.getRendererForString === "function" ? this.survey.getRendererForString(this, name, item) : this.locOwner && typeof this.locOwner.getRenderer === "function" ? this.locOwner.getRenderer(name) : null;
-  }
-  getRendererContext(locStr, item) {
-    return this.survey && typeof this.survey.getRendererContextForString === "function" ? this.survey.getRendererContextForString(this, locStr, item) : this.locOwner && typeof this.locOwner.getRendererContext === "function" ? this.locOwner.getRendererContext(locStr) : locStr;
-  }
-  getProcessedText(text2, context2) {
-    if (this.isLoadingFromJson)
-      return text2;
-    if (this.textProcessor)
-      return this.textProcessor.processTextEx({ text: text2, returnDisplayValue: this.getUseDisplayValuesInDynamicTexts(), context: context2 || this, doEncoding: false }).text;
-    if (this.locOwner)
-      return this.locOwner.getProcessedText(text2, context2);
-    return text2;
-  }
-  getUseDisplayValuesInDynamicTexts() {
-    return true;
-  }
-  removeSelfFromList(list) {
-    if (!list || !Array.isArray(list))
-      return;
-    const index = list.indexOf(this);
-    if (index > -1) {
-      list.splice(index, 1);
-    }
-  }
-  get textProcessor() {
-    return this.textProcessorValue;
-  }
-  getProcessedHtml(html) {
-    if (!html || !this.textProcessor)
-      return html;
-    return this.textProcessor.processText(html, true);
-  }
-  onSetData() {
-  }
-  get parent() {
-    return this.getPropertyValue("parent", null);
-  }
-  set parent(val) {
-    this.setPropertyValue("parent", val);
-  }
-  getPage(parent) {
-    while (parent && parent.parent)
-      parent = parent.parent;
-    if (parent && parent.isPage)
-      return parent;
-    return null;
-  }
-  moveToBase(parent, container, insertBefore2 = null) {
-    if (!container)
-      return false;
-    parent.removeElement(this);
-    let index = -1;
-    if (Helpers.isNumber(insertBefore2)) {
-      index = parseInt(insertBefore2);
-    }
-    if (index == -1 && !!insertBefore2 && !!insertBefore2.getType) {
-      index = container.indexOf(insertBefore2);
-    }
-    container.addElement(this, index);
-    return true;
-  }
-  setPage(parent, newPage) {
-    const oldPage = this.getPage(parent);
-    this.prevSurvey = this.survey;
-    if (typeof newPage === "string") {
-      const survey = this.getSurvey();
-      survey.pages.forEach((page) => {
-        if (newPage === page.name)
-          newPage = page;
-      });
-    }
-    if (oldPage === newPage)
-      return;
-    if (parent)
-      parent.removeElement(this);
-    if (newPage) {
-      newPage.addElement(this, -1);
-    }
-    this.prevSurvey = void 0;
-  }
-  getSearchableLocKeys(keys) {
-    keys.push("title");
-    keys.push("description");
-  }
-  get hasParent() {
-    return this.parent && !this.parent.isPage || this.parent === void 0;
-  }
-  shouldAddRunnerStyles() {
-    return !this.isDesignMode;
-  }
-  get isCompact() {
-    return this.survey && this.survey["isCompact"];
-  }
-  canHaveFrameStyles() {
-    var _a2;
-    if (((_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.currentSingleElement) === this)
-      return true;
-    if (this.isInternalNested === true)
-      return false;
-    return this.parent !== void 0 && (!this.hasParent || this.parent && this.parent.showPanelAsPage);
-  }
-  getHasFrameV2() {
-    return this.shouldAddRunnerStyles() && this.canHaveFrameStyles();
-  }
-  getIsNested() {
-    return this.shouldAddRunnerStyles() && !this.canHaveFrameStyles();
-  }
-  getCssRoot(cssClasses) {
-    const isExpanadable = !!this.isCollapsed || !!this.isExpanded;
-    return new CssClassBuilder().append(cssClasses.withFrame, this.getHasFrameV2() && !this.isCompact).append(cssClasses.compact, this.isCompact && this.getHasFrameV2()).append(cssClasses.collapsed, !!this.isCollapsed).append(cssClasses.expandableAnimating, isExpanadable && this.isAnimatingCollapseExpand).append(cssClasses.expanded, !!this.isExpanded && this.renderedIsExpanded).append(cssClasses.expandable, isExpanadable).append(cssClasses.nested, this.getIsNested()).toString();
-  }
-  getRootStyle() {
-    const style = {};
-    if (!!this.paddingLeft) {
-      style["--sv-element-add-padding-left"] = this.paddingLeft;
-    }
-    if (!!this.paddingRight) {
-      style["--sv-element-add-padding-right"] = this.paddingRight;
-    }
-    return style;
-  }
-  get paddingLeft() {
-    return this.getPropertyValue("paddingLeft", void 0, () => this.calcPaddingLeft());
-  }
-  calcPaddingLeft() {
-    return "";
-  }
-  get paddingRight() {
-    return this.getPropertyValue("paddingRight", void 0, () => this.calcPaddingRight());
-  }
-  set paddingRight(val) {
-    this.setPropertyValue("paddingRight", val);
-  }
-  calcPaddingRight() {
-    return "";
-  }
-  resetIndents() {
-    this.resetPropertyValue("paddingLeft");
-    this.resetPropertyValue("paddingRight");
-  }
-  get rootStyle() {
-    return this.getPropertyValue("rootStyle", void 0, () => this.calcRootStyle());
-  }
-  set rootStyle(val) {
-    this.setPropertyValue("rootStyle", val);
-  }
-  updateRootStyle() {
-    if (!this.getPropertyValueWithoutDefault("rootStyle")) {
-      this.resetPropertyValue("effectiveColSpan");
-    } else {
-      this.setRootStyle();
-    }
-  }
-  setRootStyle() {
-    this.rootStyle = this.calcRootStyle();
-  }
-  calcRootStyle() {
-    const style = {};
-    let _width;
-    if (!!this.parent) {
-      const columns = this.parent.getColumsForElement(this);
-      _width = columns.reduce((sum2, col) => col.effectiveWidth + sum2, 0);
-      if (!!_width && _width !== 100) {
-        style["flexGrow"] = 1;
-        style["flexShrink"] = 0;
-        style["flexBasis"] = _width + "%";
-        style["minWidth"] = void 0;
-        style["maxWidth"] = this.maxWidth;
-      }
-    }
-    if (Object.keys(style).length == 0) {
-      let minWidth = "" + this.minWidth;
-      if (!!minWidth && minWidth != "auto") {
-        if (minWidth.indexOf("px") != -1 && this.survey) {
-          minWidth = minWidth.replace("px", "");
-          let minWidthNum = parseFloat(minWidth);
-          if (!isNaN(minWidthNum)) {
-            minWidth = minWidthNum * this.survey.widthScale / 100;
-            minWidth = "" + minWidth + "px";
-          }
-        }
-        minWidth = "min(100%, " + minWidth + ")";
-      }
-      if (this.allowRootStyle && this.renderWidth) {
-        style["flexGrow"] = 1;
-        style["flexShrink"] = 1;
-        style["flexBasis"] = this.renderWidth;
-        style["minWidth"] = minWidth;
-        style["maxWidth"] = this.maxWidth;
-      }
-    }
-    return style;
-  }
-  isContainsSelection(el) {
-    let elementWithSelection = void 0;
-    const _document = DomDocumentHelper.getDocument();
-    if (DomDocumentHelper.isAvailable() && !!_document && _document["selection"]) {
-      elementWithSelection = _document["selection"].createRange().parentElement();
-    } else {
-      var selection = DomWindowHelper.getSelection();
-      if (!!selection && selection.rangeCount > 0) {
-        const range2 = selection.getRangeAt(0);
-        if (range2.startOffset !== range2.endOffset) {
-          elementWithSelection = range2.startContainer.parentNode;
-        }
-      }
-    }
-    return elementWithSelection == el;
-  }
-  get clickTitleFunction() {
-    if (this.needClickTitleFunction()) {
-      return (event) => {
-        if (!!event && this.isContainsSelection(event.target)) {
-          return;
-        }
-        return this.processTitleClick();
-      };
-    }
-    return void 0;
-  }
-  needClickTitleFunction() {
-    return this.state !== "default";
-  }
-  processTitleClick() {
-    if (this.state !== "default") {
-      this.toggleState();
-    }
-  }
-  get hasAdditionalTitleToolbar() {
-    return false;
-  }
-  get additionalTitleToolbar() {
-    return this.getAdditionalTitleToolbar();
-  }
-  getAdditionalTitleToolbar() {
-    return null;
-  }
-  getCssTitle(cssClasses) {
-    if (!cssClasses)
-      return "";
-    const isExpandable = this.state !== "default";
-    const numInlineLimit = 4;
-    return new CssClassBuilder().append(cssClasses.title).append(cssClasses.titleNumInline, (this.no || "").length > numInlineLimit || isExpandable).append(cssClasses.titleExpandable, isExpandable).append(cssClasses.titleExpanded, this.isExpanded).append(cssClasses.titleCollapsed, this.isCollapsed).append(cssClasses.titleDisabled, this.isDisabledStyle).append(cssClasses.titleReadOnly, this.isReadOnly).append(cssClasses.titleOnError, this.containsErrors).toString();
-  }
-  get isDisabledStyle() {
-    return this.getIsDisableAndReadOnlyStyles(false)[1];
-  }
-  get isReadOnlyStyle() {
-    return this.getIsDisableAndReadOnlyStyles(false)[0];
-  }
-  getIsDisableAndReadOnlyStyles(itemReadOnly) {
-    const isPreview = this.isPreviewStyle;
-    const isReadOnly = itemReadOnly || this.isReadOnly;
-    const isReadOnlyStyle = isReadOnly && !isPreview;
-    return [isReadOnlyStyle, false];
-  }
-  get isPreviewStyle() {
-    return !!this.survey && this.survey.state === "preview";
-  }
-  localeChanged() {
-    super.localeChanged();
-    this.resetDescriptionVisibility();
-    if (this.errors.length > 0) {
-      this.errors.forEach((err) => {
-        err.updateText();
-      });
-    }
-  }
-  setWrapperElement(element2) {
-    this.wrapperElement = element2;
-  }
-  getWrapperElement() {
-    return this.wrapperElement;
-  }
-  set isAnimatingCollapseExpand(val) {
-    if (val !== this._isAnimatingCollapseExpand) {
-      this._isAnimatingCollapseExpand = val;
-      this.updateElementCss(false);
-    }
-  }
-  get isAnimatingCollapseExpand() {
-    return this._isAnimatingCollapseExpand || this._renderedIsExpanded != this.isExpanded;
-  }
-  onElementExpanded(elementIsRendered) {
-  }
-  getExpandCollapseAnimationOptions() {
-    const beforeRunAnimation = (el) => {
-      this.isAnimatingCollapseExpand = true;
-      prepareElementForVerticalAnimation(el);
-    };
-    const afterRunAnimation = (el) => {
-      this.isAnimatingCollapseExpand = false;
-      cleanHtmlElementAfterAnimation(el);
-    };
-    return {
-      getRerenderEvent: () => this.onElementRerendered,
-      getEnterOptions: () => {
-        const cssClasses = this.isPanel ? this.cssClasses.panel : this.cssClasses;
-        return {
-          cssClass: cssClasses.contentEnter,
-          onBeforeRunAnimation: beforeRunAnimation,
-          onAfterRunAnimation: (el) => {
-            afterRunAnimation(el);
-            this.onElementExpanded(true);
-          }
-        };
-      },
-      getLeaveOptions: () => {
-        const cssClasses = this.isPanel ? this.cssClasses.panel : this.cssClasses;
-        return {
-          cssClass: cssClasses.contentLeave,
-          onBeforeRunAnimation: beforeRunAnimation,
-          onAfterRunAnimation: afterRunAnimation
-        };
-      },
-      getAnimatedElement: () => {
-        var _a2;
-        const cssClasses = this.isPanel ? this.cssClasses.panel : this.cssClasses;
-        if (cssClasses.content) {
-          const selector = classesToSelector(cssClasses.content);
-          if (selector) {
-            return (_a2 = this.getWrapperElement()) === null || _a2 === void 0 ? void 0 : _a2.querySelector(`:scope ${selector}`);
-          }
-        }
-        return void 0;
-      },
-      isAnimationEnabled: () => this.isExpandCollapseAnimationEnabled
-    };
-  }
-  get isExpandCollapseAnimationEnabled() {
-    return this.animationAllowed && !this.isDesignMode;
-  }
-  set renderedIsExpanded(val) {
-    const oldValue = this._renderedIsExpanded;
-    this.animationCollapsed.sync(val);
-    if (!this.isExpandCollapseAnimationEnabled && !oldValue && this.renderedIsExpanded) {
-      this.onElementExpanded(false);
-    }
-  }
-  get renderedIsExpanded() {
-    return !!this._renderedIsExpanded;
-  }
-  getIsAnimationAllowed() {
-    return super.getIsAnimationAllowed() && !!this.survey && !this.survey["isEndLoadingFromJson"];
-  }
-  afterRenderCore(element2) {
-    this.onAfterRenderElement.fire(this, { htmlElement: element2 });
-  }
-  dispose() {
-    super.dispose();
-    if (this.titleToolbarValue) {
-      this.titleToolbarValue.dispose();
-    }
-  }
-  get randomSeed() {
-    var _a2;
-    let seed = ((_a2 = this.getOwner()) === null || _a2 === void 0 ? void 0 : _a2.randomSeed) || 0;
-    const key = this.getType() + this.name;
-    for (let i = 0; i < key.length; i++) {
-      seed = (seed << 5) - seed + key.charCodeAt(i);
-      seed |= 0;
-    }
-    return seed;
-  }
-  randomSeedChanged() {
-  }
-}
-__decorate([
-  property({ defaultValue: 1 })
-], SurveyElement.prototype, "colSpan", void 0);
-__decorate([
-  property({ defaultValue: false })
-], SurveyElement.prototype, "hasVisibleErrors", void 0);
-__decorate([
-  property({ defaultValue: true })
-], SurveyElement.prototype, "isSingleInRow", void 0);
-__decorate([
-  property({ defaultValue: "" })
-], SurveyElement.prototype, "width", void 0);
-__decorate([
-  property()
-], SurveyElement.prototype, "minWidth", void 0);
-__decorate([
-  property()
-], SurveyElement.prototype, "maxWidth", void 0);
-__decorate([
-  property({ defaultValue: "" })
-], SurveyElement.prototype, "renderWidth", void 0);
-__decorate([
-  property()
-], SurveyElement.prototype, "indent", void 0);
-__decorate([
-  property({ defaultValue: 0 })
-], SurveyElement.prototype, "rightIndent", void 0);
-__decorate([
-  property({ defaultValue: true })
-], SurveyElement.prototype, "allowRootStyle", void 0);
-__decorate([
-  property()
-], SurveyElement.prototype, "_renderedIsExpanded", void 0);
-class RenderingCompletedAwaiter {
-  constructor(_elements, _renderedHandler, waitingTimeout = 100) {
-    this._elements = _elements;
-    this._renderedHandler = _renderedHandler;
-    this._elementsToRenderCount = 0;
-    this._elementsToRenderTimer = void 0;
-    this._elementRenderedHandler = (s, o2) => {
-      var _a2;
-      (_a2 = s.onAfterRenderElement) === null || _a2 === void 0 ? void 0 : _a2.remove(this._elementRenderedHandler);
-      this._elementsToRenderCount--;
-      if (this._elementsToRenderCount <= 0) {
-        this.visibleElementsRendered();
-      }
-    };
-    this._elements.forEach((element2) => {
-      if (element2.onAfterRenderElement) {
-        element2.onAfterRenderElement.add(this._elementRenderedHandler);
-        this._elementsToRenderCount++;
-      }
-    });
-    if (this._elementsToRenderCount > 0) {
-      this._elementsToRenderTimer = setTimeout(() => {
-        if (this._elementsToRenderCount > 0) {
-          this.visibleElementsRendered();
-        }
-      }, waitingTimeout);
-    } else {
-      this.visibleElementsRendered();
-    }
-  }
-  stopWaitingForElementsRendering() {
-    if (this._elementsToRenderTimer) {
-      clearTimeout(this._elementsToRenderTimer);
-      this._elementsToRenderTimer = void 0;
-    }
-    this._elements.forEach((element2) => {
-      var _a2;
-      (_a2 = element2.onAfterRenderElement) === null || _a2 === void 0 ? void 0 : _a2.remove(this._elementRenderedHandler);
-    });
-    this._elementsToRenderCount = 0;
-  }
-  visibleElementsRendered() {
-    const renderedHandler = this._renderedHandler;
-    this.dispose();
-    if (typeof renderedHandler == "function") {
-      renderedHandler();
-    }
-  }
-  dispose() {
-    this.stopWaitingForElementsRendering();
-    this._elements = void 0;
-    this._renderedHandler = void 0;
-  }
-}
-class LocalizableString {
-  static get defaultLocale() {
-    return settings.localization.defaultLocaleName;
-  }
-  static set defaultLocale(val) {
-    settings.localization.defaultLocaleName = val;
-  }
-  get localizationName() {
-    return this._localizationName;
-  }
-  set localizationName(val) {
-    if (this._localizationName != val) {
-      this._localizationName = val;
-      this.strChanged();
-    }
-  }
-  get allowLineBreaks() {
-    var _a2;
-    if (this._allowLineBreaks === void 0) {
-      this._allowLineBreaks = false;
-      if (!!this.name && this.owner instanceof SurveyElementCore) {
-        this._allowLineBreaks = ((_a2 = Serializer.findProperty(this.owner.getType(), this.name)) === null || _a2 === void 0 ? void 0 : _a2.type) == "text";
-      }
-    }
-    return this._allowLineBreaks;
-  }
-  constructor(owner, useMarkdown = false, name, locName) {
-    this.owner = owner;
-    this.useMarkdown = useMarkdown;
-    this.name = name;
-    this.values = {};
-    this.htmlValues = {};
-    this.onStringChanged = new EventBase();
-    this._localizationName = locName;
-  }
-  getIsMultiple() {
-    return false;
-  }
-  getStringViewerClassName(textClass) {
-    if (textClass !== void 0)
-      return textClass;
-    return "sv-string-viewer" + (this.allowLineBreaks ? " sv-string-viewer--multiline" : "");
-  }
-  get locale() {
-    if (this.owner && this.owner.getLocale) {
-      const res = this.owner.getLocale();
-      if (!!res || !this.sharedData)
-        return res;
-    }
-    if (!!this.sharedData)
-      return this.sharedData.locale;
-    return "";
-  }
-  get isDefautlLocale() {
-    const loc = this.locale;
-    return !loc || loc === settings.defaultLocaleName;
-  }
-  strChanged() {
-    if (!this.isTextRequested)
-      return;
-    this.searchableText = void 0;
-    if (this.renderedText === void 0 && this.isEmpty && !this.onGetTextCallback && !this.localizationName)
-      return;
-    this.calculatedTextValue = this.calcText();
-    if (this.renderedText !== this.calculatedTextValue) {
-      this.renderedText = void 0;
-      this.calculatedTextValue = void 0;
-    }
-    this.htmlValues = {};
-    this.onChanged();
-    this.onStringChanged.fire(this, {});
-  }
-  get text() {
-    return this.pureText;
-  }
-  set text(value) {
-    this.setLocaleText(this.locale, value);
-  }
-  get calculatedText() {
-    this.renderedText = this.calculatedTextValue !== void 0 ? this.calculatedTextValue : this.calcText();
-    this.calculatedTextValue = void 0;
-    return this.renderedText;
-  }
-  getPlaceholder() {
-    let res = "";
-    if (!this.isDefautlLocale) {
-      const dialectLocale = this.getRootDialect(this.locale);
-      res = this.getLocaleText(dialectLocale || settings.defaultLocaleName);
-    }
-    if (!res && this.onGetTextCallback) {
-      res = this.onGetTextCallback("", "");
-    }
-    return res;
-  }
-  calcText() {
-    const pureText = this.pureText;
-    let res = pureText;
-    if (res && this.owner && this.owner.getProcessedText && res.indexOf("{") > -1) {
-      res = this.owner.getProcessedText(res);
-    }
-    if (this.onGetTextCallback)
-      res = this.onGetTextCallback(res, pureText);
-    return res;
-  }
-  get pureText() {
-    this.isTextRequested = true;
-    var loc = this.locale;
-    if (!loc)
-      loc = this.defaultLoc;
-    var res = this.getValue(loc);
-    if (this.isValueEmpty(res) && loc === this.defaultLoc) {
-      res = this.getValue(surveyLocalization.defaultLocale);
-    }
-    if (this.isValueEmpty(res)) {
-      const dialect = this.getRootDialect(loc);
-      if (!!dialect) {
-        res = this.getValue(dialect);
-      }
-    }
-    if (this.isValueEmpty(res) && loc !== this.defaultLoc) {
-      res = this.getValue(this.defaultLoc);
-    }
-    if (this.isValueEmpty(res) && !!this.getLocalizationName()) {
-      res = this.getLocalizationStr();
-    }
-    if (!res)
-      res = this.defaultValue || "";
-    return res;
-  }
-  getRootDialect(loc) {
-    if (!loc)
-      return loc;
-    const index = loc.indexOf("-");
-    return index > -1 ? loc.substring(0, index) : "";
-  }
-  getLocalizationName() {
-    return !!this.sharedData ? this.sharedData.localizationName : this.localizationName;
-  }
-  getLocalizationStr() {
-    const name = this.getLocalizationName();
-    return !!name ? getLocaleString(name, this.locale) : "";
-  }
-  get hasHtml() {
-    return this.hasHtmlValue();
-  }
-  get html() {
-    if (!this.hasHtml)
-      return "";
-    return this.getHtmlValue();
-  }
-  get isEmpty() {
-    return this.getValuesKeys().length == 0;
-  }
-  get textOrHtml() {
-    return this.hasHtml ? this.getHtmlValue() : this.calculatedText;
-  }
-  get renderedHtml() {
-    return this.textOrHtml;
-  }
-  getLocaleText(loc) {
-    const res = this.getLocaleTextCore(loc);
-    return res ? res : "";
-  }
-  getLocaleTextCore(loc) {
-    if (!loc)
-      loc = this.defaultLoc;
-    return this.getValue(loc);
-  }
-  isLocaleTextEqualsWithDefault(loc, val) {
-    let res = this.getLocaleTextCore(loc);
-    if (res === val)
-      return true;
-    return this.isValueEmpty(res) && this.isValueEmpty(val);
-  }
-  clear() {
-    this.setJson(void 0);
-  }
-  clearLocale(loc) {
-    this.setLocaleText(loc, void 0);
-  }
-  setLocaleText(loc, value) {
-    loc = this.getValueLoc(loc);
-    this.lastChangedLoc = loc;
-    if (!!loc && value === void 0) {
-      const oldValue2 = this.getValue(loc);
-      if (oldValue2 !== void 0) {
-        this.deleteValue(loc);
-        this.fireStrChanged(loc, oldValue2);
-      }
-      return;
-    }
-    if (!this.storeDefaultText && this.isLocaleTextEqualsWithDefault(loc, value)) {
-      if (!this.isValueEmpty(value) || !!loc && loc !== this.defaultLoc)
-        return;
-      let dl = surveyLocalization.defaultLocale;
-      let oldValue2 = this.getValue(dl);
-      if (!!dl && !this.isValueEmpty(oldValue2)) {
-        this.setValue(dl, value);
-        this.fireStrChanged(dl, oldValue2);
-      }
-      return;
-    }
-    if (!settings.localization.storeDuplicatedTranslations && !this.isValueEmpty(value) && loc && loc != this.defaultLoc && !this.getValue(loc) && value == this.getLocaleText(this.defaultLoc))
-      return;
-    var curLoc = this.curLocale;
-    if (!loc)
-      loc = this.defaultLoc;
-    var oldValue = this.onStrChanged && loc === curLoc ? this.pureText : void 0;
-    delete this.htmlValues[loc];
-    if (this.isValueEmpty(value)) {
-      this.deleteValue(loc);
-    } else {
-      if (typeof value === "string") {
-        if (this.canRemoveLocValue(loc, value)) {
-          this.setLocaleText(loc, null);
-        } else {
-          this.setValue(loc, value);
-          if (loc == this.defaultLoc) {
-            this.deleteValuesEqualsToDefault(value);
-          }
-        }
-      }
-    }
-    this.fireStrChanged(loc, oldValue);
-  }
-  isValueEmpty(val) {
-    if (val === void 0 || val === null)
-      return true;
-    if (this.localizationName)
-      return false;
-    return val === "";
-  }
-  get curLocale() {
-    return !!this.locale ? this.locale : this.defaultLoc;
-  }
-  canRemoveLocValue(loc, val) {
-    if (settings.localization.storeDuplicatedTranslations)
-      return false;
-    if (loc === this.defaultLoc)
-      return false;
-    const dialect = this.getRootDialect(loc);
-    if (!!dialect) {
-      const dialectVal = this.getLocaleText(dialect);
-      if (!!dialectVal)
-        return dialectVal == val;
-      return this.canRemoveLocValue(dialect, val);
-    } else {
-      return val == this.getLocaleText(this.defaultLoc);
-    }
-  }
-  fireStrChanged(loc, oldValue) {
-    this.strChanged();
-    if (!this.onStrChanged)
-      return;
-    const value = this.pureText;
-    if (loc !== this.curLocale || oldValue !== value) {
-      this.onStrChanged(oldValue, value);
-    }
-  }
-  hasNonDefaultText() {
-    var keys = this.getValuesKeys();
-    if (keys.length == 0)
-      return false;
-    return keys.length > 1 || keys[0] != this.defaultLoc;
-  }
-  getLocales() {
-    var keys = this.getValuesKeys();
-    if (keys.length == 0)
-      return [];
-    return keys;
-  }
-  getJson(options2) {
-    if (!!this.sharedData)
-      return this.sharedData.getJson(options2);
-    const keys = this.getValuesKeys();
-    const selectedLocales = (options2 === null || options2 === void 0 ? void 0 : options2.locales) || [];
-    const hasSelected = selectedLocales.length > 0;
-    if (hasSelected) {
-      for (let i = keys.length - 1; i >= 0; i--) {
-        if (selectedLocales.indexOf(keys[i]) < 0) {
-          keys.splice(i, 1);
-        }
-      }
-    }
-    if (keys.length == 0) {
-      if (!hasSelected && this.serializeCallBackText) {
-        const text2 = this.calcText();
-        if (!!text2)
-          return text2;
-      }
-      return null;
-    }
-    if (keys.length == 1 && (hasSelected || keys[0] == settings.localization.defaultLocaleName) && !settings.serialization.localizableStringSerializeAsObject)
-      return this.values[keys[0]];
-    const res = {};
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      res[key] = this.values[key];
-    }
-    return res;
-  }
-  setJson(value, isLoading) {
-    if (!!this.sharedData) {
-      this.sharedData.setJson(value, isLoading);
-      return;
-    }
-    this.lastChangedLoc = void 0;
-    this.values = {};
-    this.htmlValues = {};
-    if (value === null || value === void 0)
-      return;
-    if (isLoading) {
-      if (typeof value === "string") {
-        this.values[settings.defaultLocaleName] = value;
-      } else {
-        this.values = value;
-        delete this.values["pos"];
-      }
-    } else {
-      if (typeof value === "string") {
-        this.setLocaleText(null, value);
-      } else {
-        for (var key in value) {
-          this.setLocaleText(key, value[key]);
-        }
-      }
-      this.strChanged();
-    }
-  }
-  mergeWith(locStr, locales) {
-    if (!!this.sharedData) {
-      this.sharedData.mergeWith(locStr);
-      return;
-    }
-    const str_locs = locStr.getLocales();
-    if (Array.isArray(locales) && locales.length === 1 && str_locs.length === 1 && str_locs[0] === this.defaultLoc) {
-      this.setLocaleText(locales[0], locStr.getLocaleText(this.defaultLoc));
-    } else {
-      locales = locales || str_locs;
-      for (let i = 0; i < locales.length; i++) {
-        const loc = locales[i];
-        const val = locStr.getLocaleText(loc);
-        this.setLocaleText(loc, val);
-      }
-    }
-  }
-  get renderAs() {
-    if (!this.owner || typeof this.owner.getRenderer !== "function") {
-      return LocalizableString.defaultRenderer;
-    }
-    return this.owner.getRenderer(this.name) || LocalizableString.defaultRenderer;
-  }
-  get renderAsData() {
-    if (!this.owner || typeof this.owner.getRendererContext !== "function") {
-      return this;
-    }
-    return this.owner.getRendererContext(this) || this;
-  }
-  equals(obj) {
-    if (!!this.sharedData)
-      return this.sharedData.equals(obj);
-    if (!obj || !obj.values)
-      return false;
-    return Helpers.isTwoValueEquals(this.values, obj.values, false, true, false);
-  }
-  setFindText(text2) {
-    if (this.searchText == text2)
-      return;
-    this.searchText = text2;
-    if (!this.searchableText) {
-      let textOrHtml = this.textOrHtml;
-      this.searchableText = !!textOrHtml ? textOrHtml.toLowerCase() : "";
-    }
-    var str = this.searchableText;
-    var index = !!str && !!text2 ? str.indexOf(text2) : void 0;
-    if (index < 0)
-      index = void 0;
-    if (index != void 0 || this.searchIndex != index) {
-      this.searchIndex = index;
-      if (!!this.onSearchChanged) {
-        this.onSearchChanged();
-      }
-    }
-    return this.searchIndex != void 0;
-  }
-  onChanged() {
-  }
-  hasHtmlValue() {
-    if (!this.owner || !this.useMarkdown)
-      return false;
-    let loc = this.locale;
-    if (!loc)
-      loc = this.defaultLoc;
-    if (this.htmlValues[loc] !== void 0)
-      return !!this.htmlValues[loc];
-    let renderedText = this.calculatedText;
-    if (!renderedText) {
-      this.setHtmlValue(loc, "");
-      return false;
-    }
-    if (!!this.getLocalizationName() && renderedText === this.getLocalizationStr()) {
-      this.setHtmlValue(loc, "");
-      return false;
-    }
-    const res = this.owner.getMarkdownHtml(renderedText, this.name);
-    this.setHtmlValue(loc, res);
-    return !!res;
-  }
-  setHtmlValue(loc, val) {
-    this.htmlValues[loc] = val;
-  }
-  getHtmlValue() {
-    var loc = this.locale;
-    if (!loc)
-      loc = this.defaultLoc;
-    return this.htmlValues[loc];
-  }
-  deleteValuesEqualsToDefault(defaultValue) {
-    if (settings.localization.storeDuplicatedTranslations)
-      return;
-    var keys = this.getValuesKeys();
-    for (var i = 0; i < keys.length; i++) {
-      if (keys[i] == this.defaultLoc)
-        continue;
-      if (this.getValue(keys[i]) == defaultValue) {
-        this.deleteValue(keys[i]);
-      }
-    }
-  }
-  getValue(loc) {
-    if (!!this.sharedData)
-      return this.sharedData.getValue(loc);
-    return this.values[this.getValueLoc(loc)];
-  }
-  setValue(loc, value) {
-    if (!!this.sharedData)
-      this.sharedData.setValue(loc, value);
-    else
-      this.values[this.getValueLoc(loc)] = value;
-  }
-  deleteValue(loc) {
-    if (!!this.sharedData)
-      this.sharedData.deleteValue(loc);
-    else
-      delete this.values[this.getValueLoc(loc)];
-  }
-  getValueLoc(loc) {
-    if (this.disableLocalization)
-      return settings.localization.defaultLocaleName;
-    return loc;
-  }
-  getValuesKeys() {
-    if (!!this.sharedData)
-      return this.sharedData.getValuesKeys();
-    return Object.keys(this.values);
-  }
-  get defaultLoc() {
-    return settings.localization.defaultLocaleName;
-  }
-}
-LocalizableString.SerializeAsObject = false;
-LocalizableString.defaultRenderer = "sv-string-viewer";
-LocalizableString.editableRenderer = "sv-string-editor";
-class LocalizableStrings {
-  constructor(owner) {
-    this.owner = owner;
-    this.values = {};
-  }
-  getIsMultiple() {
-    return true;
-  }
-  get locale() {
-    return this.owner && this.owner.getLocale ? this.owner.getLocale() : "";
-  }
-  get value() {
-    return this.getValue("");
-  }
-  set value(val) {
-    this.setValue("", val);
-  }
-  get text() {
-    return Array.isArray(this.value) ? this.value.join("\n") : "";
-  }
-  set text(val) {
-    this.value = !!val ? val.split("\n") : [];
-  }
-  getLocaleText(loc) {
-    var res = this.getValueCore(loc, !loc || loc === this.locale);
-    if (!res || !Array.isArray(res) || res.length == 0)
-      return "";
-    return res.join("\n");
-  }
-  setLocaleText(loc, newValue) {
-    var val = !!newValue ? newValue.split("\n") : null;
-    this.setValue(loc, val);
-  }
-  getValue(loc) {
-    return this.getValueCore(loc);
-  }
-  getValueCore(loc, useDefault = true) {
-    loc = this.getLocale(loc);
-    if (this.values[loc])
-      return this.values[loc];
-    if (useDefault) {
-      var defLoc = settings.localization.defaultLocaleName;
-      if (loc !== defLoc && this.values[defLoc])
-        return this.values[defLoc];
-    }
-    return [];
-  }
-  setValue(loc, val) {
-    loc = this.getLocale(loc);
-    const oldValue = Helpers.createCopy(this.values);
-    if (!val || val.length == 0) {
-      delete this.values[loc];
-    } else {
-      this.values[loc] = val;
-    }
-    if (!!this.onValueChanged) {
-      this.onValueChanged(oldValue, this.values);
-    }
-  }
-  hasValue(loc = "") {
-    return !this.isEmpty && this.getValue(loc).length > 0;
-  }
-  get isEmpty() {
-    return this.getValuesKeys().length == 0;
-  }
-  getLocale(loc) {
-    if (!!loc)
-      return loc;
-    loc = this.locale;
-    return !!loc ? loc : settings.localization.defaultLocaleName;
-  }
-  getLocales() {
-    var keys = this.getValuesKeys();
-    if (keys.length == 0)
-      return [];
-    return keys;
-  }
-  getJson() {
-    var keys = this.getValuesKeys();
-    if (keys.length == 0)
-      return null;
-    if (keys.length == 1 && keys[0] == settings.localization.defaultLocaleName && !settings.serialization.localizableStringSerializeAsObject)
-      return this.values[keys[0]];
-    return Helpers.createCopy(this.values);
-  }
-  setJson(value) {
-    this.values = {};
-    if (!value)
-      return;
-    if (Array.isArray(value)) {
-      this.setValue(null, value);
-    } else {
-      for (var key in value) {
-        this.setValue(key, value[key]);
-      }
-    }
-  }
-  getValuesKeys() {
-    return Object.keys(this.values);
-  }
-}
-function confirmAction(message) {
-  if (!!settings && !!settings.confirmActionFunc)
-    return settings.confirmActionFunc(message);
-  return confirm(message);
-}
-function confirmActionAsync(options2) {
-  const callbackFunc = (res) => {
-    if (res)
-      options2.funcOnYes();
-    else if (!!options2.funcOnNo)
-      options2.funcOnNo();
-  };
-  if (!!settings && !!settings.confirmActionFunc) {
-    callbackFunc(confirmAction(options2.message));
-    return;
-  }
-  if (!!settings && !!settings.confirmActionAsync) {
-    settings.confirmActionAsync(options2.message, callbackFunc, options2);
-  } else {
-    showConfirmDialog(options2.message, callbackFunc, options2);
-  }
-}
-function detectIEOrEdge() {
-  if (typeof detectIEOrEdge.isIEOrEdge === "undefined") {
-    const ua = navigator.userAgent;
-    const msie = ua.indexOf("MSIE ");
-    const trident = ua.indexOf("Trident/");
-    const edge = ua.indexOf("Edge/");
-    detectIEOrEdge.isIEOrEdge = edge > 0 || trident > 0 || msie > 0;
-  }
-  return detectIEOrEdge.isIEOrEdge;
-}
-function loadFileFromBase64(b64Data, fileName) {
-  try {
-    const byteString = atob(b64Data.split(",")[1]);
-    const mimeString = b64Data.split(",")[0].split(":")[1].split(";")[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    const bb = new Blob([ab], { type: mimeString });
-    if (!!navigator && navigator["msSaveBlob"]) {
-      navigator["msSaveOrOpenBlob"](bb, fileName);
-    }
-  } catch (err) {
-  }
-}
-const isShadowDOM = (rootElement) => {
-  return !!rootElement && !!("host" in rootElement && rootElement.host);
-};
-const getElement = (element2) => {
-  const { root: root2 } = settings.environment;
-  return typeof element2 === "string" ? root2.getElementById(element2) : element2;
-};
-function isElementVisible(element2, threshold = 0) {
-  const root2 = getRootNode(element2);
-  if (!root2 || !element2.offsetHeight)
-    return false;
-  const clientHeight = isShadowDOM(root2) ? root2.host.clientHeight : root2.documentElement.clientHeight;
-  const elementRect = element2.getBoundingClientRect();
-  const viewHeight = Math.max(clientHeight, DomWindowHelper.getInnerHeight());
-  const topWin = -threshold;
-  const bottomWin = viewHeight + threshold;
-  const topEl = elementRect.top;
-  const bottomEl = elementRect.bottom;
-  const maxTop = Math.max(topWin, topEl);
-  const minBottom = Math.min(bottomWin, bottomEl);
-  return maxTop <= minBottom;
-}
-function findScrollableParent(element2) {
-  if (!element2) {
-    return DomDocumentHelper.isAvailable() ? DomDocumentHelper.getDocument().documentElement : void 0;
-  }
-  if (element2.scrollHeight > element2.clientHeight && (getComputedStyle(element2).overflowY === "scroll" || getComputedStyle(element2).overflowY === "auto")) {
-    return element2;
-  }
-  if (element2.scrollWidth > element2.clientWidth && (getComputedStyle(element2).overflowX === "scroll" || getComputedStyle(element2).overflowX === "auto")) {
-    return element2;
-  }
-  if (!element2.parentElement) {
-    const rootNode = getRootNode(element2);
-    if (rootNode) {
-      return isShadowDOM(rootNode) ? rootNode.host : rootNode.documentElement;
-    }
-  }
-  return findScrollableParent(element2.parentElement);
-}
-function activateLazyRenderingChecks(element2) {
-  if (!element2)
-    return;
-  const scrollableEl = findScrollableParent(element2);
-  if (!!scrollableEl) {
-    setTimeout(() => scrollableEl.dispatchEvent(new CustomEvent("scroll")), 10);
-  }
-}
-function navigateToUrl(url) {
-  const location2 = DomWindowHelper.getLocation();
-  if (!url || !location2)
-    return;
-  location2.href = getSafeUrl(url);
-}
-function wrapUrlForBackgroundImage(url) {
-  return !!url ? ["url(", url, ")"].join("") : "";
-}
-function isBase64URL(url) {
-  if (typeof url == "string") {
-    return /^data:((?:\w+\/(?:(?!;).)+)?)((?:;[^;]+?)*),(.+)$/.test(url);
-  }
-  return null;
-}
-const renamedIcons = {
-  "changecamera": "flip-24x24",
-  "clear": "clear-24x24",
-  "cancel": "cancel-24x24",
-  "closecamera": "close-24x24",
-  "defaultfile": "file-72x72",
-  "choosefile": "folder-24x24",
-  "file": "toolbox-file-24x24",
-  "left": "chevronleft-16x16",
-  "modernbooleancheckchecked": "plus-32x32",
-  "modernbooleancheckunchecked": "minus-32x32",
-  "more": "more-24x24",
-  "navmenu_24x24": "navmenu-24x24",
-  "removefile": "error-24x24",
-  "takepicture": "camera-32x32",
-  "takepicture_24x24": "camera-24x24",
-  "v2check": "check-16x16",
-  "checked": "check-16x16",
-  "v2check_24x24": "check-24x24",
-  "back-to-panel_16x16": "restoredown-16x16",
-  "clear_16x16": "clear-16x16",
-  "close_16x16": "close-16x16",
-  "collapsedetail": "collapsedetails-16x16",
-  "expanddetail": "expanddetails-16x16",
-  "full-screen_16x16": "maximize-16x16",
-  "loading": "loading-48x48",
-  "minimize_16x16": "minimize-16x16",
-  "next_16x16": "chevronright-16x16",
-  "previous_16x16": "chevronleft-16x16",
-  "no-image": "noimage-48x48",
-  "ranking-dash": "rankingundefined-16x16",
-  "drag-n-drop": "drag-24x24",
-  "ranking-arrows": "reorder-24x24",
-  "restore_16x16": "fullsize-16x16",
-  "reset": "restore-24x24",
-  "search": "search-24x24",
-  "average": "smiley-rate5-24x24",
-  "excellent": "smiley-rate9-24x24",
-  "good": "smiley-rate7-24x24",
-  "normal": "smiley-rate6-24x24",
-  "not-good": "smiley-rate4-24x24",
-  "perfect": "smiley-rate10-24x24",
-  "poor": "smiley-rate3-24x24",
-  "terrible": "smiley-rate1-24x24",
-  "very-good": "smiley-rate8-24x24",
-  "very-poor": "smiley-rate2-24x24",
-  "add_16x16": "add-16x16",
-  "add_24x24": "add-24x24",
-  "alert_24x24": "warning-24x24",
-  "apply": "apply-24x24",
-  "arrow-down": "arrowdown-24x24",
-  "arrow-left": "arrowleft-24x24",
-  "arrow-left_16x16": "arrowleft-16x16",
-  "arrowleft": "arrowleft-16x16",
-  "arrow-right": "arrowright-24x24",
-  "arrow-right_16x16": "arrowright-16x16",
-  "arrowright": "arrowright-16x16",
-  "arrow-up": "arrowup-24x24",
-  "boolean": "toolbox-boolean-24x24",
-  "change-question-type_16x16": "speechbubble-16x16",
-  "checkbox": "toolbox-checkbox-24x24",
-  "collapse-detail_16x16": "minusbox-16x16",
-  "collapse-panel": "collapse-pg-24x24",
-  "collapse_16x16": "collapse-16x16",
-  "color-picker": "dropper-16x16",
-  "comment": "toolbox-longtext-24x24",
-  "config": "wrench-24x24",
-  "copy": "copy-24x24",
-  "default": "toolbox-customquestion-24x24",
-  "delete_16x16": "delete-16x16",
-  "delete_24x24": "delete-24x24",
-  "delete": "delete-24x24",
-  "description-hide": "hidehint-16x16",
-  "description": "hint-16x16",
-  "device-desktop": "desktop-24x24",
-  "device-phone": "phone-24x24",
-  "device-rotate": "rotate-24x24",
-  "device-tablet": "tablet-24x24",
-  "download": "download-24x24",
-  "drag-area-indicator": "drag-24x24",
-  "drag-area-indicator_24x16": "draghorizontal-24x16",
-  "v2dragelement_16x16": "draghorizontal-24x16",
-  "drop-down-arrow": "chevrondown-24x24",
-  "drop-down-arrow_16x16": "chevrondown-16x16",
-  "chevron_16x16": "chevrondown-16x16",
-  "dropdown": "toolbox-dropdown-24x24",
-  "duplicate_16x16": "copy-16x16",
-  "edit": "edit-24x24",
-  "edit_16x16": "edit-16x16",
-  "editing-finish": "finishedit-24x24",
-  "error": "error-16x16",
-  "expand-detail_16x16": "plusbox-16x16",
-  "expand-panel": "expand-pg-24x24",
-  "expand_16x16": "expand-16x16",
-  "expression": "toolbox-expression-24x24",
-  "fast-entry": "textedit-24x24",
-  "fix": "fix-24x24",
-  "html": "toolbox-html-24x24",
-  "image": "toolbox-image-24x24",
-  "imagepicker": "toolbox-imagepicker-24x24",
-  "import": "import-24x24",
-  "invisible-items": "invisible-24x24",
-  "language": "language-24x24",
-  "load": "import-24x24",
-  "logic-collapse": "collapse-24x24",
-  "logic-expand": "expand-24x24",
-  "logo": "image-48x48",
-  "matrix": "toolbox-matrix-24x24",
-  "matrixdropdown": "toolbox-multimatrix-24x24",
-  "matrixdynamic": "toolbox-dynamicmatrix-24x24",
-  "multipletext": "toolbox-multipletext-24x24",
-  "panel": "toolbox-panel-24x24",
-  "paneldynamic": "toolbox-dynamicpanel-24x24",
-  "preview": "preview-24x24",
-  "radiogroup": "toolbox-radiogroup-24x24",
-  "ranking": "toolbox-ranking-24x24",
-  "rating": "toolbox-rating-24x24",
-  "slider": "toolbox-slider-24x24",
-  "redo": "redo-24x24",
-  "remove_16x16": "remove-16x16",
-  "required": "required-16x16",
-  "save": "save-24x24",
-  "select-page": "selectpage-24x24",
-  "settings": "settings-24x24",
-  "settings_16x16": "settings-16x16",
-  "signaturepad": "toolbox-signature-24x24",
-  "switch-active_16x16": "switchon-16x16",
-  "switch-inactive_16x16": "switchoff-16x16",
-  "tagbox": "toolbox-tagbox-24x24",
-  "text": "toolbox-singleline-24x24",
-  "theme": "theme-24x24",
-  "toolbox": "toolbox-24x24",
-  "undo": "undo-24x24",
-  "visible": "visible-24x24",
-  "wizard": "wand-24x24",
-  "searchclear": "clear-16x16",
-  "chevron-16x16": "chevrondown-16x16",
-  "chevron": "chevrondown-24x24",
-  "progressbuttonv2": "arrowleft-16x16",
-  "right": "chevronright-16x16",
-  "add-lg": "add-24x24",
-  "add": "add-24x24"
-};
-function getIconNameFromProxy(iconName) {
-  const customIconName = getCustomNewIconNameIfExists(iconName);
-  return customIconName || getNewIconName(iconName);
-}
-function getNewIconName(iconName) {
-  const prefix = "icon-";
-  const nameWithoutPrefix = iconName.replace(prefix, "");
-  const result = renamedIcons[nameWithoutPrefix] || nameWithoutPrefix;
-  return prefix + result;
-}
-function getCustomNewIconNameIfExists(iconName) {
-  let result = settings.customIcons[iconName];
-  if (result)
-    return getNewIconName(result);
-  iconName = getNewIconName(iconName);
-  result = settings.customIcons[iconName];
-  if (result)
-    return result;
-  return null;
-}
-function createSvg(size, width, height, iconName, svgElem, title) {
-  if (!svgElem)
-    return;
-  if (size !== "auto") {
-    svgElem.style.width = (size || width || 16) + "px";
-    svgElem.style.height = (size || height || 16) + "px";
-  }
-  const node = svgElem.childNodes[0];
-  const realIconName = getIconNameFromProxy(iconName);
-  node.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + realIconName);
-  let titleElement = svgElem.getElementsByTagName("title")[0];
-  if (!title) {
-    if (!!titleElement) {
-      svgElem.removeChild(titleElement);
-    }
-    return;
-  } else {
-    if (!titleElement) {
-      titleElement = DomDocumentHelper.getDocument().createElementNS("http://www.w3.org/2000/svg", "title");
-      svgElem.appendChild(titleElement);
-    }
-  }
-  titleElement.textContent = title;
-}
-function getSafeUrl(url) {
-  if (!url)
-    return url;
-  if (url.toLocaleLowerCase().indexOf("javascript:") > -1)
-    return encodeURIComponent(url);
-  return url;
-}
-function getRenderedSize(val) {
-  if (typeof val == "string") {
-    if (!isNaN(Number(val))) {
-      return Number(val);
-    } else if (val.includes("px")) {
-      return parseFloat(val);
-    }
-  }
-  if (typeof val == "number") {
-    return val;
-  }
-  return void 0;
-}
-function getRenderedStyleSize(val) {
-  if (getRenderedSize(val) !== void 0) {
-    return void 0;
-  }
-  return val;
-}
-const keyFocusedClassName = "sv-focused--by-key";
-function doKey2ClickBlur(evt) {
-  const element2 = evt.target;
-  if (!element2 || !element2.classList)
-    return;
-  element2.classList.remove(keyFocusedClassName);
-}
-function doKey2ClickUp(evt, options2) {
-  if (!!evt.target && evt.target["contentEditable"] === "true") {
-    return;
-  }
-  const element2 = evt.target;
-  if (!element2)
-    return;
-  const char = evt.which || evt.keyCode;
-  if (char === 9) {
-    if (!!element2.classList && !element2.classList.contains(keyFocusedClassName)) {
-      element2.classList.add(keyFocusedClassName);
-    }
-    return;
-  }
-  if (options2) {
-    if (!options2.__keyDownReceived)
-      return;
-    options2.__keyDownReceived = false;
-  }
-  if (char === 13 || char === 32) {
-    if (element2.click)
-      element2.click();
-  } else if ((!options2 || options2.processEsc) && char === 27) {
-    if (element2.blur)
-      element2.blur();
-  }
-}
-function doKey2ClickDown(evt, options2 = { processEsc: true }) {
-  if (options2)
-    options2.__keyDownReceived = true;
-  if (!!evt.target && evt.target["contentEditable"] === "true") {
-    return;
-  }
-  var char = evt.which || evt.keyCode;
-  const supportedCodes = [13, 32];
-  if (options2.processEsc) {
-    supportedCodes.push(27);
-  }
-  if (supportedCodes.indexOf(char) !== -1) {
-    evt.preventDefault();
-  }
-}
-function increaseHeightByContent(element2, getComputedStyle2) {
-  if (!element2)
-    return;
-  if (!getComputedStyle2)
-    getComputedStyle2 = (elt) => {
-      return DomDocumentHelper.getComputedStyle(elt);
-    };
-  const rows = parseFloat(element2.getAttribute("rows") || "2");
-  const style = getComputedStyle2(element2);
-  const oldOverlow = style.overflowY;
-  const lineHeight = parseFloat(style.lineHeight);
-  if (!!element2.scrollHeight) {
-    const paddingBorderWidth = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth) + parseFloat(style.paddingBottom) + parseFloat(style.paddingTop);
-    let currentLinesCount = (element2.scrollHeight - paddingBorderWidth) / lineHeight;
-    const setHeight = (linesCount) => {
-      element2.style.height = linesCount * lineHeight + paddingBorderWidth + "px";
-    };
-    setHeight(currentLinesCount);
-    element2.style.overflowY = "hidden";
-    while (element2.scrollHeight <= element2.offsetHeight && currentLinesCount > rows) {
-      currentLinesCount--;
-      setHeight(currentLinesCount);
-    }
-    element2.style.overflowY = oldOverlow;
-    if (element2.scrollHeight > element2.offsetHeight) {
-      currentLinesCount++;
-      setHeight(currentLinesCount);
-    }
-  } else {
-    element2.style.height = "auto";
-  }
-}
-function preventDefaults(event) {
-  event.preventDefault();
-  event.stopPropagation();
-}
-function classesToSelector(str) {
-  if (!str)
-    return str;
-  const re = /\s*?([\w-]+)\s*?/g;
-  return str.replace(re, ".$1");
-}
-function getElementWidth(el) {
-  return !!getComputedStyle ? Number.parseFloat(getComputedStyle(el).width) : el.offsetWidth;
-}
-function isContainerVisible(el) {
-  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-}
-function getFirstVisibleChild(el) {
-  let result;
-  for (let index = 0; index < el.children.length; index++) {
-    if (!result && getComputedStyle(el.children[index]).display !== "none") {
-      result = el.children[index];
-    }
-  }
-  return result;
-}
-function mergeValues$1(src, dest) {
-  if (!dest || !src)
-    return;
-  if (typeof dest !== "object")
-    return;
-  for (var key in src) {
-    var value = src[key];
-    if (!Array.isArray(value) && value && typeof value === "object") {
-      if (!dest[key] || typeof dest[key] !== "object")
-        dest[key] = {};
-      mergeValues$1(value, dest[key]);
-    } else {
-      dest[key] = value;
-    }
-  }
-}
-function updateListCssValues(res, css) {
-  const listCssClasses = {};
-  mergeValues$1(css.list, listCssClasses);
-  mergeValues$1(res.list, listCssClasses);
-  res["list"] = listCssClasses;
-}
-function showConfirmDialog(message, callback, options2 = {}) {
-  const locStr = new LocalizableString(void 0, false);
-  locStr.defaultValue = message || options2.message;
-  const popupViewModel = settings.showDialog({
-    componentName: "sv-string-viewer",
-    data: { model: locStr },
-    onApply: () => {
-      callback(true);
-      return true;
-    },
-    onCancel: () => {
-      callback(false);
-      return false;
-    },
-    displayMode: "popup",
-    isFocusedContent: false,
-    cssClass: options2.cssClass || "sv-popup--confirm"
-  }, options2.rootElement);
-  const toolbar = popupViewModel.footerToolbar;
-  const applyBtn = toolbar.getActionById("apply");
-  const cancelBtn = toolbar.getActionById("cancel");
-  cancelBtn.title = getLocaleString("cancel", options2.locale);
-  applyBtn.title = options2.applyTitle || getLocaleString("ok", options2.locale);
-  applyBtn.innerCss = "sd-btn--danger";
-  configConfirmDialog(popupViewModel);
-  return true;
-}
-function configConfirmDialog(popupViewModel) {
-  popupViewModel.width = "min-content";
-}
-function chooseFiles(input, callback) {
-  if (!DomWindowHelper.isFileReaderAvailable())
-    return;
-  input.value = "";
-  input.onchange = (event) => {
-    if (!DomWindowHelper.isFileReaderAvailable())
-      return;
-    if (!input || !input.files || input.files.length < 1)
-      return;
-    let files2 = [];
-    for (let i = 0; i < input.files.length; i++) {
-      files2.push(input.files[i]);
-    }
-    callback(files2);
-  };
-  input.click();
-}
-function compareArrays(oldValue, newValue, getKey) {
-  const oldItemsMap = /* @__PURE__ */ new Map();
-  const newItemsMap = /* @__PURE__ */ new Map();
-  const commonItemsInNewMap = /* @__PURE__ */ new Map();
-  const commonItemsInOldMap = /* @__PURE__ */ new Map();
-  oldValue.forEach((item) => {
-    const itemKey = getKey(item);
-    if (!oldItemsMap.has(itemKey)) {
-      oldItemsMap.set(getKey(item), item);
-    } else {
-      throw new Error("keys must be unique");
-    }
-  });
-  newValue.forEach((item) => {
-    const itemKey = getKey(item);
-    if (!newItemsMap.has(itemKey)) {
-      newItemsMap.set(itemKey, item);
-    } else {
-      throw new Error("keys must be unique");
-    }
-  });
-  const addedItems = [];
-  const deletedItems = [];
-  newItemsMap.forEach((item, key) => {
-    if (!oldItemsMap.has(key)) {
-      addedItems.push(item);
-    } else {
-      commonItemsInNewMap.set(key, commonItemsInNewMap.size);
-    }
-  });
-  oldItemsMap.forEach((item, key) => {
-    if (!newItemsMap.has(key)) {
-      deletedItems.push(item);
-    } else {
-      commonItemsInOldMap.set(key, commonItemsInOldMap.size);
-    }
-  });
-  const reorderedItems = [];
-  commonItemsInNewMap.forEach((index, key) => {
-    const oldIndex = commonItemsInOldMap.get(key);
-    const item = newItemsMap.get(key);
-    if (oldIndex !== index)
-      reorderedItems.push({ item, movedForward: oldIndex < index });
-  });
-  const oldItemsWithCorrectOrder = new Array(oldValue.length);
-  let commonItemsIndex = 0;
-  const commonItemsKeysOrder = Array.from(commonItemsInNewMap.keys());
-  oldValue.forEach((item, index) => {
-    if (commonItemsInNewMap.has(getKey(item))) {
-      oldItemsWithCorrectOrder[index] = newItemsMap.get(commonItemsKeysOrder[commonItemsIndex]);
-      commonItemsIndex++;
-    } else {
-      oldItemsWithCorrectOrder[index] = item;
-    }
-  });
-  const valuesToInsertBeforeKey = /* @__PURE__ */ new Map();
-  let tempValuesArray = [];
-  oldItemsWithCorrectOrder.forEach((item) => {
-    const itemKey = getKey(item);
-    if (newItemsMap.has(itemKey)) {
-      if (tempValuesArray.length > 0) {
-        valuesToInsertBeforeKey.set(itemKey, tempValuesArray);
-        tempValuesArray = [];
-      }
-    } else {
-      tempValuesArray.push(item);
-    }
-  });
-  const mergedItems = new Array();
-  newItemsMap.forEach((item, key) => {
-    if (valuesToInsertBeforeKey.has(key)) {
-      valuesToInsertBeforeKey.get(key).forEach((item2) => {
-        mergedItems.push(item2);
-      });
-    }
-    mergedItems.push(item);
-  });
-  tempValuesArray.forEach((item) => {
-    mergedItems.push(item);
-  });
-  return { reorderedItems, deletedItems, addedItems, mergedItems };
-}
-function getVerticalDimensions(el) {
-  if (DomDocumentHelper.isAvailable()) {
-    const { paddingTop, paddingBottom, borderTopWidth, borderBottomWidth, marginTop, marginBottom, boxSizing } = DomDocumentHelper.getComputedStyle(el);
-    let heightTo = el.offsetHeight + "px";
-    if (boxSizing == "content-box") {
-      let heightPx = el.offsetHeight;
-      [borderBottomWidth, borderTopWidth, paddingBottom, paddingTop].forEach((style) => {
-        heightPx -= parseFloat(style);
-      });
-      heightTo = heightPx + "px";
-    }
-    return {
-      paddingTop,
-      paddingBottom,
-      borderTopWidth,
-      borderBottomWidth,
-      marginTop,
-      marginBottom,
-      heightFrom: "0px",
-      heightTo
-    };
-  } else {
-    return void 0;
-  }
-}
-function setPropertiesOnElementForAnimation(el, styles, prefix = "--animation-") {
-  var _a2;
-  el["__sv_created_properties"] = (_a2 = el["__sv_created_properties"]) !== null && _a2 !== void 0 ? _a2 : [];
-  Object.keys(styles).forEach((key) => {
-    const propertyName = `${prefix}${key.split(/\.?(?=[A-Z])/).join("-").toLowerCase()}`;
-    el.style.setProperty(propertyName, styles[key]);
-    el["__sv_created_properties"].push(propertyName);
-  });
-}
-function prepareElementForVerticalAnimation(el) {
-  setPropertiesOnElementForAnimation(el, getVerticalDimensions(el));
-}
-function cleanHtmlElementAfterAnimation(el) {
-  if (Array.isArray(el["__sv_created_properties"])) {
-    el["__sv_created_properties"].forEach((propertyName) => {
-      el.style.removeProperty(propertyName);
-    });
-    delete el["__sv_created_properties"];
-  }
-}
-function floorTo2Decimals(number2) {
-  return Math.floor(number2 * 100) / 100;
-}
-function getRootNode(node) {
-  const root2 = (node === null || node === void 0 ? void 0 : node.getRootNode()) || settings.environment.root;
-  if (!(root2 instanceof Document || root2 instanceof ShadowRoot))
-    return null;
-  return root2;
-}
-function getActiveElement() {
-  const doc = DomDocumentHelper.getDocument();
-  if (!doc)
-    return null;
-  let activeElement = doc.activeElement;
-  if (activeElement && activeElement.shadowRoot && activeElement.shadowRoot.activeElement) {
-    activeElement = activeElement.shadowRoot.activeElement;
-  }
-  return activeElement;
-}
-function mulberry32(seed) {
-  return function() {
-    var t2 = seed += 1831565813;
-    t2 = Math.imul(t2 ^ t2 >>> 15, t2 | 1);
-    t2 ^= t2 + Math.imul(t2 ^ t2 >>> 7, t2 | 61);
-    return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
-  };
-}
-const document$1 = typeof globalThis !== "undefined" ? globalThis.document : (void 0).document;
-const defaultEnvironment = !!document$1 ? {
-  root: document$1,
-  _rootElement: DomDocumentHelper.getBody(),
-  get rootElement() {
-    var _a2;
-    return (_a2 = this._rootElement) !== null && _a2 !== void 0 ? _a2 : DomDocumentHelper.getBody();
-  },
-  set rootElement(rootElement) {
-    this._rootElement = rootElement;
-  },
-  _popupMountContainer: DomDocumentHelper.getBody(),
-  get popupMountContainer() {
-    var _a2;
-    return (_a2 = this._popupMountContainer) !== null && _a2 !== void 0 ? _a2 : DomDocumentHelper.getBody();
-  },
-  set popupMountContainer(popupMountContainer) {
-    this._popupMountContainer = popupMountContainer;
-  },
-  svgMountContainer: document$1.head,
-  stylesSheetsMountContainer: document$1.head
-} : void 0;
-const columnWidthsByType = {
-  "file": { minWidth: "240px" },
-  "comment": { minWidth: "200px" }
-};
-var settings = {
-  version: "",
-  /**
-   * An object that configures survey appearance when the survey is being designed in Survey Creator.
-   *
-   * Nested properties:
-   *
-   * - `showEmptyDescriptions`: `boolean`\
-   * Specifies whether to display an empty description for pages and panels. Default value: `true`.
-   *
-   * - `showEmptyTitles`: `boolean`\
-   * Specifies whether to display an empty title for pages and panels. Default value: `true`.
-   */
-  designMode: {
-    showEmptyDescriptions: true,
-    showEmptyTitles: true
-  },
-  //#region designMode section, Obsolete properties
-  get allowShowEmptyDescriptionInDesignMode() {
-    return this.designMode.showEmptyDescriptions;
-  },
-  set allowShowEmptyDescriptionInDesignMode(val) {
-    this.designMode.showEmptyDescriptions = val;
-  },
-  get allowShowEmptyTitleInDesignMode() {
-    return this.designMode.showEmptyTitles;
-  },
-  set allowShowEmptyTitleInDesignMode(val) {
-    this.designMode.showEmptyTitles = val;
-  },
-  //#endregion
-  /**
-   * An object that contains properties related to localization.
-   *
-   * Nested properties:
-   *
-   * - `defaultLocaleName`: `string`\
-   * A property key that stores a translation for the default locale. Default value: `"default"`.
-   *
-   * - `storeDuplicatedTranslations`: `boolean`\
-   * Specifies whether surveys should store translation strings that equal the translation strings in the default locale. Default value: `false`.
-   *
-   * - `useLocalTimeZone`: `boolean`\
-   * Obsolete. Use the [`storeUtcDates`](https://surveyjs.io/form-library/documentation/api-reference/settings#storeUtcDates) setting instead.
-   */
-  localization: {
-    /**
-     * @deprecated Use the [`storeUtcDates`](https://surveyjs.io/form-library/documentation/api-reference/settings#storeUtcDates) property instead.
-     */
-    useLocalTimeZone: true,
-    storeDuplicatedTranslations: false,
-    defaultLocaleName: "default"
-  },
-  //#region localization section, obsolete properties
-  get useLocalTimeZone() {
-    return this.localization.useLocalTimeZone;
-  },
-  set useLocalTimeZone(val) {
-    this.localization.useLocalTimeZone = val;
-  },
-  get storeDuplicatedTranslations() {
-    return this.localization.storeDuplicatedTranslations;
-  },
-  set storeDuplicatedTranslations(val) {
-    this.localization.storeDuplicatedTranslations = val;
-  },
-  get defaultLocaleName() {
-    return this.localization.defaultLocaleName;
-  },
-  set defaultLocaleName(val) {
-    this.localization.defaultLocaleName = val;
-  },
-  //#endregion
-  /**
-   * An object with properties that configure surveys when they work with a web service.
-   *
-   * Nested properties:
-   *
-   * - `encodeUrlParams`: `boolean`\
-   * Specifies whether to encode URL parameters when you access a web service. Default value: `true`.
-   *
-   * - `cacheLoadedChoices`: `boolean`\
-   * Specifies whether to cache [choices loaded from a web service](https://surveyjs.io/form-library/documentation/api-reference/questionselectbase#choicesByUrl). Default value: `true`.
-   *
-   * - `disableQuestionWhileLoadingChoices`: `boolean`\
-   * Disables a question while its choices are being loaded from a web service. Default value: `false`.
-   *
-   * - `surveyServiceUrl`: `string`\
-   * Obsolete. Self-hosted Form Library [no longer supports integration with SurveyJS Demo Service](https://surveyjs.io/stay-updated/release-notes/v2.0.0#form-library-removes-apis-for-integration-with-surveyjs-demo-service).
-   *
-   * - `onBeforeRequestChoices`: `(sender: ChoicesRestful, options: { url: string, request?: XMLHttpRequest, fetchOptions?: RequestInit })`\
-   * An event that is raised before a request for choices is sent. Applies to questions with a specified [`choiceByUrl`](https://surveyjs.io/form-library/documentation/api-reference/questionselectbase#choicesByUrl) property. Use the `options` parameter to access and modify the request to be sent. The `options.fetchOptions` object is defined only when the Form Library is run on a Node.js server; `options.request` is defined in the rest of cases. The following example shows how you can add authentication headers to a request for choices:
-   *
-   *     ```js
-   *     import { settings } from "survey-core";
-   *
-   *     settings.web.onBeforeRequestChoices = (_, options) => {
-   *       if (options.request) {
-   *         options.request.setRequestHeader("RequestVerificationToken", requestVerificationToken);
-   *       }
-   *       if (options.fetchOptions) {
-   *         options.fetchOptions.headers.append("RequestVerificationToken", requestVerificationToken);
-   *       }
-   *     };
-   *     ```
-   */
-  web: {
-    onBeforeRequestChoices: (sender, options2) => {
-    },
-    encodeUrlParams: true,
-    cacheLoadedChoices: true,
-    disableQuestionWhileLoadingChoices: false
-  },
-  //#region web section, obsolete properties
-  get webserviceEncodeParameters() {
-    return this.web.encodeUrlParams;
-  },
-  set webserviceEncodeParameters(val) {
-    this.web.encodeUrlParams = val;
-  },
-  get useCachingForChoicesRestful() {
-    return this.web.cacheLoadedChoices;
-  },
-  set useCachingForChoicesRestful(val) {
-    this.web.cacheLoadedChoices = val;
-  },
-  get useCachingForChoicesRestfull() {
-    return this.web.cacheLoadedChoices;
-  },
-  set useCachingForChoicesRestfull(val) {
-    this.web.cacheLoadedChoices = val;
-  },
-  get disableOnGettingChoicesFromWeb() {
-    return this.web.disableQuestionWhileLoadingChoices;
-  },
-  set disableOnGettingChoicesFromWeb(val) {
-    this.web.disableQuestionWhileLoadingChoices = val;
-  },
-  //#endregion
-  /**
-   * An object that contains properties related to [triggers](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#conditional-survey-logic-triggers).
-   *
-   * Nested properties:
-   *
-   * - `changeNavigationButtonsOnComplete`: `boolean`\
-   * Specifies whether to re-evaluate an expression associated with the [Complete trigger](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#complete) immediately when a question value changes. If the expression evaluates to `true`, the trigger is executed. Default value: `false`.\
-   * Keep this property set to `false` if you want to re-evaluate the Complete trigger's expression only when the respondents navigate to another page.
-   *
-   * - `executeCompleteOnValueChanged`: `boolean`\
-   * Specifies whether to replace the Next button with the Complete button when the [Complete trigger](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#complete) is going to be executed. Default value: `true`.
-   *
-   * - `executeSkipOnValueChanged`: `boolean`\
-   * Specifies whether to re-evaluate an expression associated with the [Skip trigger](https://surveyjs.io/form-library/documentation/design-survey/conditional-logic#skip) immediately when a question value changes. If the expression evaluates to `true`, the trigger is executed. Default value: `true`.\
-   * Disable this property if you want to re-evaluate the Skip trigger's expression only when respondents navigate to another page.
-   */
-  triggers: {
-    changeNavigationButtonsOnComplete: true,
-    executeCompleteOnValueChanged: false,
-    executeSkipOnValueChanged: true
-  },
-  //#region triggers section, Obsolete properties
-  get executeCompleteTriggerOnValueChanged() {
-    return this.triggers.executeCompleteOnValueChanged;
-  },
-  set executeCompleteTriggerOnValueChanged(val) {
-    this.triggers.executeCompleteOnValueChanged = val;
-  },
-  get changeNavigationButtonsOnCompleteTrigger() {
-    return this.triggers.changeNavigationButtonsOnComplete;
-  },
-  set changeNavigationButtonsOnCompleteTrigger(val) {
-    this.triggers.changeNavigationButtonsOnComplete = val;
-  },
-  get executeSkipTriggerOnValueChanged() {
-    return this.triggers.executeSkipOnValueChanged;
-  },
-  set executeSkipTriggerOnValueChanged(val) {
-    this.triggers.executeSkipOnValueChanged = val;
-  },
-  //#endregion
-  /**
-   * An object that contains properties related to JSON serialization.
-   *
-   * Nested properties:
-   *
-   * - `itemValueSerializeAsObject`: `boolean`\
-   * Enable this property if you want to serialize [`ItemValue`](https://surveyjs.io/form-library/documentation/api-reference/itemvalue) instances (choice options, matrix rows, columns in a [Single-Select Matrix](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-question-model)) as objects even when they include only the `value` property. Default value: `false`.
-   *
-   * - `itemValueSerializeDisplayText`: `boolean`\
-   * Enable this property if you want to serialize the `text` property of [`ItemValue`](https://surveyjs.io/form-library/documentation/api-reference/itemvalue) objects even when it is empty or equal to the `value` property. Default value: `false`.
-   *
-   * - `localizableStringSerializeAsObject`: `boolean`\
-   * Enable this property if you want to serialize [`LocalizableString`](https://surveyjs.io/form-library/documentation/api-reference/localizablestring) instances as objects even when they include only a translation string for the default locale. For example, `"Custom String"` will be serialized as `{ default: "Custom String" }`. Default value: `false`.
-   *
-   * - `matrixDropdownColumnSerializeTitle`: `boolean`\
-   * Enable this property if you want to serialize the `title` property of [`MatrixDropdownColumn`](https://surveyjs.io/form-library/documentation/api-reference/multi-select-matrix-column-values) objects even when it is empty or equal to the `name` property. Default value: `false`.
-   * @see [settings.parseNumber](https://surveyjs.io/form-library/documentation/api-reference/settings#parseNumber)
-   */
-  serialization: {
-    itemValueSerializeAsObject: false,
-    itemValueSerializeDisplayText: false,
-    localizableStringSerializeAsObject: false,
-    matrixDropdownColumnSerializeTitle: false
-  },
-  //#region serialization section, Obsolete properties
-  get itemValueAlwaysSerializeAsObject() {
-    return this.serialization.itemValueSerializeAsObject;
-  },
-  set itemValueAlwaysSerializeAsObject(val) {
-    this.serialization.itemValueSerializeAsObject = val;
-  },
-  get itemValueAlwaysSerializeText() {
-    return this.serialization.itemValueSerializeDisplayText;
-  },
-  set itemValueAlwaysSerializeText(val) {
-    this.serialization.itemValueSerializeDisplayText = val;
-  },
-  get serializeLocalizableStringAsObject() {
-    return this.serialization.localizableStringSerializeAsObject;
-  },
-  set serializeLocalizableStringAsObject(val) {
-    this.serialization.localizableStringSerializeAsObject = val;
-  },
-  //#endregion
-  /**
-   * An object that configures lazy rendering.
-   *
-   * Nested properties:
-   *
-   * - `enabled`: `boolean`\
-   * Specifies whether to add questions to the DOM only when they get into the viewport. Default value: `false`.
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/survey-lazy/ (linkStyle))
-   * @see [SurveyModel.lazyRenderEnabled](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#lazyRenderEnabled)
-   */
-  lazyRender: {
-    enabled: false,
-    firstBatchSize: 3
-  },
-  //#region lazyRender section, Obsolete properties
-  get lazyRowsRendering() {
-    return this.lazyRender.enabled;
-  },
-  set lazyRowsRendering(val) {
-    this.lazyRender.enabled = val;
-  },
-  get lazyRowsRenderingStartRow() {
-    return this.lazyRender.firstBatchSize;
-  },
-  set lazyRowsRenderingStartRow(val) {
-    this.lazyRender.firstBatchSize = val;
-  },
-  //#endregion
-  /**
-   * An object with properties that apply to [Single-Choice](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-question-model), [Multiple-Choice](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-with-dropdown-list), and [Dynamic Matrix](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model) questions.
-   *
-   * Nested properties:
-   *
-   * - `defaultRowName`: `string`\
-   * A property key that stores an object with default cell values. Default value: "default".
-   *
-   * - `defaultCellType`: `string`\
-   * The default type of matrix cells. Default value: `"dropdown"`.\
-   * You can specify this setting for individual questions or matrix columns: [`cellType`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model#cellType). Refer to the `cellType` property description for information on possible values.
-   *
-   * - `totalsSuffix`: `string`\
-   * A suffix added to the name of the property that stores total values. The resulting property name consists of the matrix name and the suffix. Default value: `"-total"`.
-   *
-   * - `maxRowCount`: `number`\
-   * A maximum number of rows in a Dynamic Matrix. Default value: 1000.\
-   * You can specify this setting for an individual Dynamic Matrix: [`maxRowCount`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model#maxRowCount).
-   *
-   * - `maxRowCountInCondition`: `number`\
-   * A maximum number of matrix rows included in the Condition drop-down menu in Survey Creator. This menu is used to configure conditional survey logic. Default value: 1.\
-   * If you set this property to 0, the Condition menu does not include any matrix rows. Users still can specify conditions that use matrix rows but only with Manual Entry.
-   *
-   * - `renderRemoveAsIcon`: `boolean`\
-   * Disable this property if you want to render the Remove action in Dynamic Matrix as a button. Otherwise, the action is rendered as an icon. Default value: `true`.
-   *
-   * - `columnWidthsByType`: `object`\
-   * An object that specifies fixed and minimum column width based on the column type.\
-   * Example: `settings.matrix.columnWidthsByType = { "tagbox": { minWidth: "240px", width: "300px" } }`
-   *
-   * - `rateSize`: `"small"` (default) | `"normal"`\
-   * Specifies the size of rate values. Applies to [Rating Scale](https://surveyjs.io/form-library/examples/rating-scale/) questions within matrixes.
-   */
-  matrix: {
-    defaultCellType: "dropdown",
-    defaultRowName: "default",
-    totalsSuffix: "-total",
-    maxRowCount: 1e3,
-    maxRowCountInCondition: 1,
-    renderRemoveAsIcon: true,
-    columnWidthsByType,
-    rateSize: "small"
-  },
-  //#region matrix section, Obsolete properties
-  get matrixDefaultRowName() {
-    return this.matrix.defaultRowName;
-  },
-  set matrixDefaultRowName(val) {
-    this.matrix.defaultRowName = val;
-  },
-  get matrixDefaultCellType() {
-    return this.matrix.defaultCellType;
-  },
-  set matrixDefaultCellType(val) {
-    this.matrix.defaultCellType = val;
-  },
-  get matrixTotalValuePostFix() {
-    return this.matrix.totalsSuffix;
-  },
-  set matrixTotalValuePostFix(val) {
-    this.matrix.totalsSuffix = val;
-  },
-  get matrixMaximumRowCount() {
-    return this.matrix.maxRowCount;
-  },
-  set matrixMaximumRowCount(val) {
-    this.matrix.maxRowCount = val;
-  },
-  get matrixMaxRowCountInCondition() {
-    return this.matrix.maxRowCountInCondition;
-  },
-  set matrixMaxRowCountInCondition(val) {
-    this.matrix.maxRowCountInCondition = val;
-  },
-  get matrixRenderRemoveAsIcon() {
-    return this.matrix.renderRemoveAsIcon;
-  },
-  set matrixRenderRemoveAsIcon(val) {
-    this.matrix.renderRemoveAsIcon = val;
-  },
-  //#endregion
-  /**
-   * An object with properties that apply to [Dynamic Panel](https://surveyjs.io/form-library/documentation/api-reference/dynamic-panel-model) questions.
-   *
-   * Nested properties:
-   *
-   * - `maxPanelCount`: `number`\
-   * A maximum number of panels in Dynamic Panel. Default value: 100.\
-   * You can specify this setting for an individual Dynamic Panel: [`maxPanelCount`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-panel-model#maxPanelCount).
-   *
-   * - `maxPanelCountInCondition`: `number`\
-   * A maximum number of Dynamic Panel panels included in the Condition drop-down menu in Survey Creator. This menu is used to configure conditional survey logic. Default value: 1.\
-   * If you set this property to 0, the Condition menu does not include any panel questions. Users still can specify conditions that use panel questions but only with Manual Entry.
-   */
-  panel: {
-    maxPanelCount: 100,
-    maxPanelCountInCondition: 1
-  },
-  //#region panel section, Obsolete properties
-  get panelDynamicMaxPanelCountInCondition() {
-    return this.panel.maxPanelCountInCondition;
-  },
-  set panelDynamicMaxPanelCountInCondition(val) {
-    this.panel.maxPanelCountInCondition = val;
-  },
-  get panelMaximumPanelCount() {
-    return this.panel.maxPanelCount;
-  },
-  set panelMaximumPanelCount(val) {
-    this.panel.maxPanelCount = val;
-  },
-  //#endregion
-  /**
-   * An object with properties that configure questions in read-only mode.
-   *
-   * Nested properties:
-   *
-   * - `commentRenderMode`: `"textarea"` (default) | `"div"`\
-   * Specifies how to render the input field of [Comment](https://surveyjs.io/form-library/documentation/api-reference/comment-field-model) questions in [read-only](https://surveyjs.io/form-library/documentation/api-reference/comment-field-model#readOnly) mode: as a disabled `<textarea>` element or as a `<div>` element with a non-editable question value within it.
-   *
-   * - `textRenderMode`: `"input"` (default) | `"div"`\
-   * Specifies how to render the input field of [Text](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model) questions in [read-only](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#readOnly) mode: as a disabled `<input>` element or as a `<div>` element with a non-editable question value within it.
-   */
-  readOnly: {
-    enableValidation: false,
-    commentRenderMode: "textarea",
-    textRenderMode: "input"
-  },
-  //#region readOnly section, Obsolete properties
-  get readOnlyCommentRenderMode() {
-    return this.readOnly.commentRenderMode;
-  },
-  set readOnlyCommentRenderMode(val) {
-    this.readOnly.commentRenderMode = val;
-  },
-  get readOnlyTextRenderMode() {
-    return this.readOnly.textRenderMode;
-  },
-  set readOnlyTextRenderMode(val) {
-    this.readOnly.textRenderMode = val;
-  },
-  //#endregion
-  /**
-   * An object with properties that configure question numbering.
-   *
-   * Nested properties:
-   *
-   * - `includeQuestionsWithHiddenNumber`: `boolean`\
-   * Specifies whether to number questions whose [`showNumber`](https://surveyjs.io/form-library/documentation/api-reference/question#showNumber) property is disabled. Default value: `false`.
-   *
-   * - `includeQuestionsWithHiddenTitle`: `boolean`\
-   * Specifies whether to number questions whose [`titleLocation`](https://surveyjs.io/form-library/documentation/api-reference/question#titleLocation) property is set to `"hidden"`. Default value: `false`.
-   */
-  numbering: {
-    includeQuestionsWithHiddenNumber: false,
-    includeQuestionsWithHiddenTitle: false
-  },
-  //#region numbering section, Obsolete properties
-  get setQuestionVisibleIndexForHiddenTitle() {
-    return this.numbering.includeQuestionsWithHiddenTitle;
-  },
-  set setQuestionVisibleIndexForHiddenTitle(val) {
-    this.numbering.includeQuestionsWithHiddenTitle = val;
-  },
-  get setQuestionVisibleIndexForHiddenNumber() {
-    return this.numbering.includeQuestionsWithHiddenNumber;
-  },
-  set setQuestionVisibleIndexForHiddenNumber(val) {
-    this.numbering.includeQuestionsWithHiddenNumber = val;
-  },
-  //#endregion
-  /**
-   * Specifies an action to perform when users press the Enter key within a survey.
-   *
-   * Possible values:
-   *
-   * - `"moveToNextEditor"` - Moves focus to the next editor.
-   * - `"loseFocus"` - Removes focus from the current editor.
-   * - `"default"` - Behaves as a standard `<input>` element.
-   */
-  enterKeyAction: "default",
-  /**
-   * An object that configures string comparison.
-   *
-   * Nested properties:
-   *
-   * - `trimStrings`: `boolean`\
-   * Specifies whether to remove whitespace from both ends of a string before the comparison. Default value: `true`.
-   *
-   * - `caseSensitive`: `boolean`\
-   * Specifies whether to differentiate between capital and lower-case letters. Default value: `false`.
-   */
-  comparator: {
-    trimStrings: true,
-    caseSensitive: false,
-    normalizeTextCallback: (str, reason) => {
-      return str;
-    }
-  },
-  expressionDisableConversionChar: "#",
-  get commentPrefix() {
-    return settings.commentSuffix;
-  },
-  set commentPrefix(val) {
-    settings.commentSuffix = val;
-  },
-  /**
-   * A suffix added to the name of the property that stores comments.
-   *
-   * Default value: "-Comment"
-   *
-   * You can specify this setting for an individual survey: [`commentSuffix`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#commentSuffix).
-   */
-  commentSuffix: "-Comment",
-  /**
-   * A separator used in a shorthand notation that specifies a value and display text for an [`ItemValue`](https://surveyjs.io/form-library/documentation/api-reference/itemvalue) object: `"value|text"`.
-   *
-   * Default value: `"|"`
-   * @see [settings.choicesSeparator](https://surveyjs.io/form-library/documentation/api-reference/settings#choicesSeparator)
-   */
-  itemValueSeparator: "|",
-  /**
-   * A maximum number of rate values in a [Rating](https://surveyjs.io/form-library/documentation/api-reference/rating-scale-question-model) question.
-   *
-   * Default value: 20
-   */
-  ratingMaximumRateValueCount: 20,
-  /**
-   * Specifies whether to close the drop-down menu of a [Multi-Select Dropdown (Tag Box)](https://surveyjs.io/form-library/examples/how-to-create-multiselect-tag-box/) question after a user selects a value.
-   *
-   * This setting applies to all Multi-Select Dropdown questions on a web page. You can use the [`closeOnSelect`](https://surveyjs.io/form-library/documentation/api-reference/dropdown-tag-box-model#closeOnSelect) property to specify the same setting for an individual Multi-Select Dropdown question.
-   */
-  tagboxCloseOnSelect: false,
-  /**
-   * A time interval in milliseconds between the last entered character and the beginning of search in [Single-](https://surveyjs.io/form-library/examples/create-dropdown-menu-in-javascript/) and [Multi-Select Dropdown](https://surveyjs.io/form-library/examples/how-to-create-multiselect-tag-box/) questions. Applies only to questions with the [`choicesLazyLoadEnabled`](https://surveyjs.io/form-library/documentation/api-reference/dropdown-menu-model#choicesLazyLoadEnabled) property set to `true`.
-   *
-   * Default value: 500
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/lazy-loading-dropdown/ (linkStyle))
-   */
-  dropdownSearchDelay: 500,
-  /**
-   * Specifies whether [Single-](https://surveyjs.io/form-library/examples/create-dropdown-menu-in-javascript/) and [Multi-Select Dropdown](https://surveyjs.io/form-library/examples/how-to-create-multiselect-tag-box/) questions save the currently focused value when the user clicks outside the editor. Applies only in desktop environments.
-   *
-   * Default value: `false`
-   *
-   * If [custom choices are enabled](https://surveyjs.io/form-library/documentation/api-reference/dropdown-menu-model#allowCustomChoices), and this property is set to `true`, clicking outside the editor also saves the entered custom value.
-   */
-  dropdownSaveOnOutsideClick: false,
-  /**
-   * A function used to display a custom confirmation dialog.
-   *
-   * This function is `undefined` by default. To enable a custom dialog, assign a function that returns `true` if the user confirms the action or `false` otherwise. For example, the following code uses the built-in `window.confirm()` method to open a confirmation dialog window:
-   *
-   * ```js
-   * import { settings } from "survey-core";
-   *
-   * settings.confirmActionAsync = (message) => {
-   *   return window.confirm(message);
-   * };
-   * ```
-   * @param message A message to display in the confirmation dialog.
-   */
-  confirmActionFunc: void 0,
-  /**
-   * A function that activates a proprietary SurveyJS confirmation dialog.
-   *
-   * Use the following code to execute this function:
-   *
-   * ```js
-   * import { settings } from "survey-core";
-   *
-   * settings.confirmActionAsync("Are you sure?", (confirmed) => {
-   *   if (confirmed) {
-   *     // ...
-   *     // Proceed with the action
-   *     // ...
-   *   } else {
-   *     // ...
-   *     // Cancel the action
-   *     // ...
-   *   }
-   * });
-   * ```
-   *
-   * You can override the `confirmActionAsync` function if you want to display a custom dialog window asynchronously:
-   *
-   * ```js
-   * import { settings } from "survey-core";
-   *
-   * async function confirmDialog(message) {
-   *   return new Promise((resolve) => {
-   *     // Implement an async dialog window here
-   *   });
-   * }
-   *
-   * settings.confirmActionAsync = (message, callback) => {
-   *   confirmDialog(message).then((result) => {
-   *     callback(result);
-   *   });
-   * };
-   * ```
-   * @param message A message to display in the confirmation dialog.
-   * @param callback A callback function that should be called with `true` if a user confirms an action or `false` otherwise.
-   */
-  confirmActionAsync: (message, callback, options2) => {
-    showConfirmDialog(message, callback, options2);
-  },
-  /**
-   * A minimum width value for all survey elements.
-   *
-   * Default value: `"300px"`
-   *
-   * You can override this setting for individual elements: [`minWidth`](https://surveyjs.io/form-library/documentation/api-reference/surveyelement#minWidth).
-   */
-  minWidth: "300px",
-  /**
-   * A maximum width value for all survey elements.
-   *
-   * Default value: `"100%"`
-   *
-   * You can override this setting for individual elements: [`maxWidth`](https://surveyjs.io/form-library/documentation/api-reference/surveyelement#maxWidth).
-   */
-  maxWidth: "100%",
-  /**
-   * Specifies how many times surveys can re-evaluate expressions when a question value changes. This limit helps avoid recursions in expressions.
-   *
-   * Default value: 10
-   */
-  maxConditionRunCountOnValueChanged: 10,
-  /**
-   * An object that configures notifications.
-   *
-   * Nested properties:
-   *
-   * - `lifetime`: `number`\
-   * Specifies a time period during which a notification is displayed; measured in milliseconds. Default value: 2000.
-   */
-  notifications: {
-    lifetime: 2e3
-  },
-  /**
-   * Specifies how many milliseconds a survey should wait before it automatically switches to the next page. Applies only when [auto-advance](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#autoAdvanceEnabled) is enabled.
-   *
-   * Default value: 300
-   */
-  autoAdvanceDelay: 300,
-  /**
-   * Specifies the direction in which to lay out Checkbox and Radio Button Group items. This setting affects the resulting UI when items are arranged in [more than one column](https://surveyjs.io/form-library/documentation/api-reference/checkbox-question-model#colCount).
-   *
-   * Possible values:
-   *
-   * - `"column"` (default) - Items fill the current column, then move on to the next column.
-   * - `"row"` - Items fill the current row, then move on to the next row.
-   */
-  itemFlowDirection: "column",
-  /**
-   * @deprecated Use the [`itemFlowDirection`](https://surveyjs.io/form-library/documentation/api-reference/settings#itemFlowDirection) property instead.
-   */
-  get showItemsInOrder() {
-    return settings.itemFlowDirection;
-  },
-  set showItemsInOrder(val) {
-    settings.itemFlowDirection = val;
-  },
-  /**
-   * A value to save in survey results when respondents select the "None" choice item.
-   *
-   * Default value: `"none"`
-   */
-  noneItemValue: "none",
-  /**
-   * A value to save in survey results when respondents select the "Refuse to answer" choice item.
-   *
-   * Default value: `"refused"`
-   */
-  refuseItemValue: "refused",
-  /**
-   * A value to save in survey results when respondents select the "Don't know" choice item.
-   *
-   * Default value: `"dontknow"`
-   */
-  dontKnowItemValue: "dontknow",
-  /**
-   * An object whose properties specify the order of the special choice items ("None", "Other", "Select All", "Refuse to answer", "Don't know") in select-based questions.
-   *
-   * Default value: `{ selectAllItem: [-1], noneItem: [1], refuseItem: [2], dontKnowItem: [3], otherItem: [4] }`
-   *
-   * Use this object to reorder special choices. Each property accepts an array of integer numbers. Negative numbers place a special choice item above regular choice items, positive numbers place it below them. For instance, the code below specifies the following order of choices: None, Select All, regular choices, Other.
-   *
-   * ```js
-   * import { settings } from "survey-core";
-   *
-   * settings.specialChoicesOrder.noneItem = [-2];
-   * settings.specialChoicesOrder.selectAllItem = [-1];
-   * settings.specialChoicesOrder.otherItem = [1];
-   * ```
-   *
-   * If you want to duplicate a special choice item above and below other choices, add two numbers to the corresponding array:
-   *
-   * ```js
-   * settings.specialChoicesOrder.selectAllItem = [-1, 3] // Displays Select All above and below other choices
-   * ```
-   */
-  specialChoicesOrder: {
-    selectAllItem: [-1],
-    noneItem: [1],
-    refuseItem: [2],
-    dontKnowItem: [3],
-    otherItem: [4]
-  },
-  /**
-   * One or several characters used to separate choice options in a list.
-   *
-   * Default value: `", "`
-   * @see [settings.itemValueSeparator](https://surveyjs.io/form-library/documentation/api-reference/settings#itemValueSeparator)
-   */
-  choicesSeparator: ", ",
-  /**
-   * A list of supported validators by question type.
-   */
-  supportedValidators: {
-    question: ["expression"],
-    comment: ["text", "regex"],
-    text: ["numeric", "text", "regex", "email"],
-    checkbox: ["answercount"],
-    imagepicker: ["answercount"]
-  },
-  expressionVariables: {
-    survey: "survey",
-    self: "self",
-    parent: "parent",
-    matrix: "matrix",
-    composite: "composite",
-    item: "item",
-    choice: "choice",
-    column: "column",
-    row: "row",
-    prevRow: "prevRow",
-    nextRow: "nextRow",
-    totalRow: "totalRow",
-    rowIndex: "rowIndex",
-    visibleRowIndex: "visibleRowIndex",
-    rowValue: "rowValue",
-    rowName: "rowName",
-    rowTitle: "rowTitle",
-    panel: "panel",
-    prevPanel: "prevPanel",
-    nextPanel: "nextPanel",
-    parentPanel: "parentPanel",
-    panelIndex: "panelIndex",
-    visiblePanelIndex: "visiblePanelIndex",
-    unwrapPostfix: "-unwrapped"
-  },
-  /**
-   * Specifies a minimum date that users can enter into a [Text](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model) question with [`inputType`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#inputType) set to `"date"` or `"datetime-local"`. Set this property to a string with the folllowing format: `"yyyy-mm-dd"`.
-   */
-  minDate: "",
-  /**
-   * Specifies a maximum date that users can enter into a [Text](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model) question with [`inputType`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#inputType) set to `"date"` or `"datetime-local"`. Set this property to a string with the folllowing format: `"yyyy-mm-dd"`.
-   */
-  maxDate: "2999-12-31",
-  /**
-   * A method that displays a modal dialog.
-   *
-   * Parameters:
-   *
-   * - `options`: [`IDialogOptions`](https://surveyjs.io/form-library/documentation/api-reference/idialogoptions)\
-   * An object that configures the dialog's content and behavior.
-   *
-   * - `rootElement?`: `HTMLElement`\
-   * A DOM element where the dialog should be rendered. If not specified, the dialog is rendered into `document.body`.
-   *
-   * [View Demo](https://surveyjs.io/survey-creator/examples/add-modal-property-editor-to-property-grid/ (linkStyle))
-   */
-  showDialog: void 0,
-  showDefaultItemsInCreator: true,
-  /**
-   * An object that specifies icon replacements. Object keys are built-in icon names. To use a custom icon, assign its name to the key of the icon you want to replace:
-   *
-   * ```js
-   * import { settings } from "survey-core";
-   *
-   * settings.customIcons["icon-redo"] = "custom-redo-icon";
-   * ```
-   *
-   * For more information about icons in SurveyJS, refer to the following help topic: [UI Icons](https://surveyjs.io/form-library/documentation/icons).
-   */
-  customIcons: {},
-  /**
-   * Specifies which part of a choice item responds to a drag gesture in Ranking questions.
-   *
-   * Possible values:
-   *
-   * - `"entireItem"` (default) - Users can use the entire choice item as a drag handle.
-   * - `"icon"` - Users can only use the choice item icon as a drag handle.
-   */
-  rankingDragHandleArea: "entireItem",
-  environment: defaultEnvironment,
-  /**
-   * Allows you to hide the maximum length indicator in text input questions.
-   *
-   * If you specify a question's [`maxLength`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#maxLength) property or a survey's [`maxTextLength`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#maxTextLength) property, text input questions indicate the number of entered characters and the character limit. Assign `false` to the `settings.showMaxLengthIndicator` property if you want to hide this indicator.
-   *
-   * Default value: `true`
-   */
-  showMaxLengthIndicator: true,
-  /**
-   * Specifies whether to animate survey elements.
-   *
-   * Default value: `true`
-  */
-  animationEnabled: true,
-  /**
-   * An object that specifies HTML tags to use when rendering survey, page, panel, and question titles.
-   *
-   * Default value: `{ survey: "div", page: "div", panel: "div", question: "div" }`
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/change-heading-levels/ (linkStyle))
-   *
-   * If you want to modify HTML tags for individual titles, handle `SurveyModel`'s [`onGetTitleTagName`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#onGetTitleTagName) event.
-   */
-  titleTags: {
-    survey: "div",
-    page: "div",
-    panel: "div",
-    question: "div"
-  },
-  questions: {
-    inputTypes: [
-      "color",
-      "date",
-      "datetime-local",
-      "email",
-      "month",
-      "number",
-      "password",
-      "range",
-      "tel",
-      "text",
-      "time",
-      "url",
-      "week"
-    ],
-    dataList: [
-      "",
-      "name",
-      "honorific-prefix",
-      "given-name",
-      "additional-name",
-      "family-name",
-      "honorific-suffix",
-      "nickname",
-      "organization-title",
-      "username",
-      "new-password",
-      "current-password",
-      "organization",
-      "street-address",
-      "address-line1",
-      "address-line2",
-      "address-line3",
-      "address-level4",
-      "address-level3",
-      "address-level2",
-      "address-level1",
-      "country",
-      "country-name",
-      "postal-code",
-      "cc-name",
-      "cc-given-name",
-      "cc-additional-name",
-      "cc-family-name",
-      "cc-number",
-      "cc-exp",
-      "cc-exp-month",
-      "cc-exp-year",
-      "cc-csc",
-      "cc-type",
-      "transaction-currency",
-      "transaction-amount",
-      "language",
-      "bday",
-      "bday-day",
-      "bday-month",
-      "bday-year",
-      "sex",
-      "url",
-      "photo",
-      "tel",
-      "tel-country-code",
-      "tel-national",
-      "tel-area-code",
-      "tel-local",
-      "tel-local-prefix",
-      "tel-local-suffix",
-      "tel-extension",
-      "email",
-      "impp"
-    ]
-  },
-  legacyProgressBarView: false,
-  /**
-   * An object with properties that configure input masks.
-   *
-   * Nested properties:
-   *
-   * - `patternPlaceholderChar`: `string`\
-   * A symbol used as a placeholder for characters to be entered in [pattern masks](https://surveyjs.io/form-library/documentation/api-reference/inputmaskpattern). Default value: `"_"`.
-   *
-   * - `patternEscapeChar`: `string`\
-   * A symbol used to insert literal representations of special characters in [pattern masks](https://surveyjs.io/form-library/documentation/api-reference/inputmaskpattern). Default value: `"\\"`.
-   *
-   * - `patternDefinitions`: `<{ [key: string]: RegExp }>`\
-   * An object that maps placeholder symbols to regular expressions in [pattern masks](https://surveyjs.io/form-library/documentation/api-reference/inputmaskpattern). Default value: `{ "9": /[0-9]/, "a": /[a-zA-Z]/, "#": /[a-zA-Z0-9]/ }`.
-   */
-  maskSettings: {
-    patternPlaceholderChar: "_",
-    patternEscapeChar: "\\",
-    patternDefinitions: {
-      "9": /[0-9]/,
-      "a": /[a-zA-Z]/,
-      "#": /[a-zA-Z0-9]/
-    }
-  },
-  /**
-   * Specifies whether to store date-time values in the following format: `"YYYY-MM-DDThh:mm:ss.sssZ"`. Applies only to form fields with [`inputType`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#inputType) set to `"datetime-local"`.
-   *
-   * Default value: `false`
-   *
-   * If you enable this setting, date-time values are converted from local time to UTC when they are saved to the survey's [`data`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#data) object, while the question values remain in local time. Therefore, when you specify default values using a question's [`defaultValue`](https://surveyjs.io/form-library/documentation/api-reference/text-entry-question-model#defaultValue) property, you need to use local time, but if you specify them using the `data` object, use a UTC date-time value in the following format: `"YYYY-MM-DDThh:mm:ss.sssZ"`.
-   *
-   * ```js
-   * const surveyJson = {
-   *   "elements": [{
-   *     "name": "datetime",
-   *     "type": "text",
-   *     "title": "Select a date and time",
-   *     "inputType": "datetime-local",
-   *     "defaultValue": "2024-07-16T12:15:00" // Local date-time value
-   *   }]
-   * }
-   * ```
-   *
-   * ```js
-   * import { Model } from "survey-core";
-   * const surveyJson = { ... }
-   * const survey = new Model(surveyJson);
-   *
-   * survey.data = {
-   *   datetime: "2024-07-16T12:15:00.000Z" // UTC date-time value
-   * }
-   * ```
-   */
-  storeUtcDates: false,
-  // @param reason "function-[functionname]", "question-[questionname]", "expression-operand"
-  onDateCreated: (newDate, reason, val) => {
-    return newDate;
-  },
-  /**
-   * A function that allows you to define custom parsing rules for numbers represented as string values.
-   *
-   * The following code shows a template that you can use to implement the `parseNumber` function:
-   *
-   * ```js
-   * import { settings } from "survey-core";
-   *
-   * settings.parseNumber = (stringValue, numericValue) => {
-   *   if (typeof stringValue !== "string" || !stringValue)
-   *     return numericValue;
-   *   let parsedNumber = numericValue;
-   *   // ...
-   *   // Parsing the number according to custom parsing rules
-   *   // ...
-   *   return parsedNumber;
-   * };
-   * ```
-   * @param stringValue A number represented as a string value.
-   * @param numericValue A number parsed using a default parsing function. `NaN` if the original string is not a number.
-   * @returns A number that results from parsing the string value.
-   * @see [settings.serialization](https://surveyjs.io/form-library/documentation/api-reference/settings#serialization)
-   */
-  parseNumber: (stringValue, numericValue) => {
-    return numericValue;
-  },
-  /**
-   * Defines the file type categories used by the [`acceptedCategories`](https://surveyjs.io/form-library/documentation/api-reference/file-model#acceptedCategories) property of [File Upload](https://surveyjs.io/form-library/examples/file-upload/) questions.
-   *
-   * This property is an object whose keys are category names and whose values are arrays of file extensions. The default structure is shown below:
-   *
-   * ```js
-   * {
-   *   image: [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".svg"],
-   *   video: [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"],
-   *   audio: [".mp3", ".wav", ".aac", ".ogg", ".wma", ".flac"],
-   *   document: [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".rtf", ".odt"],
-   *   archive: [".zip", ".rar", ".7z", ".tar", ".gz"]
-   * }
-   * ```
-   */
-  acceptedFileCategories: {
-    image: [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".svg"],
-    video: [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"],
-    audio: [".mp3", ".wav", ".aac", ".ogg", ".wma", ".flac"],
-    document: [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".rtf", ".odt"],
-    archive: [".zip", ".rar", ".7z", ".tar", ".gz"]
-  },
-  customFileCategoryName: "custom"
-};
-class SurveyError {
-  constructor(text2 = null, errorOwner = null) {
-    this.text = text2;
-    this.errorOwner = errorOwner;
-    this.visible = true;
-    this.onUpdateErrorTextCallback = void 0;
-  }
-  equals(error3) {
-    if (!error3 || !error3.getErrorType)
-      return false;
-    if (this.getErrorType() !== error3.getErrorType())
-      return false;
-    return this.text === error3.text && this.visible === error3.visible;
-  }
-  get locText() {
-    if (!this.locTextValue) {
-      this.locTextValue = new LocalizableString(this.errorOwner, true);
-      this.locTextValue.storeDefaultText = true;
-      this.locTextValue.text = this.getText();
-    }
-    return this.locTextValue;
-  }
-  get notificationType() {
-    return this.notificationTypeValue || "error";
-  }
-  set notificationType(val) {
-    this.notificationTypeValue = val;
-  }
-  get isWarning() {
-    return this.notificationTypeValue === "warning";
-  }
-  get isInfo() {
-    return this.notificationTypeValue === "info";
-  }
-  get isError() {
-    return !this.isInfo && !this.isWarning;
-  }
-  getCssIcon(cssClasses) {
-    const error3 = this.getCssError(cssClasses);
-    const icon = this.isWarning ? error3.warningIcon : this.isInfo ? error3.infoIcon : error3.icon;
-    return icon || error3.icon || void 0;
-  }
-  getCssError(cssClasses) {
-    cssClasses = cssClasses || {};
-    return cssClasses.error || {};
-  }
-  getText() {
-    var res = this.text;
-    if (!res)
-      res = this.getDefaultText();
-    if (!!this.errorOwner) {
-      res = this.errorOwner.getErrorCustomText(res, this);
-    }
-    return res;
-  }
-  getErrorType() {
-    return "base";
-  }
-  getDefaultText() {
-    return "";
-  }
-  getLocale() {
-    return !!this.errorOwner ? this.errorOwner.getLocale() : "";
-  }
-  getLocalizationString(locStrName) {
-    return getLocaleString(locStrName, this.getLocale());
-  }
-  updateText() {
-    if (this.onUpdateErrorTextCallback) {
-      this.onUpdateErrorTextCallback(this);
-    }
-    this.locText.text = this.getText();
-  }
-}
-class AnswerRequiredError extends SurveyError {
-  constructor(text2 = null, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "required";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("requiredError");
-  }
-}
-class OneAnswerRequiredError extends SurveyError {
-  constructor(text2 = null, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "requireoneanswer";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("requiredErrorInPanel");
-  }
-}
-class RequreNumericError extends SurveyError {
-  constructor(text2 = null, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "requirenumeric";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("numericError");
-  }
-}
-class ExceedSizeError extends SurveyError {
-  constructor(maxSize, errorOwner = null) {
-    super(null, errorOwner);
-    this.maxSize = maxSize;
-    this.locText.text = this.getText();
-  }
-  getErrorType() {
-    return "exceedsize";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("exceedMaxSize")["format"](this.getTextSize());
-  }
-  getTextSize() {
-    var sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    var fixed = [0, 0, 2, 3, 3];
-    if (this.maxSize === 0) {
-      return "0 Byte";
-    }
-    var i = Math.floor(Math.log(this.maxSize) / Math.log(1024));
-    var value = this.maxSize / Math.pow(1024, i);
-    return value.toFixed(fixed[i]) + " " + sizes[i];
-  }
-}
-class ExceedFilesCountError extends SurveyError {
-  constructor(maxFiles, errorOwner = null) {
-    super(null, errorOwner);
-    this.maxFiles = maxFiles;
-    this.locText.text = this.getText();
-  }
-  getErrorType() {
-    return "exceedfilescount";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("exceedMaxFiles")["format"](this.maxFiles);
-  }
-}
-class WebRequestError extends SurveyError {
-  constructor(status, response, errorOwner = null) {
-    super(null, errorOwner);
-    this.status = status;
-    this.response = response;
-  }
-  getErrorType() {
-    return "webrequest";
-  }
-  getDefaultText() {
-    const str = this.getLocalizationString("urlRequestError");
-    return !!str ? str["format"](this.status, this.response) : "";
-  }
-}
-class WebRequestEmptyError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "webrequestempty";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("urlGetChoicesError");
-  }
-}
-class OtherEmptyError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "otherempty";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("otherRequiredError");
-  }
-}
-class UploadingFileError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "uploadingfile";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("uploadingFile");
-  }
-}
-class RequiredInAllRowsError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "requiredinallrowserror";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("requiredInAllRowsError");
-  }
-}
-class EachRowUniqueError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "eachrowuniqueeerror";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("eachRowUniqueError");
-  }
-}
-class MinRowCountError extends SurveyError {
-  constructor(minRowCount, errorOwner = null) {
-    super(null, errorOwner);
-    this.minRowCount = minRowCount;
-  }
-  getErrorType() {
-    return "minrowcounterror";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("minRowCountError")["format"](this.minRowCount);
-  }
-}
-class KeyDuplicationError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "keyduplicationerror";
-  }
-  getDefaultText() {
-    return this.getLocalizationString("keyDuplicationError");
-  }
-}
-class CustomError extends SurveyError {
-  constructor(text2, errorOwner = null) {
-    super(text2, errorOwner);
-    this.text = text2;
-  }
-  getErrorType() {
-    return "custom";
-  }
-}
-class AsyncElementsRunner {
-  constructor(onCompleted) {
-    this.onCompleted = onCompleted;
-    this.asyncElements = {};
-    this.isRunningValue = true;
-  }
-  addElement(id) {
-    this.asyncElements[id] = true;
-  }
-  removeElement(id) {
-    delete this.asyncElements[id];
-    this.tryComplete();
-  }
-  finish() {
-    this.isRunningValue = false;
-    this.tryComplete();
-  }
-  get isRunning() {
-    return this.isRunningValue || Object.keys(this.asyncElements).length > 0;
-  }
-  doCompleted() {
-    if (this.onCompleted) {
-      this.onCompleted();
-    }
-  }
-  tryComplete() {
-    if (!this.isRunning) {
-      this.doCompleted();
-    }
-  }
-}
-class ValidatorResult {
-  constructor(value, error3 = null) {
-    this.value = value;
-    this.error = error3;
-  }
-}
-class SurveyValidator extends Base {
-  get errorOwner() {
-    return this.owner;
-  }
-  set errorOwner(val) {
-    this.owner = val;
-  }
-  get id() {
-    return "svd" + this.uniqueId;
-  }
-  get isValidator() {
-    return true;
-  }
-  getSurvey(live = false) {
-    return !!this.owner && !!this.owner["getSurvey"] ? this.owner.getSurvey() : null;
-  }
-  getOwner() {
-    return this.owner;
-  }
-  /**
-   * An error message to display when a value fails validation.
-   */
-  get text() {
-    return this.getLocStringText(this.locText);
-  }
-  set text(value) {
-    this.setLocStringText(this.locText, value);
-  }
-  get locText() {
-    return this.getOrCreateLocStr("text", true);
-  }
-  getErrorText(name) {
-    if (this.text)
-      return this.text;
-    return this.getDefaultErrorText(name);
-  }
-  getDefaultErrorText(name) {
-    return "";
-  }
-  validateOnCallback(value, callback, name, properties) {
-    const res = this.validate(value, name, properties);
-    if (callback)
-      callback(res);
-    return res;
-  }
-  validate(value, name, properties) {
-    return null;
-  }
-  getLocale() {
-    return !!this.owner ? this.owner.getLocale() : "";
-  }
-  getMarkdownHtml(text2, name, item) {
-    return !!this.owner ? this.owner.getMarkdownHtml(text2, name, item) : void 0;
-  }
-  getRenderer(name) {
-    return !!this.owner ? this.owner.getRenderer(name) : null;
-  }
-  getRendererContext(locStr) {
-    return !!this.owner ? this.owner.getRendererContext(locStr) : locStr;
-  }
-  getProcessedText(text2) {
-    return !!this.owner ? this.owner.getProcessedText(text2) : text2;
-  }
-  createCustomError(name) {
-    const err = new CustomError(this.getErrorText(name), this.owner);
-    err.onUpdateErrorTextCallback = ((err2) => err2.text = this.getErrorText(name));
-    return err;
-  }
-  toString() {
-    var res = this.getType().replace("validator", "");
-    if (!!this.text) {
-      res += ", " + this.text;
-    }
-    return res;
-  }
-}
-__decorate([
-  property()
-], SurveyValidator.prototype, "notificationType", void 0);
-class ValidatorRunner {
-  run(owner) {
-    const validators = owner.getValidators();
-    const errors = new Array();
-    const asyncRunner = new AsyncElementsRunner(() => {
-      if (this.onAsyncCompleted) {
-        this.onAsyncCompleted(errors);
-      }
-    });
-    if (validators.length > 0) {
-      const properties = owner.getDataFilteredProperties();
-      const value = owner.validatedValue;
-      const title = owner.getValidatorTitle();
-      validators.forEach((validator) => {
-        asyncRunner.addElement(validator.id);
-        validator.validateOnCallback(value, (valRes) => {
-          if (!!valRes && !!valRes.error) {
-            valRes.error.notificationType = validator.notificationType;
-            errors.push(valRes.error);
-          }
-          asyncRunner.removeElement(validator.id);
-        }, title, properties);
-      });
-    }
-    const res = [].concat(...errors);
-    errors.length = 0;
-    asyncRunner.finish();
-    return res;
-  }
-}
-class NumericValidator extends SurveyValidator {
-  constructor(minValue = null, maxValue = null) {
-    super();
-    this.minValue = minValue;
-    this.maxValue = maxValue;
-  }
-  getType() {
-    return "numericvalidator";
-  }
-  validate(value, name, properties) {
-    if (this.isValueEmpty(value))
-      return null;
-    if (!Helpers.isNumber(value)) {
-      return new ValidatorResult(null, new RequreNumericError(this.text, this.owner));
-    }
-    const result = new ValidatorResult(Helpers.getNumber(value));
-    if (this.minValue !== null && this.minValue > result.value) {
-      result.error = this.createCustomError(name);
-      return result;
-    }
-    if (this.maxValue !== null && this.maxValue < result.value) {
-      result.error = this.createCustomError(name);
-      return result;
-    }
-    return typeof value === "number" ? null : result;
-  }
-  getDefaultErrorText(name) {
-    var vName = name ? name : this.getLocalizationString("value");
-    if (this.minValue !== null && this.maxValue !== null) {
-      return this.getLocalizationFormatString("numericMinMax", vName, this.minValue, this.maxValue);
-    } else {
-      if (this.minValue !== null) {
-        return this.getLocalizationFormatString("numericMin", vName, this.minValue);
-      }
-      return this.getLocalizationFormatString("numericMax", vName, this.maxValue);
-    }
-  }
-}
-__decorate([
-  property()
-], NumericValidator.prototype, "minValue", void 0);
-__decorate([
-  property()
-], NumericValidator.prototype, "maxValue", void 0);
-class TextValidator extends SurveyValidator {
-  constructor() {
-    super();
-  }
-  getType() {
-    return "textvalidator";
-  }
-  validate(value, name, properties) {
-    if (this.isValueEmpty(value))
-      return null;
-    if (!this.allowDigits) {
-      var reg = /\d+$/;
-      if (reg.test(value)) {
-        return new ValidatorResult(null, this.createCustomError("textNoDigitsAllow"));
-      }
-    }
-    if (this.minLength > 0 && value.length < this.minLength) {
-      return new ValidatorResult(null, this.createCustomError(name));
-    }
-    if (this.maxLength > 0 && value.length > this.maxLength) {
-      return new ValidatorResult(null, this.createCustomError(name));
-    }
-    return null;
-  }
-  getDefaultErrorText(name) {
-    if (name === "textNoDigitsAllow")
-      return this.getLocalizationString(name);
-    if (this.minLength > 0 && this.maxLength > 0)
-      return this.getLocalizationFormatString("textMinMaxLength", this.minLength, this.maxLength);
-    if (this.minLength > 0)
-      return this.getLocalizationFormatString("textMinLength", this.minLength);
-    return this.getLocalizationFormatString("textMaxLength", this.maxLength);
-  }
-}
-__decorate([
-  property()
-], TextValidator.prototype, "minLength", void 0);
-__decorate([
-  property()
-], TextValidator.prototype, "maxLength", void 0);
-__decorate([
-  property()
-], TextValidator.prototype, "allowDigits", void 0);
-class AnswerCountValidator extends SurveyValidator {
-  constructor(minCount = null, maxCount = null) {
-    super();
-    this.minCount = minCount;
-    this.maxCount = maxCount;
-  }
-  getType() {
-    return "answercountvalidator";
-  }
-  validate(value, name, properties) {
-    if (value == null || value.constructor != Array)
-      return null;
-    var count2 = value.length;
-    if (count2 == 0)
-      return null;
-    if (this.minCount && count2 < this.minCount) {
-      return new ValidatorResult(null, this.createCustomError(this.getLocalizationFormatString("minSelectError", this.minCount)));
-    }
-    if (this.maxCount && count2 > this.maxCount) {
-      return new ValidatorResult(null, this.createCustomError(this.getLocalizationFormatString("maxSelectError", this.maxCount)));
-    }
-    return null;
-  }
-  getDefaultErrorText(name) {
-    return name;
-  }
-}
-__decorate([
-  property()
-], AnswerCountValidator.prototype, "minCount", void 0);
-__decorate([
-  property()
-], AnswerCountValidator.prototype, "maxCount", void 0);
-class RegexValidator extends SurveyValidator {
-  constructor(regex2 = null) {
-    super();
-    this.regex = regex2;
-  }
-  getType() {
-    return "regexvalidator";
-  }
-  validate(value, name, properties) {
-    if (!this.regex || this.isValueEmpty(value))
-      return null;
-    const re = this.createRegExp();
-    if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) {
-        const res = this.hasError(re, value[i], name);
-        if (res)
-          return res;
-      }
-    }
-    return this.hasError(re, value, name);
-  }
-  hasError(re, value, name) {
-    if (re.test(value))
-      return null;
-    return new ValidatorResult(value, this.createCustomError(name));
-  }
-  get insensitive() {
-    return this.caseInsensitive;
-  }
-  set insensitive(val) {
-    this.caseInsensitive = val;
-  }
-  createRegExp() {
-    const flags = this.caseInsensitive ? "i" : "";
-    return (this.owner ? this.owner.createRegexValidator(this, this.regex, flags) : null) || new RegExp(this.regex, flags);
-  }
-}
-__decorate([
-  property()
-], RegexValidator.prototype, "regex", void 0);
-__decorate([
-  property()
-], RegexValidator.prototype, "caseInsensitive", void 0);
-class EmailValidator extends SurveyValidator {
-  constructor() {
-    super();
-    this.re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()=[\]\.,;:\s@\"]+\.)+[^<>()=[\]\.,;:\s@\"]{2,})$/i;
-  }
-  getType() {
-    return "emailvalidator";
-  }
-  validate(value, name, properties) {
-    if (!value)
-      return null;
-    if (this.re.test(value))
-      return null;
-    return new ValidatorResult(value, this.createCustomError(name));
-  }
-  getDefaultErrorText(name) {
-    return this.getLocalizationString("invalidEmail");
-  }
-}
-class ExpressionValidator extends SurveyValidator {
-  constructor(expression = null) {
-    super();
-    this.conditionRunner = null;
-    this.expression = expression;
-  }
-  getType() {
-    return "expressionvalidator";
-  }
-  validateOnCallback(value, callback, name, properties) {
-    if (!!this.conditionRunner) {
-      this.conditionRunner.onRunComplete = null;
-    }
-    let errorResult = null;
-    const doCallBack = (res2) => {
-      errorResult = this.generateError(res2, value, name);
-      !!callback && callback(errorResult);
-    };
-    if (!this.ensureConditionRunner()) {
-      doCallBack(true);
-      return null;
-    }
-    this.conditionRunner.onRunComplete = (res2) => {
-      doCallBack(res2);
-    };
-    if (!this.conditionRunner.canRun()) {
-      doCallBack(res);
-      return errorResult;
-    }
-    var res = this.conditionRunner.runContext(this.getValueGetterContext(), this.getPropertiesCopy(properties, "expression"));
-    return errorResult || this.generateError(res, value, name);
-  }
-  generateError(res, value, name) {
-    if (!res) {
-      return new ValidatorResult(value, this.createCustomError(name));
-    }
-    return null;
-  }
-  getDefaultErrorText(name) {
-    return this.getLocalizationFormatString("invalidExpression", this.expression);
-  }
-  ensureConditionRunner() {
-    const expression = this.getExpressionFromSurvey("expression");
-    if (!expression)
-      return false;
-    this.conditionRunner = new ConditionRunner(expression);
-    return true;
-  }
-  getValueGetterContext() {
-    const owner = this.owner;
-    if (!!owner && !!owner.getValueGetterContext)
-      return owner.getValueGetterContext();
-    return super.getValueGetterContext();
-  }
-}
-__decorate([
-  property()
-], ExpressionValidator.prototype, "expression", void 0);
-Serializer.addClass("surveyvalidator", [
-  { name: "text", serializationProperty: "locText", visibleIndex: 99 },
-  { name: "notificationType", choices: ["error", "warning", "info"], default: "error", visibleIndex: 100 }
-]);
-Serializer.addClass("numericvalidator", ["minValue:number", "maxValue:number"], function() {
-  return new NumericValidator();
-}, "surveyvalidator");
-Serializer.addClass("textvalidator", [
-  { name: "minLength:number", default: 0 },
-  { name: "maxLength:number", default: 0 },
-  { name: "allowDigits:boolean", default: true }
-], function() {
-  return new TextValidator();
-}, "surveyvalidator");
-Serializer.addClass("answercountvalidator", ["minCount:number", "maxCount:number"], function() {
-  return new AnswerCountValidator();
-}, "surveyvalidator");
-Serializer.addClass("regexvalidator", ["regex", { name: "caseInsensitive:boolean", alternativeName: "insensitive" }], function() {
-  return new RegexValidator();
-}, "surveyvalidator");
-Serializer.addClass("emailvalidator", [], function() {
-  return new EmailValidator();
-}, "surveyvalidator");
-Serializer.addClass("expressionvalidator", ["expression:condition"], function() {
-  return new ExpressionValidator();
-}, "surveyvalidator");
-class QuestionCustomWidget {
-  constructor(name, widgetJson) {
-    this.name = name;
-    this.widgetJson = widgetJson;
-    this.htmlTemplate = widgetJson.htmlTemplate ? widgetJson.htmlTemplate : "";
-  }
-  afterRender(question, el) {
-    if (!this.widgetJson.afterRender)
-      return;
-    question.localeChangedCallback = () => {
-      if (this.widgetJson.willUnmount) {
-        this.widgetJson.willUnmount(question, el);
-      }
-      this.widgetJson.afterRender(question, el);
-    };
-    this.widgetJson.afterRender(question, el);
-  }
-  willUnmount(question, el) {
-    if (this.widgetJson.willUnmount)
-      this.widgetJson.willUnmount(question, el);
-  }
-  getDisplayValue(question, value = void 0) {
-    if (this.widgetJson.getDisplayValue)
-      return this.widgetJson.getDisplayValue(question, value);
-    return null;
-  }
-  validate(question) {
-    if (this.widgetJson.validate)
-      return this.widgetJson.validate(question);
-    return void 0;
-  }
-  isFit(question) {
-    if (this.isLibraryLoaded() && this.widgetJson.isFit)
-      return this.widgetJson.isFit(question);
-    return false;
-  }
-  get canShowInToolbox() {
-    if (this.widgetJson.showInToolbox === false)
-      return false;
-    if (CustomWidgetCollection.Instance.getActivatedBy(this.name) != "customtype")
-      return false;
-    return !this.widgetJson.widgetIsLoaded || this.widgetJson.widgetIsLoaded();
-  }
-  get showInToolbox() {
-    return this.widgetJson.showInToolbox !== false;
-  }
-  set showInToolbox(val) {
-    this.widgetJson.showInToolbox = val;
-  }
-  init() {
-    if (this.widgetJson.init) {
-      this.widgetJson.init();
-    }
-  }
-  activatedByChanged(activatedBy) {
-    if (this.isLibraryLoaded() && this.widgetJson.activatedByChanged) {
-      this.widgetJson.activatedByChanged(activatedBy);
-    }
-  }
-  isLibraryLoaded() {
-    if (this.widgetJson.widgetIsLoaded)
-      return this.widgetJson.widgetIsLoaded() == true;
-    return true;
-  }
-  get isDefaultRender() {
-    return this.widgetJson.isDefaultRender;
-  }
-  get pdfQuestionType() {
-    return this.widgetJson.pdfQuestionType;
-  }
-  get pdfRender() {
-    return this.widgetJson.pdfRender;
-  }
-}
-class CustomWidgetCollection {
-  constructor() {
-    this.widgetsValues = [];
-    this.widgetsActivatedBy = {};
-    this.onCustomWidgetAdded = new Event$1();
-  }
-  get widgets() {
-    return this.widgetsValues;
-  }
-  add(widgetJson, activatedBy = "property") {
-    this.addCustomWidget(widgetJson, activatedBy);
-  }
-  addCustomWidget(widgetJson, activatedBy = "property") {
-    var name = widgetJson.name;
-    if (!name) {
-      name = "widget_" + this.widgets.length + 1;
-    }
-    var customWidget = new QuestionCustomWidget(name, widgetJson);
-    this.widgetsValues.push(customWidget);
-    customWidget.init();
-    this.widgetsActivatedBy[name] = activatedBy;
-    customWidget.activatedByChanged(activatedBy);
-    this.onCustomWidgetAdded.fire(customWidget, null);
-    return customWidget;
-  }
-  /**
-   * Returns the way the custom wiget is activated. It can be activated by a property ("property"), question type ("type") or by new/custom question type ("customtype").
-   * @param widgetName the custom widget name
-   * @see setActivatedBy
-   */
-  getActivatedBy(widgetName) {
-    var res = this.widgetsActivatedBy[widgetName];
-    return res ? res : "property";
-  }
-  /**
-   * Sets the way the custom wiget is activated. The activation types are: property ("property"), question type ("type") or new/custom question type ("customtype"). A custom wiget may support all or only some of this activation types.
-   * @param widgetName
-   * @param activatedBy there are three possible variants: "property", "type" and "customtype"
-   */
-  setActivatedBy(widgetName, activatedBy) {
-    if (!widgetName || !activatedBy)
-      return;
-    var widget = this.getCustomWidgetByName(widgetName);
-    if (!widget)
-      return;
-    this.widgetsActivatedBy[widgetName] = activatedBy;
-    widget.activatedByChanged(activatedBy);
-  }
-  clear() {
-    this.widgetsValues = [];
-  }
-  getCustomWidgetByName(name) {
-    for (var i = 0; i < this.widgets.length; i++) {
-      if (this.widgets[i].name == name)
-        return this.widgets[i];
-    }
-    return null;
-  }
-  getCustomWidget(question) {
-    for (var i = 0; i < this.widgetsValues.length; i++) {
-      if (this.widgetsValues[i].isFit(question))
-        return this.widgetsValues[i];
-    }
-    return null;
-  }
-}
-CustomWidgetCollection.Instance = new CustomWidgetCollection();
-class RendererFactory {
-  constructor() {
-    this.renderersHash = {};
-    this.defaultHash = {};
-  }
-  unregisterRenderer(questionType, rendererAs) {
-    delete this.renderersHash[questionType][rendererAs];
-    if (this.defaultHash[questionType] === rendererAs) {
-      delete this.defaultHash[questionType];
-    }
-  }
-  registerRenderer(questionType, renderAs, renderer2, useAsDefault = false) {
-    if (!this.renderersHash[questionType]) {
-      this.renderersHash[questionType] = {};
-    }
-    this.renderersHash[questionType][renderAs] = renderer2;
-    if (useAsDefault) {
-      this.defaultHash[questionType] = renderAs;
-    }
-  }
-  getRenderer(questionType, renderAs) {
-    const qHash = this.renderersHash[questionType];
-    if (!!qHash) {
-      if (!!renderAs && qHash[renderAs])
-        return qHash[renderAs];
-      const dVal = this.defaultHash[questionType];
-      if (!!dVal && qHash[dVal])
-        return qHash[dVal];
-    }
-    return "default";
-  }
-  getRendererByQuestion(question) {
-    return this.getRenderer(question.getType(), question.renderAs);
-  }
-  clear() {
-    this.renderersHash = {};
-  }
-}
-RendererFactory.Instance = new RendererFactory();
-class TextAreaModel {
-  updateElement() {
-    if (this.element && this.autoGrow) {
-      setTimeout(() => increaseHeightByContent(this.element), 1);
-    }
-  }
-  constructor(options2) {
-    this.options = options2;
-    this.onPropertyChangedCallback = () => {
-      if (this.element) {
-        this.element.value = this.getTextValue();
-        this.updateElement();
-      }
-    };
-    this.question.registerFunctionOnPropertiesValueChanged(this.options.propertyNames, this.onPropertyChangedCallback, "__textarea");
-  }
-  setElement(element2) {
-    if (!!element2) {
-      this.element = element2;
-      this.updateElement();
-    }
-  }
-  resetElement() {
-    this.element = void 0;
-  }
-  getTextValue() {
-    if (!!this.options.getTextValue)
-      return this.options.getTextValue() || "";
-    return "";
-  }
-  onTextAreaChange(event) {
-    if (!!this.options.onTextAreaChange)
-      this.options.onTextAreaChange(event);
-  }
-  onTextAreaInput(event) {
-    if (!!this.options.onTextAreaInput)
-      this.options.onTextAreaInput(event);
-    if (this.element && this.autoGrow) {
-      increaseHeightByContent(this.element);
-    }
-  }
-  onTextAreaKeyDown(event) {
-    if (!!this.options.onTextAreaKeyDown)
-      this.options.onTextAreaKeyDown(event);
-  }
-  onTextAreaBlur(event) {
-    this.onTextAreaChange(event);
-    if (!!this.options.onTextAreaBlur)
-      this.options.onTextAreaBlur(event);
-  }
-  onTextAreaFocus(event) {
-    var _a2;
-    if (!!this.options.onTextAreaFocus)
-      this.options.onTextAreaFocus(event);
-    if (this.isReadOnlyAttr) {
-      (_a2 = event === null || event === void 0 ? void 0 : event.target) === null || _a2 === void 0 ? void 0 : _a2.select();
-    }
-  }
-  get question() {
-    return this.options.question;
-  }
-  get id() {
-    return this.options.id();
-  }
-  get placeholder() {
-    return this.options.placeholder();
-  }
-  get className() {
-    return this.options.className();
-  }
-  get maxLength() {
-    if (this.options.maxLength)
-      return this.options.maxLength();
-  }
-  get autoGrow() {
-    if (this.options.autoGrow)
-      return this.options.autoGrow();
-  }
-  get rows() {
-    if (this.options.rows)
-      return this.options.rows();
-  }
-  get cols() {
-    if (this.options.cols)
-      return this.options.cols();
-  }
-  get isDisabledAttr() {
-    return this.options.isDisabledAttr();
-  }
-  get isReadOnlyAttr() {
-    if (this.options.isReadOnlyAttr)
-      return this.options.isReadOnlyAttr();
-  }
-  get ariaRequired() {
-    if (this.options.ariaRequired)
-      return this.options.ariaRequired();
-  }
-  get ariaLabel() {
-    if (this.options.ariaLabel)
-      return this.options.ariaLabel();
-  }
-  get ariaInvalid() {
-    if (this.options.ariaInvalid)
-      return this.options.ariaInvalid();
-  }
-  get ariaLabelledBy() {
-    if (this.options.ariaLabelledBy)
-      return this.options.ariaLabelledBy();
-  }
-  get ariaDescribedBy() {
-    if (this.options.ariaDescribedBy)
-      return this.options.ariaDescribedBy();
-  }
-  get ariaErrormessage() {
-    if (this.options.ariaErrormessage)
-      return this.options.ariaErrormessage();
-  }
-  dispose() {
-    if (this.question) {
-      this.question.unRegisterFunctionOnPropertiesValueChanged(this.options.propertyNames, "__textarea");
-    }
-    this.resetElement();
-  }
-}
-class QuestionValueGetterContext {
-  constructor(question, isUnwrapped) {
-    this.question = question;
-    this.isUnwrapped = isUnwrapped;
-  }
-  getObj() {
-    return this.question;
-  }
-  getValue(params) {
-    const path2 = params.path;
-    const index = params.index;
-    const expVar = settings.expressionVariables;
-    if (params.isProperty && path2.length > 1) {
-      params.path = path2.slice(1);
-      params.isRoot = false;
-      if (path2[0].name === expVar.self) {
-        return new PropertyGetterContext(this.question).getValue(params);
-      }
-      if (path2[0].name === expVar.parent && !!this.question.parentQuestion) {
-        return new PropertyGetterContext(this.question.parentQuestion).getValue(params);
-      }
-    }
-    if (path2.length === 0 || path2.length === 1 && path2[0].name === expVar.self)
-      return this.getQuestionValue(index);
-    if (path2.length > 1 && path2[0].name === expVar.panel) {
-      params.isRoot = false;
-      const panel = this.question.parent;
-      if (panel && panel.isPanel) {
-        path2.shift();
-        return params.isProperty ? new PropertyGetterContext(panel).getValue(params) : new QuestionArrayGetterContext(panel.questions).getValue(params);
-      }
-    }
-    if (!this.question.isEmpty()) {
-      let val = this.question.value;
-      if (index >= 0) {
-        if (!Array.isArray(val || index >= val.length))
-          return void 0;
-        val = val[index];
-      }
-      params.isProperty = false;
-      return new VariableGetterContext(val).getValue(params);
-    }
-    return void 0;
-  }
-  getTextValue(name, value, isDisplayValue) {
-    if (!isDisplayValue)
-      return value;
-    return this.question.getDisplayValue(true, value);
-  }
-  getRootObj() {
-    return this.question.data;
-  }
-  getQuestion() {
-    return this.question;
-  }
-  getSurveyValue(path2, index) {
-    const survey = this.question.getSurvey();
-    if (survey)
-      return survey.getValueGetterContext().getValue({ path: path2, isRoot: false, index });
-    return void 0;
-  }
-  getQuestionValue(index) {
-    const q = this.question;
-    let val = q.getFilteredValue(this.isUnwrapped);
-    if (index > -1 && Array.isArray(val)) {
-      val = index < val.length ? val[index] : void 0;
-    }
-    return { isFound: true, context: this, value: val, requireStrictCompare: q.requireStrictCompare };
-  }
-}
-class QuestionItemValueGetterContext extends ValueGetterContextCore {
-  getValueFromBindedQuestions(path2, objValue) {
-    if (typeof objValue !== "object") {
-      objValue = void 0;
-    }
-    const name = path2.length === 1 ? path2[0].name : "";
-    const qs = this.getQuestionsBySameValueNames();
-    for (let i = 0; i < qs.length; i++) {
-      const q = qs[i];
-      if (!!name && q.valuePropertyName === name && !!objValue && objValue.hasOwnProperty(name)) {
-        return { isFound: true, value: objValue[name], context: q.getValueGetterContext() };
-      }
-      const res = q.getValueGetterContext().getValue({ path: path2, isRoot: false, index: this.getIndex() });
-      if (!!res && res.isFound)
-        return res;
-    }
-    return void 0;
-  }
-  getQuestionsBySameValueNames() {
-    const res = new Array();
-    const q = this.getQuestionData();
-    if (!q || !q.isQuestion)
-      return res;
-    if (q.parent && q.parent.isPanel) {
-      this.fillQuestions(q.parent.getQuestionsByValueName(q.getValueName()), q, res);
-    }
-    if (res.length === 0 && !!q.survey) {
-      this.fillQuestions(q.survey.getQuestionsByValueName(q.getValueName()), q, res);
-    }
-    return res;
-  }
-  fillQuestions(qs, q, res) {
-    if (Array.isArray(qs)) {
-      qs.forEach((question) => {
-        if (question !== q) {
-          res.push(question);
-        }
-      });
-    }
-  }
-  getRootObj() {
-    return this.getQuestionData();
-  }
-}
-class QuestionArrayGetterContext extends ValueGetterContextCore {
-  constructor(questions) {
-    super();
-    this.questions = questions;
-  }
-  isSearchNameRevert() {
-    return true;
-  }
-  updateValueByItem(name, res) {
-    const lowName = name.toLocaleLowerCase();
-    const unWrappedNameSuffix = settings.expressionVariables.unwrapPostfix;
-    for (let i = 0; i < this.questions.length; i++) {
-      const q = this.questions[i];
-      const qName = q.getFilteredName().toLocaleLowerCase();
-      if (qName.toLocaleLowerCase() === lowName) {
-        res.isFound = true;
-        res.obj = q;
-        res.context = q.getValueGetterContext(qName.endsWith(unWrappedNameSuffix));
-        break;
-      }
-    }
-  }
-}
-class ValidationContext extends AsyncElementsRunner {
-  constructor(context2) {
-    super(() => {
-      this.setCallbackResult();
-    });
-    this.res = true;
-    this.errorCountValue = 0;
-    if (!context2) {
-      context2 = { fireCallback: true };
-    }
-    this.fireCallbackValue = context2.fireCallback || false;
-    this.isOnValueChangedValue = context2.isOnValueChanged || false;
-    this.focusOnFirstErrorValue = context2.focusOnFirstError || false;
-    this.callbackResult = context2.callbackResult || null;
-    this.changeCurrentPage = context2.changeCurrentPage || false;
-  }
-  get fireCallback() {
-    return this.fireCallbackValue;
-  }
-  get isOnValueChanged() {
-    return this.isOnValueChangedValue;
-  }
-  get focusOnFirstError() {
-    return this.focusOnFirstErrorValue;
-  }
-  get result() {
-    return this.res;
-  }
-  get runningResult() {
-    return !this.res || !this.isRunning || !this.callbackResult ? this.res : void 0;
-  }
-  setErrorElement(element2, errors) {
-    if (Array.isArray(errors) && this.isWarningOnlyOrEmpty(errors))
-      return;
-    this.errorCountValue++;
-    this.res = false;
-    if (!element2)
-      return;
-    if (element2.isQuestion) {
-      this.setQuestionError(element2);
-    } else {
-      if (element2.isCollapsed) {
-        element2.expand();
-      }
-    }
-  }
-  isWarningOnlyOrEmpty(errors) {
-    for (let i = 0; i < errors.length; i++) {
-      const er = errors[i];
-      if (er.isError && er.visible)
-        return false;
-    }
-    return true;
-  }
-  get firstErrorQuestion() {
-    return this.firstErrorQuestionValue;
-  }
-  get errorCount() {
-    return this.errorCountValue;
-  }
-  setCallbackResult() {
-    if (this.callbackResult && !this.isCallbackFired) {
-      this.isCallbackFired = true;
-      this.callbackResult(this.res, this.firstErrorQuestion);
-    }
-  }
-  setQuestionError(question) {
-    question.expandAllParents();
-    if (!this.firstErrorQuestionValue) {
-      this.firstErrorQuestionValue = question;
-      if (this.focusOnFirstError || this.changeCurrentPage) {
-        if (this.focusOnFirstError) {
-          question.focus(true);
-        } else {
-          const survey = question.getSurvey();
-          if (!!survey && !!question.page) {
-            survey.currentPage = question.page;
-          }
-        }
-      }
-      this.setCallbackResult();
-    }
-  }
-}
-class Question extends SurveyElement {
-  isReadOnlyRenderDiv() {
-    return this.isReadOnly && settings.readOnly.commentRenderMode === "div";
-  }
-  allowMobileInDesignMode() {
-    return false;
-  }
-  updateIsMobileFromSurvey() {
-    this.setIsMobile(this.survey._isMobile);
-  }
-  setIsMobile(val) {
-    const newVal = val && (this.allowMobileInDesignMode() || !this.isDesignMode);
-    this.isMobile = newVal;
-  }
-  getIsMobile() {
-    return this._isMobile;
-  }
-  get isMobile() {
-    return this.getIsMobile();
-  }
-  set isMobile(val) {
-    this._isMobile = val;
-  }
-  themeChanged(theme) {
-  }
-  get ariaExpanded() {
-    if (this.isNewA11yStructure) {
-      return null;
-    }
-    return this.getPropertyValue("ariaExpanded");
-  }
-  set ariaExpanded(val) {
-    this.setPropertyValue("ariaExpanded", val);
-  }
-  constructor(name) {
-    super(name);
-    this.customWidgetData = { isNeedRender: true };
-    this.hasCssErrorCallback = () => false;
-    this.triggersInfo = [];
-    this.isReadyValue = true;
-    this.dependedQuestions = [];
-    this.onReadyChanged = this.addEvent();
-    this.isValueChangedInSurvey = false;
-    this.allowNotifyValueChanged = true;
-    this.setPropertyValueDirectly("id", "sq_" + this.uniqueId);
-    this.onCreating();
-    this.addExpressionProperty("visibleIf", (obj, res) => {
-      this.visible = res === true;
-    });
-    this.addExpressionProperty("enableIf", (obj, res) => {
-      this.readOnly = res === false;
-    });
-    this.addExpressionProperty("requiredIf", (obj, res) => {
-      this.isRequired = res === true;
-    });
-    this.addTriggersInfo();
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-    var _a2;
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    const updateQuestionCssProps = ["readOnly", "hasVisibleErrors", "containsErrors"];
-    if (updateQuestionCssProps.indexOf(name) > -1) {
-      this.updateQuestionCss();
-    }
-    if (name === "showNumber") {
-      this.notifySurveyVisibilityChanged();
-    }
-    if (name === "no") {
-      this.resetCssTitle();
-    }
-    if (name === "width") {
-      this.updateQuestionCss();
-      if (!!this.parent) {
-        this.parent.elementWidthChanged(this);
-      }
-    }
-    if (name === "isRequired") {
-      if (!this.isRequired && this.errors.length > 0) {
-        this.validate();
-      }
-      this.locTitle.strChanged();
-      this.clearCssClasses();
-    }
-    if (name === "indent" || name === "rightIndent") {
-      this.resetIndents();
-    }
-    if (name === "showCommentArea" || name === "showOtherItem") {
-      this.initCommentFromSurvey();
-    }
-    if (name === "commentPlaceholder") {
-      this.resetRenderedCommentPlaceholder();
-    }
-    if (name === "_isMobile") {
-      this.onMobileChanged();
-    }
-    if (name === "colSpan") {
-      (_a2 = this.parent) === null || _a2 === void 0 ? void 0 : _a2.updateColumns();
-    }
-    if (name === "descriptionLocation") {
-      this.updateQuestionCss();
-    }
-  }
-  getDefaultTitle() {
-    return this.name;
-  }
-  createLocTitleProperty() {
-    const locTitleValue = super.createLocTitleProperty();
-    locTitleValue.storeDefaultText = true;
-    locTitleValue.onGetTextCallback = (text2, nonProcessedText) => {
-      if (!text2 && !nonProcessedText) {
-        text2 = this.getDefaultTitle();
-      }
-      if (!this.survey)
-        return text2;
-      return this.survey.getUpdatedQuestionTitle(this, text2);
-    };
-    this.locProcessedTitle = new LocalizableString(this, true);
-    this.locProcessedTitle.sharedData = locTitleValue;
-    return locTitleValue;
-  }
-  get locRenderedTitle() {
-    if (this.isSingleInputActive && !!this.singleInputLocTitle)
-      return this.singleInputLocTitle;
-    return this.locTitle;
-  }
-  get commentTextAreaModel() {
-    if (!this.commentTextAreaModelValue) {
-      this.commentTextAreaModelValue = new TextAreaModel(this.getCommentTextAreaOptions());
-    }
-    return this.commentTextAreaModelValue;
-  }
-  getCommentTextAreaOptions() {
-    const options2 = {
-      question: this,
-      id: () => this.commentId,
-      propertyNames: ["comment"],
-      className: () => this.cssClasses.comment,
-      placeholder: () => this.renderedCommentPlaceholder,
-      isDisabledAttr: () => this.isInputReadOnly || false,
-      rows: () => this.commentAreaRows,
-      autoGrow: () => this.autoGrowComment,
-      maxLength: () => this.getOthersMaxLength(),
-      ariaRequired: () => this.a11y_input_ariaRequired,
-      ariaLabel: () => this.a11y_input_ariaLabel,
-      getTextValue: () => {
-        return this.comment;
-      },
-      onTextAreaChange: (e2) => {
-        this.onCommentChange(e2);
-      },
-      onTextAreaInput: (e2) => {
-        this.onCommentInput(e2);
-      }
-    };
-    return options2;
-  }
-  getSurvey(live = false) {
-    if (live) {
-      return !!this.parent ? this.parent.getSurvey(live) : null;
-    }
-    if (!!this.onGetSurvey)
-      return this.onGetSurvey();
-    return super.getSurvey();
-  }
-  getValueName() {
-    if (!!this.valueName)
-      return this.valueName.toString();
-    return this.name;
-  }
-  /**
-   * Specifies an object property that should store the question value.
-   *
-   * Refer to the [Merge Question Values](https://surveyjs.io/form-library/documentation/design-survey-merge-question-values) help topic for more information.
-   */
-  get valueName() {
-    return this.getPropertyValue("valueName", "");
-  }
-  set valueName(val) {
-    var oldValueName = this.getValueName();
-    this.setPropertyValue("valueName", val);
-    this.onValueNameChanged(oldValueName);
-  }
-  onValueNameChanged(oldValue) {
-    if (!this.survey)
-      return;
-    this.survey.questionRenamed(this, this.name, !!oldValue ? oldValue : this.name);
-    this.initDataFromSurvey();
-  }
-  onNameChanged(oldValue) {
-    this.locTitle.strChanged();
-    if (!this.survey)
-      return;
-    this.survey.questionRenamed(this, oldValue, this.valueName ? this.valueName : oldValue);
-  }
-  getAllChildren() {
-    return [
-      ...super.getAllChildren(),
-      ...this.validators
-    ];
-  }
-  get isReady() {
-    return this.isReadyValue;
-  }
-  onAsyncRunningChanged() {
-    this.updateIsReady();
-  }
-  ensureQuestionIsReady() {
-    this.displayValue;
-  }
-  waitForQuestionIsReady(callback) {
-    return new Promise((resolve2) => {
-      this.ensureQuestionIsReady();
-      if (this.isReady) {
-        resolve2();
-        if (!!callback)
-          callback();
-      } else {
-        const readyCallback = (_23, options2) => {
-          if (options2.isReady) {
-            this.onReadyChanged.remove(readyCallback);
-            resolve2();
-            if (!!callback)
-              callback();
-          }
-        };
-        this.onReadyChanged.add(readyCallback);
-      }
-    });
-  }
-  updateIsReady() {
-    let res = this.getIsQuestionReady();
-    if (res) {
-      const questions = this.getIsReadyDependsOn();
-      for (let i = 0; i < questions.length; i++) {
-        if (!questions[i].getIsQuestionReady()) {
-          res = false;
-          break;
-        }
-      }
-    }
-    this.setIsReady(res);
-  }
-  getIsQuestionReady() {
-    return !this.isAsyncExpressionRunning && this.getAreNestedQuestionsReady();
-  }
-  getAreNestedQuestionsReady() {
-    const questions = this.getIsReadyNestedQuestions();
-    if (!Array.isArray(questions))
-      return true;
-    for (let i = 0; i < questions.length; i++) {
-      if (!questions[i].isReady)
-        return false;
-    }
-    return true;
-  }
-  getIsReadyNestedQuestions() {
-    return this.getNestedQuestions();
-  }
-  setIsReady(val) {
-    const oldIsReady = this.isReadyValue;
-    this.isReadyValue = val;
-    if (oldIsReady != val) {
-      this.getIsReadyDependends().forEach((q) => q.updateIsReady());
-      this.onReadyChanged.fire(this, {
-        question: this,
-        isReady: val,
-        oldIsReady
-      });
-    }
-  }
-  getIsReadyDependsOn() {
-    return this.getIsReadyDependendCore(true);
-  }
-  getIsReadyDependends() {
-    return this.getIsReadyDependendCore(false);
-  }
-  getDependedQuestionsByValueName(isDependOn) {
-    return this.survey.questionsByValueName(this.getValueName());
-  }
-  getIsReadyDependendCore(isDependOn) {
-    if (!this.survey)
-      return [];
-    const questions = this.getDependedQuestionsByValueName(isDependOn);
-    const res = new Array();
-    questions.forEach((q) => {
-      if (q !== this)
-        res.push(q);
-    });
-    if (!isDependOn) {
-      if (this.parentQuestion) {
-        res.push(this.parentQuestion);
-      }
-      if (this.dependedQuestions.length > 0) {
-        this.dependedQuestions.forEach((q) => res.push(q));
-      }
-    }
-    return res;
-  }
-  choicesLoaded() {
-  }
-  /**
-   * Returns a page to which the question belongs and allows you to move this question to a different page.
-   */
-  get page() {
-    if (!!this.parentQuestion)
-      return this.parentQuestion.page;
-    return this.getPage(this.parent);
-  }
-  set page(val) {
-    this.setPage(this.parent, val);
-  }
-  getPanels() {
-    return null;
-  }
-  getPageVisibleIndex() {
-    var _a2;
-    return ((_a2 = this.page) === null || _a2 === void 0 ? void 0 : _a2.visibleIndex) || -1;
-  }
-  delete(doDispose = true) {
-    this.removeFromParent();
-    if (doDispose) {
-      this.dispose();
-    } else {
-      this.resetDependedQuestions();
-    }
-  }
-  removeFromParent() {
-    if (!!this.parent) {
-      this.removeSelfFromList(this.parent.elements);
-    }
-  }
-  addDependedQuestion(question) {
-    if (!question || this.dependedQuestions.indexOf(question) > -1)
-      return;
-    this.dependedQuestions.push(question);
-  }
-  removeDependedQuestion(question) {
-    if (!question)
-      return;
-    var index = this.dependedQuestions.indexOf(question);
-    if (index > -1) {
-      this.dependedQuestions.splice(index, 1);
-    }
-  }
-  updateDependedQuestions() {
-    for (var i = 0; i < this.dependedQuestions.length; i++) {
-      this.dependedQuestions[i].updateDependedQuestion();
-    }
-  }
-  updateDependedQuestion() {
-  }
-  resetDependedQuestion() {
-  }
-  get isFlowLayout() {
-    return this.getLayoutType() === "flow";
-  }
-  getLayoutType() {
-    if (!!this.parent)
-      return this.parent.getChildrenLayoutType();
-    return "row";
-  }
-  isLayoutTypeSupported(layoutType) {
-    return layoutType !== "flow";
-  }
-  onVisibleChanged() {
-    const prevVal = this.getPropertyValue("isVisible");
-    this.onVisibleChangedCore();
-    const newVal = this.getPropertyValue("isVisible");
-    if (prevVal !== void 0 && prevVal !== newVal) {
-      this.notifySurveyVisibilityChanged();
-    }
-  }
-  onVisibleChangedCore() {
-    this.updateIsVisibleProp();
-    if (!this.isVisible && this.errors && this.errors.length > 0) {
-      this.errors = [];
-    }
-  }
-  notifyStateChanged(prevState) {
-    super.notifyStateChanged(prevState);
-    if (this.isCollapsed) {
-      this.onHidingContent();
-    }
-  }
-  updateElementVisibility() {
-    this.updateIsVisibleProp();
-  }
-  updateIsVisibleProp() {
-    const prev = this.getPropertyValue("isVisible");
-    const val = this.isVisible;
-    if (prev !== val) {
-      this.setPropertyValue("isVisible", val);
-      if (!val) {
-        this.onHidingContent();
-      }
-    }
-    if (val !== this.visible && this.areInvisibleElementsShowing) {
-      this.updateQuestionCss();
-    }
-  }
-  getUseDisplayValuesInDynamicTexts() {
-    return this.useDisplayValuesInDynamicTexts;
-  }
-  /**
-   * Returns `true` if the question is visible or the survey is currently in design mode.
-   *
-   * If you want to display or hide a question based on a condition, specify the [`visibleIf`](https://surveyjs.io/form-library/documentation/question#visibleIf) property. Refer to the following help topic for information: [Conditional Visibility](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#conditional-visibility).
-   * @see visibleIf
-   * @see visible
-   * @see isParentVisible
-   */
-  get isVisible() {
-    if (this.survey && this.survey.areEmptyElementsHidden && this.isEmpty())
-      return false;
-    if (this.areInvisibleElementsShowing)
-      return true;
-    return this.isVisibleCore();
-  }
-  get isVisibleInSurvey() {
-    return this.isVisible && this.isParentVisible;
-  }
-  isVisibleCore() {
-    return this.visible;
-  }
-  /**
-   * Returns the visible index of the question in the survey. It can be from 0 to all visible questions count - 1
-   * The visibleIndex is -1 if the title is 'hidden' or showNumber is false
-   * @see titleLocation
-   * @see showNumber
-   */
-  get visibleIndex() {
-    return this.getPropertyValue("visibleIndex", -1);
-  }
-  onHidingContent() {
-  }
-  /**
-   * @deprecated Use the [`showNumber`](https://surveyjs.io/form-library/documentation/api-reference/question#showNumber) property instead.
-   */
-  get hideNumber() {
-    return !this.showNumber;
-  }
-  set hideNumber(val) {
-    this.showNumber = !val;
-  }
-  /**
-   * Returns `true` if the question can display its title to the left of the input field.
-   * @see titleLocation
-   * @see getTitleLocation
-   * @see hasTitle
-   */
-  get isAllowTitleLeft() {
-    return true;
-  }
-  /**
-   * Returns the question type.
-   * Possible values:
-   * - [*"boolean"*](https://surveyjs.io/Documentation/Library?id=questionbooleanmodel)
-   * - [*"checkbox"*](https://surveyjs.io/Documentation/Library?id=questioncheckboxmodel)
-   * - [*"comment"*](https://surveyjs.io/Documentation/Library?id=questioncommentmodel)
-   * - [*"dropdown"*](https://surveyjs.io/Documentation/Library?id=questiondropdownmodel)
-   * - [*"tagbox"*](https://surveyjs.io/form-library/documentation/questiontagboxmodel)
-   * - [*"expression"*](https://surveyjs.io/Documentation/Library?id=questionexpressionmodel)
-   * - [*"file"*](https://surveyjs.io/Documentation/Library?id=questionfilemodel)
-   * - [*"html"*](https://surveyjs.io/Documentation/Library?id=questionhtmlmodel)
-   * - [*"image"*](https://surveyjs.io/Documentation/Library?id=questionimagemodel)
-   * - [*"imagepicker"*](https://surveyjs.io/Documentation/Library?id=questionimagepickermodel)
-   * - [*"matrix"*](https://surveyjs.io/Documentation/Library?id=questionmatrixmodel)
-   * - [*"matrixdropdown"*](https://surveyjs.io/Documentation/Library?id=questionmatrixdropdownmodel)
-   * - [*"matrixdynamic"*](https://surveyjs.io/Documentation/Library?id=questionmatrixdynamicmodel)
-   * - [*"multipletext"*](https://surveyjs.io/Documentation/Library?id=questionmultipletextmodel)
-   * - [*"panel"*](https://surveyjs.io/Documentation/Library?id=panelmodel)
-   * - [*"paneldynamic"*](https://surveyjs.io/Documentation/Library?id=questionpaneldynamicmodel)
-   * - [*"radiogroup"*](https://surveyjs.io/Documentation/Library?id=questionradiogroupmodel)
-   * - [*"rating"*](https://surveyjs.io/Documentation/Library?id=questionratingmodel)
-   * - [*"ranking"*](https://surveyjs.io/Documentation/Library?id=questionrankingmodel)
-   * - [*"signaturepad"*](https://surveyjs.io/Documentation/Library?id=questionsignaturepadmodel)
-   * - [*"text"*](https://surveyjs.io/Documentation/Library?id=questiontextmodel)
-   */
-  getType() {
-    return "question";
-  }
-  get isQuestion() {
-    return true;
-  }
-  getOwner() {
-    return this.parentQuestion || this.parent;
-  }
-  moveTo(container, insertBefore2 = null) {
-    return this.moveToBase(this.parent, container, insertBefore2);
-  }
-  getProgressInfo() {
-    if (!this.hasInput)
-      return super.getProgressInfo();
-    return {
-      questionCount: 1,
-      answeredQuestionCount: !this.isEmpty() ? 1 : 0,
-      requiredQuestionCount: this.isRequired ? 1 : 0,
-      requiredAnsweredQuestionCount: !this.isEmpty() && this.isRequired ? 1 : 0
-    };
-  }
-  runTriggerInfo(info, keys, properties) {
-    this.runExpressionByProperty(info.name, properties, (value) => {
-      info.doComplete(value, properties);
-    }, (runner) => {
-      if (!info.canRun())
-        return false;
-      return !keys || this.canExecuteTriggerByKeys(keys, runner, this.getExpressionByProperty(info.secondName));
-    });
-  }
-  canExecuteTriggerByKeys(keys, runner, secondRunner) {
-    if (!runner && !!secondRunner) {
-      runner = secondRunner;
-      secondRunner = void 0;
-    }
-    const run1 = this.canExecuteTriggerByKeysCore(keys, runner);
-    if (run1 === "var")
-      return true;
-    if (!secondRunner)
-      return run1 === "func" || run1 === "const";
-    const run2 = this.canExecuteTriggerByKeysCore(keys, secondRunner);
-    return run2 !== "";
-  }
-  canExecuteTriggerByKeysCore(keys, runner) {
-    if (!runner.expression)
-      return "";
-    const vars = runner.getVariables();
-    if (!Array.isArray(vars) || vars.length === 0) {
-      if (runner.hasFunction())
-        return "func";
-      return "const";
-    }
-    return new ValueGetter().isAnyKeyChanged(keys, vars) ? "var" : "";
-  }
-  getValueGetterContext(isUnwrapped) {
-    return new QuestionValueGetterContext(this, isUnwrapped);
-  }
-  addTriggersInfo() {
-    this.addTriggerInfo({
-      name: "resetValueIf",
-      canRun: () => !this.isEmpty(),
-      doComplete: (res, properties) => {
-        if (res === true) {
-          this.startSetValueOnExpression();
-          this.updateValueWithDefaultsOrClear();
-          this.finishSetValueOnExpression();
-        }
-      }
-    });
-    this.addTriggerInfo({
-      name: "setValueIf",
-      secondName: "setValueExpression",
-      canRun: () => true,
-      doComplete: (res, properties) => {
-        if (res) {
-          if (!this.setValueExpression) {
-            this.clearValue();
-          } else {
-            const info = {
-              name: "setValueExpression",
-              canRun: () => true,
-              doComplete: (res2, properties2) => this.runExpressionSetValue(res2)
-            };
-            this.runTriggerInfo(info, void 0, properties);
-          }
-        }
-      }
-    });
-    this.addTriggerInfo({
-      name: "setValueExpression",
-      canRun: () => !this.setValueIf,
-      doComplete: (res, properties) => this.runExpressionSetValue(res)
-    });
-  }
-  addTriggerInfo(info) {
-    this.triggersInfo.push(info);
-  }
-  runTriggers(name, value, keys) {
-    if (this.isSettingQuestionValue || this.parentQuestion && this.parentQuestion.getValueName() === name)
-      return;
-    if (!keys) {
-      keys = {};
-      keys[name] = value;
-    }
-    const properties = this.getDataFilteredProperties();
-    this.triggersInfo.forEach((info) => {
-      this.runTriggerInfo(info, keys, properties);
-    });
-  }
-  runConditions() {
-    if (this.data && !this.isLoadingFromJson) {
-      if (!this.isDesignMode) {
-        this.runCondition(this.getDataFilteredProperties());
-      }
-      this.locStrsChanged();
-    }
-  }
-  setSurveyImpl(value, isLight) {
-    super.setSurveyImpl(value);
-    if (!this.survey)
-      return;
-    this.survey.questionCreated(this);
-    if (isLight !== true) {
-      this.runConditions();
-    }
-    if (!this.visible) {
-      this.updateIsVisibleProp();
-    }
-    this.updateIsMobileFromSurvey();
-  }
-  /**
-   * Returns a survey element (panel or page) that contains the question and allows you to move this question to a different survey element.
-   */
-  get parent() {
-    return this.getPropertyValue("parent", null);
-  }
-  set parent(val) {
-    if (this.parent === val)
-      return;
-    this.removeFromParent();
-    this.setPropertyValue("parent", val);
-    if (!!val) {
-      this.updateQuestionCss();
-    }
-    this.onParentChanged();
-  }
-  onParentChanged() {
-  }
-  calculateSingleInputQuestion() {
-    if (!this.isSingleInputActive) {
-      return void 0;
-    }
-    const questions = this.getSingleInputQuestions();
-    if (Array.isArray(questions) && questions.length > 0) {
-      const q = questions[0];
-      this.onBeforeSetSingleInputQuestion(q);
-      return q;
-    }
-    return void 0;
-  }
-  //#region singleInput
-  get singleInputQuestion() {
-    if (!this.isSingleInputMode)
-      return void 0;
-    return this.getPropertyValue("singleInputQuestion", void 0, () => this.calculateSingleInputQuestion());
-  }
-  get currentSingleInputQuestion() {
-    let res = this.singleInputQuestion;
-    while (!!res && !!res.singleInputQuestion && res.singleInputQuestion !== res) {
-      res = res.singleInputQuestion;
-    }
-    return res;
-  }
-  get currentSingleInputParentQuestion() {
-    const q = this.currentSingleInputQuestion;
-    if (!q)
-      return this;
-    if (q.singleInputQuestion === q)
-      return q;
-    return q.parentQuestion || this;
-  }
-  get singleInputSummary() {
-    return this.getPropertyValue("singleInputSummary", void 0, () => {
-      if (!this.supportNestedSingleInput())
-        return void 0;
-      const q = this.singleInputQuestion;
-      if (!q || q !== this)
-        return void 0;
-      const res = this.createSingleInputSummary();
-      if (!!res) {
-        this.calcSingleInputActions();
-        this.resetPropertyValue("singleInputLocTitle");
-      }
-      return res;
-    });
-  }
-  createSingleInputSummary() {
-    return void 0;
-  }
-  get rootParentQuestion() {
-    let res = this;
-    while (!!res.parentQuestion) {
-      res = res.parentQuestion;
-    }
-    return res;
-  }
-  getParentQuestions() {
-    const res = new Array();
-    let q = this;
-    while (!!q.parentQuestion) {
-      res.push(q.parentQuestion);
-      q = q.parentQuestion;
-    }
-    return res;
-  }
-  resetSingleInput() {
-    this.resetSingleInputCore();
-  }
-  resetSingleInputCore() {
-    const prev = this.getPropertyValue("singleInputQuestion");
-    this.resetPropertyValue("singleInputQuestion");
-    if (!!prev) {
-      this.onSingleInputChanged();
-    }
-  }
-  onSingleInputChanged(resetSummary = true) {
-    var _a2, _b2;
-    if (resetSummary) {
-      this.resetSingleInputSummary();
-    }
-    (_a2 = this.singleInputLocTitle) === null || _a2 === void 0 ? void 0 : _a2.strChanged();
-    this.resetPropertyValue("singleInputLocTitle");
-    this.calcSingleInputActions();
-    (_b2 = this.survey) === null || _b2 === void 0 ? void 0 : _b2.updateNavigationElements();
-  }
-  resetSingleInputSummary() {
-    var _a2;
-    (_a2 = this.singleInputSummary) === null || _a2 === void 0 ? void 0 : _a2.dispose();
-    this.resetPropertyValue("singleInputSummary");
-  }
-  validateSingleInput() {
-    const q = this.currentSingleInputQuestion;
-    if (!q)
-      return true;
-    return q.validate(true, true);
-  }
-  getSingleInputElementPos() {
-    if (this.singleInputQuestion === this)
-      return 0;
-    const pQ = this.currentSingleInputParentQuestion;
-    if (pQ !== this) {
-      let res = pQ.getSingleInputElementPos();
-      if (res === 2)
-        return 2;
-    }
-    const q = this.singleInputQuestion;
-    const questions = this.getSingleInputQuestions();
-    if (questions.length < 2)
-      return 0;
-    let index = questions.indexOf(q);
-    return index === 0 ? -1 : index >= questions.length - 1 ? 1 : 2;
-  }
-  get isSingleInputActive() {
-    if (!this.isSingleInputMode)
-      return false;
-    const ssQ = this.survey.currentSingleQuestion;
-    return !!ssQ && ssQ === this.rootParentQuestion;
-  }
-  singleInputOnAddItem(isOnDataChanging) {
-    if (this.isSingleInputActive) {
-      if (isOnDataChanging && this.singleInputSummary) {
-        this.resetSingleInputSummary();
-      } else {
-        this.setSingleQuestionOnChange(Number.MAX_VALUE);
-      }
-    }
-  }
-  singleInputOnRemoveItem(index) {
-    if (this.isSingleInputActive) {
-      if (!this.singleInputSummary) {
-        this.setSingleQuestionOnChange(index);
-      } else {
-        this.onSingleInputChanged();
-      }
-    }
-  }
-  getSingleQuestionOnChange(index) {
-    return null;
-  }
-  setSingleQuestionOnChange(index) {
-    const q = this.getSingleQuestionOnChange(index);
-    if (!!q) {
-      this.setSingleInputQuestion(q);
-    } else {
-      this.resetSingleInput();
-    }
-  }
-  onSetAsSingleInput() {
-    this.isSingleInputSummaryShown = false;
-    const needReset = !this.wasRendered || this.singleInputSummary;
-    this.onFirstRendering();
-    if (needReset) {
-      this.resetSingleInputSummary();
-      this.resetPropertyValue("singleInputQuestion");
-      this.resetPropertyValue("singleInputLocTitle");
-    }
-  }
-  nextSingleInput() {
-    return this.nextPrevSingleInput(1);
-  }
-  prevSingleInput() {
-    return this.nextPrevSingleInput(-1);
-  }
-  getSingleInputAddText() {
-    const q = this.currentSingleInputQuestion;
-    if (!q)
-      return void 0;
-    if (!!q.singleInputSummary)
-      return q.getSingleInputAddTextCore();
-    const qs = this.getSingleInputQuestions();
-    const len = Array.isArray(qs) ? qs.length : 0;
-    if (len > 0 && qs[len - 1] === q)
-      return this.getSingleInputAddTextCore();
-    return void 0;
-  }
-  singleInputAddItem(checkErrors) {
-    if (!checkErrors || this.validateSingleInput()) {
-      this.currentSingleInputQuestion.singleInputAddItemCore();
-    }
-  }
-  get singleInputLocTitle() {
-    return this.getPropertyValue("singleInputLocTitle", void 0, () => {
-      return this.getSingleQuestionLocTitle();
-    });
-  }
-  get singleInputActions() {
-    return this.getPropertyValue("singleInputActions", void 0, () => {
-      return this.createSingleInputActions();
-    });
-  }
-  get singleInputHasActions() {
-    return this.getPropertyValue("singleInputHasActions", void 0, () => {
-      return this.createSingleInputActions();
-    });
-  }
-  get singleInputHideHeader() {
-    var _a2;
-    const childQ = (_a2 = this.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.singleInputQuestion;
-    return !!childQ && this.singleInputQuestion !== this;
-  }
-  set singleInputHasActions(val) {
-    this.setPropertyValue("singleInputHasActions", val);
-  }
-  get singleInputParentQuestion() {
-    var _a2;
-    return ((_a2 = this.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.parentQuestion) || this;
-  }
-  createSingleInputActions() {
-    var _a2;
-    if (((_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.currentSingleQuestion) !== this)
-      return void 0;
-    const singleInputActions = new ActionContainer();
-    singleInputActions.actions = this.getSingleQuestionActions();
-    return singleInputActions;
-  }
-  calcSingleInputActions() {
-    if (!!this.parentQuestion) {
-      this.parentQuestion.calcSingleInputActions();
-    } else {
-      const actions = this.getSingleQuestionActions();
-      if (this.singleInputActions) {
-        this.singleInputActions.actions = actions;
-      }
-      this.singleInputHasActions = actions.length > 0 ? true : void 0;
-    }
-  }
-  getSingleQuestionActions() {
-    const res = new Array();
-    const p2 = this.currentSingleInputParentQuestion;
-    if (!p2 || p2 === this)
-      return res;
-    const pSQs = p2.getSingleInputQuestions();
-    const qs = new Array();
-    let summaryQ = void 0;
-    if (pSQs.length > 1 && pSQs[0] === p2) {
-      summaryQ = p2;
-      qs.push(p2);
-    }
-    let pQ = p2.parentQuestion;
-    while (!!pQ) {
-      qs.push(pQ);
-      pQ = pQ.parentQuestion;
-    }
-    for (let i = qs.length - 1; i >= 0; i--) {
-      const q = qs[i];
-      if (q !== summaryQ) {
-        const title = q.singleInputLocTitle;
-        const action = new Action({
-          id: "single-action" + q.id,
-          locTitle: title,
-          css: this.cssClasses.breadcrumbsItem,
-          innerCss: this.cssClasses.breadcrumbsItemButton,
-          action: () => {
-            q.singleInputMoveToFirst();
-          }
-        });
-        action.cssClasses = {};
-        res.push(action);
-      }
-    }
-    return res;
-  }
-  singleInputMoveToFirst() {
-    const q = this.singleInputQuestion;
-    if (!!q && q !== this) {
-      q.singleInputMoveToFirst();
-    }
-    this.singleInputMoveToFirstCore();
-  }
-  singleInputMoveToFirstCore() {
-  }
-  getSingleQuestionLocTitle() {
-    return !this.singleInputSummary ? this.getSingleQuestionLocTitleCore() : void 0;
-  }
-  getSingleQuestionLocTitleCore() {
-    return void 0;
-  }
-  supportNestedSingleInput() {
-    var _a2;
-    return (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.supportsNestedSingleInput(this);
-  }
-  getSingleInputQuestions() {
-    if (!this.supportNestedSingleInput())
-      return [];
-    const question = this.getPropertyValue("singleInputQuestion");
-    if (question === this)
-      return [this];
-    const res = this.getSingleInputQuestionsCore(question, !question || !this.isSingleInputSummaryShown);
-    if (this.survey) {
-      this.survey.updateNestedSingleQuestions(this, res);
-    }
-    res.forEach((q) => {
-      if (q !== this)
-        this.onSingleInputQuestionAdded(q);
-    });
-    return res;
-  }
-  getSingleInputQuestionsCore(question, checkDynamic) {
-    return this.getNestedQuestions(true, false);
-  }
-  onSingleInputQuestionAdded(question) {
-  }
-  fillSingleInputQuestionsInContainer(res, innerQuestion) {
-  }
-  getSingleInputQuestionsForDynamic(question, arr2) {
-    const res = new Array();
-    if (!!question && question !== this && arr2.indexOf(question) < 0) {
-      this.fillSingleInputQuestionsInContainer(res, question);
-    }
-    arr2.forEach((q) => res.push(q));
-    if (this.isSingleInputSummaryShown && res.length > 0) {
-      res.unshift(this);
-    }
-    res.push(this);
-    return res;
-  }
-  getSingleInputAddTextCore() {
-    return void 0;
-  }
-  singleInputAddItemCore() {
-  }
-  setSingleInputQuestionCore(question) {
-    this.onBeforeSetSingleInputQuestion(question);
-    this.setPropertyValue("singleInputQuestion", question);
-  }
-  onBeforeSetSingleInputQuestion(question) {
-    question.onFirstRendering();
-    if (question === this) {
-      this.isSingleInputSummaryShown = true;
-    }
-  }
-  setSingleInputQuestion(question, onPrev) {
-    if (this.singleInputQuestion !== question) {
-      this.setSingleInputQuestionCore(question);
-      this.onSingleInputChanged(!onPrev || question !== this);
-    }
-  }
-  nextPrevSingleInput(skip) {
-    let pQ = this.currentSingleInputParentQuestion;
-    while (!!pQ && pQ !== this) {
-      const res = pQ.nextPrevSingleInput(skip);
-      if (res)
-        return true;
-      pQ = pQ.parentQuestion;
-    }
-    const q = this.singleInputQuestion;
-    if (!q)
-      return false;
-    const questions = this.getSingleInputQuestions();
-    let index = questions.indexOf(q);
-    if (index < 0) {
-      if (questions.length === 0)
-        return false;
-      index = 0;
-      skip = 0;
-    }
-    index += skip;
-    if (index < 0 || index >= questions.length)
-      return false;
-    this.setSingleInputQuestion(questions[index], skip < 0);
-    return true;
-  }
-  //#endregion
-  /**
-   * Returns `false` if the `titleLocation` property is set to `"hidden"` or if the question cannot have a title (for example, an [HTML](https://surveyjs.io/form-library/documentation/questionhtmlmodel) question).
-   *
-   * If the `title` property is `undefined` or set to an empty string, the `hasTitle` property returns `true`, because the question uses its `name` as a title in this case.
-   * @see title
-   * @see titleLocation
-   */
-  get hasTitle() {
-    return this.getTitleLocation() !== "hidden" && !this.singleInputHideHeader;
-  }
-  /**
-   * Sets question title location relative to the input field. Overrides the `questionTitleLocation` property specified for the question's container (survey, page, or panel).
-   *
-   * Possible values:
-   *
-   * - `"default"` (default) - Inherits the setting from the `questionTitleLocation` property specified for the question's container.
-   * - `"top"` - Displays the title above the input field.
-   * - `"bottom"` - Displays the title below the input field.
-   * - `"left"` - Displays the title to the left of the input field.
-   * - `"hidden"` - Hides the question title.
-   *
-   * > Certain question types (Matrix, Multiple Text) do not support the `"left"` value. For them, the `"top"` value is used.
-   * @see SurveyModel.questionTitleLocation
-   * @see getTitleLocation
-   * @see isAllowTitleLeft
-   */
-  get titleLocation() {
-    return this.getPropertyValue("titleLocation");
-  }
-  set titleLocation(value) {
-    var isVisibilityChanged = this.titleLocation == "hidden" || value == "hidden";
-    this.setPropertyValue("titleLocation", value.toLowerCase());
-    this.updateQuestionCss();
-    if (isVisibilityChanged) {
-      this.notifySurveyVisibilityChanged();
-    }
-  }
-  get showTitle() {
-    return this.getTitleLocation() !== "hidden";
-  }
-  set showTitle(newValue) {
-    this.titleLocation = newValue ? "default" : "hidden";
-  }
-  getTitleOwner() {
-    return this;
-  }
-  getIsTitleRenderedAsString() {
-    return this.titleLocation === "hidden";
-  }
-  notifySurveyOnChildrenVisibilityChanged() {
-    return false;
-  }
-  notifySurveyVisibilityChanged() {
-    if (!this.canUpdateValueOnVisibleChanged())
-      return;
-    this.survey.questionVisibilityChanged(this, this.isVisible, !this.parentQuestion || this.parentQuestion.notifySurveyOnChildrenVisibilityChanged());
-    const isClearOnHidden = this.isClearValueOnHidden;
-    if (!this.visible) {
-      this.clearValueOnHidding(isClearOnHidden);
-    }
-    if (isClearOnHidden && this.isVisibleInSurvey) {
-      this.updateValueWithDefaults();
-    }
-  }
-  clearValueOnHidding(isClearOnHidden) {
-    if (isClearOnHidden) {
-      this.clearValueIfInvisible();
-    }
-  }
-  get titleWidth() {
-    if (this.parent && this.getTitleLocation() === "left") {
-      const columns = this.parent.getColumsForElement(this);
-      const columnCount = columns.length;
-      if (columnCount !== 0 && !!columns[0].questionTitleWidth)
-        return columns[0].questionTitleWidth;
-      const questionWidth = this.getQuestionParentTitleWidth();
-      const percentWidth = this.getPercentQuestionTitleWidth(questionWidth);
-      if (!percentWidth && !!this.parent) {
-        let width = questionWidth;
-        if (width && !isNaN(width))
-          width = width + "px";
-        return width;
-      }
-      return percentWidth / (columnCount || 1) + "%";
-    }
-    return void 0;
-  }
-  getQuestionParentTitleWidth() {
-    if (!this.parent)
-      return void 0;
-    const res = this.parent.getQuestionTitleWidth();
-    if (!res && !!this.parentQuestion)
-      return this.parentQuestion.getQuestionParentTitleWidth();
-    return res;
-  }
-  getPercentQuestionTitleWidth(width) {
-    if (!!width && width[width.length - 1] === "%") {
-      return parseInt(width);
-    }
-    return void 0;
-  }
-  /**
-   * Returns title location calculated based on the question's `titleLocation` property and the `questionTitleLocation` property of the question's containers (survey, page, or panel).
-   * @see titleLocation
-   * @see SurveyModel.questionTitleLocation
-   */
-  getTitleLocation() {
-    if (this.isFlowLayout)
-      return "hidden";
-    var location2 = this.getTitleLocationCore();
-    if (location2 === "left" && !this.isAllowTitleLeft)
-      location2 = "top";
-    return location2;
-  }
-  getTitleLocationCore() {
-    if (this.titleLocation !== "default")
-      return this.titleLocation;
-    return this.getParentTitleLocation();
-  }
-  getParentTitleLocation() {
-    if (!!this.parent)
-      return this.parent.getQuestionTitleLocation();
-    if (!!this.survey)
-      return this.survey.questionTitleLocation;
-    return "top";
-  }
-  get hasTitleOnLeft() {
-    return this.hasTitle && this.getTitleLocation() === "left";
-  }
-  get hasTitleOnTop() {
-    return this.hasTitle && this.getTitleLocation() === "top";
-  }
-  get hasTitleOnBottom() {
-    return this.hasTitle && this.getTitleLocation() === "bottom";
-  }
-  get hasTitleOnLeftTop() {
-    if (!this.hasTitle)
-      return false;
-    const location2 = this.getTitleLocation();
-    return location2 === "left" || location2 === "top";
-  }
-  getErrorLocation() {
-    if (this.errorLocation !== "default")
-      return this.errorLocation;
-    if (this.parentQuestion)
-      return this.parentQuestion.getChildErrorLocation(this);
-    if (this.parent)
-      return this.parent.getQuestionErrorLocation();
-    return this.survey ? this.survey.questionErrorLocation : "top";
-  }
-  getChildErrorLocation(child) {
-    return this.getErrorLocation();
-  }
-  /**
-   * Returns `false` if the question has no input fields ([HTML](https://surveyjs.io/form-library/documentation/questionhtmlmodel), [Image](https://surveyjs.io/form-library/documentation/questionimagemodel), and similar question types).
-   * @see hasSingleInput
-   */
-  get hasInput() {
-    return true;
-  }
-  /**
-   * Returns `false` if the question has no input fields ([HTML](https://surveyjs.io/form-library/documentation/questionhtmlmodel), [Image](https://surveyjs.io/form-library/documentation/questionimagemodel)) or has multiple input fields ([Matrix](https://surveyjs.io/form-library/documentation/questionmatrixmodel), [Multiple Text](https://surveyjs.io/form-library/documentation/questionmultipletextmodel)).
-   * @see hasInput
-   */
-  get hasSingleInput() {
-    return this.hasInput && !this.isContainer;
-  }
-  get inputId() {
-    return this.id + "i";
-  }
-  getDefaultTitleValue() {
-    return this.name;
-  }
-  getDefaultTitleTagName() {
-    return settings.titleTags.question;
-  }
-  get hasDescriptionUnderTitle() {
-    return this.getDescriptionLocation() == "underTitle" && this.hasDescription;
-  }
-  get hasDescriptionUnderInput() {
-    return this.getDescriptionLocation() == "underInput" && this.hasDescription;
-  }
-  getDescriptionLocation() {
-    if (this.descriptionLocation !== "default")
-      return this.descriptionLocation;
-    return !!this.survey ? this.survey.questionDescriptionLocation : "underTitle";
-  }
-  needClickTitleFunction() {
-    return super.needClickTitleFunction() || this.hasInput;
-  }
-  processTitleClick() {
-    super.processTitleClick();
-    if (this.isCollapsed)
-      return;
-    setTimeout(() => {
-      this.focus();
-    }, 1);
-    return true;
-  }
-  get commentPlaceHolder() {
-    return this.commentPlaceholder;
-  }
-  set commentPlaceHolder(newValue) {
-    this.commentPlaceholder = newValue;
-  }
-  get renderedCommentPlaceholder() {
-    var _a2;
-    return (_a2 = this.getPropertyValue("renderedCommentPlaceholder")) !== null && _a2 !== void 0 ? _a2 : !this.isReadOnly ? this.commentPlaceholder : void 0;
-  }
-  resetRenderedCommentPlaceholder() {
-    this.resetPropertyValue("renderedCommentPlaceholder");
-  }
-  getAllErrors() {
-    return this.errors.slice();
-  }
-  getErrorByType(errorType) {
-    for (let i = 0; i < this.errors.length; i++) {
-      if (this.errors[i].getErrorType() === errorType)
-        return this.errors[i];
-    }
-    return null;
-  }
-  get customWidget() {
-    if (!this.isCustomWidgetRequested && !this.customWidgetValue) {
-      this.isCustomWidgetRequested = true;
-      this.updateCustomWidget();
-    }
-    return this.customWidgetValue;
-  }
-  updateCustomWidget() {
-    this.customWidgetValue = CustomWidgetCollection.Instance.getCustomWidget(this);
-  }
-  localeChanged() {
-    super.localeChanged();
-    this.resetRenderedCommentPlaceholder();
-    if (!!this.localeChangedCallback) {
-      this.localeChangedCallback();
-    }
-  }
-  get isCompositeQuestion() {
-    return false;
-  }
-  get isContainer() {
-    return false;
-  }
-  onCommentInput(event) {
-    if (this.isInputTextUpdate) {
-      if (event.target) {
-        this.comment = event.target.value;
-      }
-    }
-  }
-  onCommentChange(event) {
-    this.comment = event.target.value;
-    if (this.comment !== event.target.value) {
-      event.target.value = this.comment;
-    }
-  }
-  afterRenderQuestionElement(el) {
-    if (!this.survey || !this.hasSingleInput)
-      return;
-    this.survey.afterRenderQuestionInput(this, el);
-  }
-  afterRender(el) {
-    this.afterRenderCore(el);
-    if (!this.survey)
-      return;
-    this.survey.afterRenderQuestion(this, el);
-    if (!!this.afterRenderQuestionCallback) {
-      this.afterRenderQuestionCallback(this, el);
-    }
-    if (this.supportComment() || this.supportOther()) {
-      this.commentElements = [];
-      this.getCommentElementsId().forEach((id) => {
-        const commentEl = el === null || el === void 0 ? void 0 : el.querySelector(`#${id}`);
-        if (commentEl)
-          this.commentElements.push(commentEl);
-      });
-    }
-    this.checkForResponsiveness(el);
-  }
-  afterRenderCore(element2) {
-    super.afterRenderCore(element2);
-  }
-  getCommentElementsId() {
-    return [this.commentId];
-  }
-  beforeDestroyQuestionElement(el) {
-    this.commentElements = void 0;
-  }
-  get processedTitle() {
-    var res = this.locProcessedTitle.textOrHtml;
-    return res ? res : this.name;
-  }
-  get fullTitle() {
-    return this.locTitle.renderedHtml;
-  }
-  get titlePattern() {
-    return !!this.survey ? this.survey.questionTitlePattern : "numTitleRequire";
-  }
-  get isRequireTextOnStart() {
-    return this.isRequired && this.titlePattern == "requireNumTitle";
-  }
-  get isRequireTextBeforeTitle() {
-    return this.isRequired && this.titlePattern == "numRequireTitle" && this.requiredMark !== "";
-  }
-  get isRequireTextAfterTitle() {
-    return this.isRequired && this.titlePattern == "numTitleRequire" && this.requiredMark !== "";
-  }
-  calcCssClasses(css) {
-    const classes = { error: {} };
-    this.copyCssClasses(classes, css.question);
-    this.copyCssClasses(classes.error, css.error);
-    this.updateCssClasses(classes, css);
-    return classes;
-  }
-  onCalcCssClasses(classes) {
-    super.onCalcCssClasses(classes);
-    if (this.survey) {
-      this.survey.updateQuestionCssClasses(this, classes);
-    }
-    if (this.onUpdateCssClassesCallback) {
-      this.onUpdateCssClassesCallback(classes);
-    }
-  }
-  get cssRoot() {
-    this.ensureElementCss();
-    return this.getPropertyValue("cssRoot", "");
-  }
-  setCssRoot(val) {
-    this.setPropertyValue("cssRoot", val);
-  }
-  getCssRoot(cssClasses) {
-    const hasError = this.hasCssError(true);
-    return new CssClassBuilder().append(super.getCssRoot(cssClasses)).append(this.isFlowLayout && !this.isDesignMode ? cssClasses.flowRoot : cssClasses.mainRoot).append(cssClasses.titleLeftRoot, !this.isFlowLayout && this.hasTitleOnLeft).append(cssClasses.titleTopRoot, !this.isFlowLayout && this.hasTitleOnTop).append(cssClasses.titleBottomRoot, !this.isFlowLayout && this.hasTitleOnBottom).append(cssClasses.descriptionUnderInputRoot, !this.isFlowLayout && this.hasDescriptionUnderInput).append(cssClasses.hasError, hasError).append(cssClasses.hasErrorTop, hasError && this.getErrorLocation() == "top").append(cssClasses.hasErrorBottom, hasError && this.getErrorLocation() == "bottom").append(cssClasses.small, !this.width).append(cssClasses.answered, this.isAnswered).append(cssClasses.noPointerEventsMode, this.isReadOnlyAttr).toString();
-  }
-  get cssHeader() {
-    this.ensureElementCss();
-    return this.getPropertyValue("cssHeader", "");
-  }
-  setCssHeader(val) {
-    this.setPropertyValue("cssHeader", val);
-  }
-  getCssHeader(cssClasses) {
-    return new CssClassBuilder().append(cssClasses.header).append(cssClasses.headerTop, this.hasTitleOnTop).append(cssClasses.headerLeft, this.hasTitleOnLeft).append(cssClasses.headerBottom, this.hasTitleOnBottom).toString();
-  }
-  supportContainerQueries() {
-    return false;
-  }
-  get cssContent() {
-    this.ensureElementCss();
-    return this.getPropertyValue("cssContent", "");
-  }
-  setCssContent(val) {
-    this.setPropertyValue("cssContent", val);
-  }
-  getCssContent(cssClasses) {
-    return new CssClassBuilder().append(cssClasses.content).append(cssClasses.contentSupportContainerQueries, this.supportContainerQueries()).append(cssClasses.contentLeft, this.hasTitleOnLeft).toString();
-  }
-  get cssTitle() {
-    this.ensureElementCss();
-    return this.getPropertyValue("cssTitle", void 0, () => {
-      return this.getCssTitle(this.getCssClasses());
-    });
-  }
-  resetCssTitle() {
-    this.resetPropertyValue("cssTitle");
-  }
-  getCssTitle(cssClasses) {
-    return new CssClassBuilder().append(super.getCssTitle(cssClasses)).append(cssClasses.singleInputTitle, !!this.singleInputQuestion).append(cssClasses.titleOnAnswer, !this.containsErrors && this.isAnswered).append(cssClasses.titleEmpty, !this.title.trim()).toString();
-  }
-  get cssDescription() {
-    this.ensureElementCss();
-    return this.getPropertyValue("cssDescription", "");
-  }
-  setCssDescription(val) {
-    this.setPropertyValue("cssDescription", val);
-  }
-  getCssDescription(cssClasses) {
-    return new CssClassBuilder().append(cssClasses.description).append(cssClasses.descriptionUnderInput, this.getDescriptionLocation() == "underInput").toString();
-  }
-  get showErrorsAboveQuestion() {
-    return this.getErrorLocation() === "top";
-  }
-  get showErrorsBelowQuestion() {
-    return this.getErrorLocation() === "bottom";
-  }
-  get cssError() {
-    this.ensureElementCss();
-    return this.getPropertyValue("cssError", "");
-  }
-  setCssError(val) {
-    this.setPropertyValue("cssError", val);
-  }
-  getCssError(cssClasses) {
-    return new CssClassBuilder().append(cssClasses.error.root).append(cssClasses.error.warningMode, this.currentNotificationType === "warning").append(cssClasses.error.infoMode, this.currentNotificationType === "info").append(cssClasses.errorsContainer).append(cssClasses.errorsContainerTop, this.showErrorsAboveQuestion).append(cssClasses.errorsContainerBottom, this.showErrorsBelowQuestion).toString();
-  }
-  hasCssError(includeWarning) {
-    const erros = this.errors;
-    for (let i = 0; i < erros.length; i++) {
-      const er = erros[i];
-      if (er.visible && (includeWarning || er.isError))
-        return true;
-    }
-    return this.hasCssErrorCallback();
-  }
-  updateVisibleErrors() {
-    super.updateVisibleErrors();
-    this.updateQuestionCss();
-  }
-  get isSingleInputQuestionMode() {
-    return !!this.parentQuestion && this.isSingleInputMode;
-  }
-  getIsNested() {
-    if (!!this.isSingleInputQuestionMode)
-      return false;
-    return super.getIsNested();
-  }
-  getHasFrameV2() {
-    if (this.isSingleInputQuestionMode)
-      return true;
-    return super.getHasFrameV2();
-  }
-  getRootCss() {
-    return new CssClassBuilder().append(this.cssRoot, !this.singleInputQuestion).append(this.cssClasses.mobile, this.isMobile).append(this.cssClasses.readOnly, this.isReadOnlyStyle).append(this.cssClasses.disabled, this.isDisabledStyle).append(this.cssClasses.preview, this.isPreviewStyle).append(this.cssClasses.invisible, !this.isDesignMode && this.areInvisibleElementsShowing && !this.visible).toString();
-  }
-  getQuestionRootCss() {
-    return new CssClassBuilder().append(this.cssClasses.root).append(this.cssClasses.rootMobile, this.isMobile).toString();
-  }
-  updateElementCss(reNew) {
-    if (this.wasRendered) {
-      super.updateElementCss(reNew);
-      if (reNew) {
-        this.updateQuestionCss();
-      }
-    } else {
-      this.clearCssClasses();
-    }
-    this.resetIndents();
-  }
-  updateQuestionCss() {
-    if (this.isLoadingFromJson || !this.survey || this.isDisposed)
-      return;
-    if (this.wasRendered) {
-      this.updateElementCssCore(this.cssClasses);
-    }
-  }
-  ensureElementCss() {
-    if (!this.cssClassesValue) {
-      this.updateQuestionCss();
-    }
-  }
-  getCssClasses() {
-    return this.cssClasses;
-  }
-  updateElementCssCore(cssClasses) {
-    this.setCssRoot(this.getCssRoot(cssClasses));
-    this.setCssHeader(this.getCssHeader(cssClasses));
-    this.setCssContent(this.getCssContent(cssClasses));
-    this.resetCssTitle();
-    this.setCssDescription(this.getCssDescription(cssClasses));
-    this.setCssError(this.getCssError(cssClasses));
-  }
-  updateCssClasses(res, css) {
-    if (!css.question)
-      return;
-    const objCss = css[this.getCssType()];
-    const titleBuilder = new CssClassBuilder().append(res.title).append(css.question.titleRequired, this.isRequired);
-    res.title = titleBuilder.toString();
-    const rootBuilder = new CssClassBuilder().append(res.root).append(objCss, this.isRequired && !!css.question.required);
-    if (objCss === void 0 || objCss === null) {
-      res.root = rootBuilder.toString();
-    } else if (typeof objCss === "string" || objCss instanceof String) {
-      res.root = rootBuilder.append(objCss.toString()).toString();
-    } else {
-      res.root = rootBuilder.toString();
-      for (const key in objCss) {
-        res[key] = objCss[key];
-      }
-    }
-  }
-  getCssType() {
-    return this.getType();
-  }
-  get renderCssRoot() {
-    return this.cssClasses.root || void 0;
-  }
-  calcPaddingLeft() {
-    return this.getIndentSize(this.indent);
-  }
-  calcPaddingRight() {
-    return this.getIndentSize(this.rightIndent);
-  }
-  getIndentSize(indent) {
-    if (indent < 1 || !this.getSurvey() || !this.cssClasses || !this.cssClasses.indent)
-      return "";
-    return indent * this.cssClasses.indent + "px";
-  }
-  /**
-   * Moves focus to the input field of this question.
-   * @param onError Pass `true` if you want to focus an input field with the first validation error. Default value: `false` (focuses the first input field). Applies to question types with multiple input fields.
-   */
-  focus(onError = false, scrollIfVisible) {
-    if (this.isDesignMode || !this.isVisible || this.isReadOnly || !this.survey)
-      return;
-    let page = this.page;
-    const shouldChangePage = !!page && this.survey.activePage !== page;
-    const isSingleInput = this.isSingleInputMode;
-    if (shouldChangePage && !isSingleInput) {
-      this.survey.focusQuestionByInstance(this, onError);
-    } else {
-      if (isSingleInput) {
-        this.survey.currentSingleQuestion = this.rootParentQuestion;
-        const parents = this.getParentQuestions();
-        for (let i = parents.length - 1; i >= 1; i--) {
-          if (i === parents.length - 1) {
-            parents[i].setSingleInputQuestion(parents[i - 1]);
-          }
-        }
-        if (parents.length > 0) {
-          parents[0].setSingleInputQuestion(this);
-        }
-        this.focusInputElement(onError);
-      } else {
-        this.expandAllParents();
-        const scrollOptions = this.survey["isSmoothScrollEnabled"] ? { behavior: "smooth" } : void 0;
-        this.survey.scrollElementToTop(this, this, null, this.id, scrollIfVisible, scrollOptions, void 0, () => {
-          this.focusInputElement(onError);
-        });
-      }
-    }
-  }
-  focusInputElement(onError) {
-    var _a2;
-    const id = !onError ? this.getFirstInputElementId() : this.getFirstErrorInputElementId();
-    const surveyRoot = (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.rootElement;
-    const res = SurveyElement.FocusElement(id, false, surveyRoot);
-    if (res || !!this.customWidget) {
-      this.fireCallback(this.focusCallback);
-    }
-  }
-  get isValidateVisitedEmptyFields() {
-    return this.supportEmptyValidation() && !!this.survey && this.survey.getValidateVisitedEmptyFields() && this.isEmpty();
-  }
-  supportEmptyValidation() {
-    return false;
-  }
-  onBlur(event) {
-    this.onBlurCore(event);
-  }
-  onFocus(event) {
-    this.onFocusCore(event);
-  }
-  onBlurCore(event) {
-    if (this.isFocusEmpty && this.isEmpty()) {
-      this.validate(true);
-    }
-  }
-  onFocusCore(event) {
-    this.isFocusEmpty = this.isValidateVisitedEmptyFields;
-  }
-  expandAllParents() {
-    this.expandAllParentsCore(this);
-  }
-  expandAllParentsCore(element2) {
-    if (!element2)
-      return;
-    if (element2.isCollapsed) {
-      element2.expand();
-    }
-    this.expandAllParentsCore(element2.parent);
-    this.expandAllParentsCore(element2.parentQuestion);
-  }
-  focusIn() {
-    if (!this.survey || this.isDisposed || this.isContainer)
-      return;
-    this.survey.whenQuestionFocusIn(this);
-  }
-  fireCallback(callback) {
-    if (callback)
-      callback();
-  }
-  getOthersMaxLength() {
-    if (!this.survey)
-      return null;
-    return this.survey.maxCommentLength > 0 ? this.survey.maxCommentLength : null;
-  }
-  onCreating() {
-  }
-  getFirstQuestionToFocus(withError) {
-    return this.hasInput && (!withError || this.currentErrorCount > 0) ? this : null;
-  }
-  getFirstInputElementId() {
-    return this.inputId;
-  }
-  getFirstErrorInputElementId() {
-    return this.getFirstInputElementId();
-  }
-  supportComment() {
-    const prop = this.getPropertyByName("showCommentArea");
-    return !prop || prop.visible;
-  }
-  supportOther() {
-    return false;
-  }
-  /**
-   * Specifies whether to display a comment area.
-   * @see comment
-   * @see commentText
-   * @see showOtherItem
-   */
-  get showCommentArea() {
-    return this.getPropertyValue("showCommentArea", false);
-  }
-  set showCommentArea(val) {
-    if (!this.supportComment())
-      return;
-    this.setPropertyValue("showCommentArea", val);
-  }
-  get hasComment() {
-    return this.showCommentArea;
-  }
-  set hasComment(val) {
-    this.showCommentArea = val;
-  }
-  get ariaTitleId() {
-    return this.id + "_ariaTitle";
-  }
-  get ariaDescriptionId() {
-    return this.id + "_ariaDescription";
-  }
-  get commentId() {
-    return this.id + "_comment";
-  }
-  get requireUpdateCommentValue() {
-    return this.showCommentArea;
-  }
-  get isReadOnly() {
-    const isParentReadOnly = !!this.parent && this.parent.isReadOnly;
-    const isPareQuestionReadOnly = !!this.parentQuestion && this.parentQuestion.isReadOnly;
-    const isSurveyReadOnly = !!this.survey && this.survey.isDisplayMode;
-    const callbackVal = !!this.readOnlyCallback && this.readOnlyCallback();
-    return this.readOnly || isParentReadOnly || isSurveyReadOnly || isPareQuestionReadOnly || callbackVal;
-  }
-  get isInputReadOnly() {
-    if (this.forceIsInputReadOnly !== void 0) {
-      return this.forceIsInputReadOnly;
-    }
-    return this.isReadOnly || this.isDesignMode;
-  }
-  get renderedInputReadOnly() {
-    return this.isInputReadOnly ? "" : void 0;
-  }
-  get renderedInputDisabled() {
-    return this.isInputReadOnly ? "" : void 0;
-  }
-  get isReadOnlyAttr() {
-    return this.isReadOnly;
-  }
-  get isDisabledAttr() {
-    return this.isDesignMode || !!this.readOnlyCallback && this.readOnlyCallback();
-  }
-  onReadOnlyChanged() {
-    this.setPropertyValue("isInputReadOnly", this.isInputReadOnly);
-    super.onReadOnlyChanged();
-    if (this.isReadOnly) {
-      this.clearErrors();
-    }
-    this.updateQuestionCss();
-    this.resetRenderedCommentPlaceholder();
-  }
-  surveyChoiceItemVisibilityChange() {
-  }
-  runCondition(properties) {
-    if (this.isDesignMode)
-      return;
-    if (!properties)
-      properties = {};
-    properties["question"] = this;
-    this.runConditionCore(properties);
-    if (!this.isValueChangedDirectly && (!this.isClearValueOnHidden || this.isVisibleInSurvey)) {
-      this.runDefaultValueExpression(properties);
-    }
-  }
-  get isInDesignMode() {
-    return !this.isContentElement && this.isDesignMode;
-  }
-  /**
-   * A question number or letter (depends on the `questionStartIndex` property of the question container (panel, page, or survey)).
-   *
-   * When the question number, title, or the entire question is invisible, this property returns an empty string.
-   * @see SurveyModel.questionStartIndex
-   * @see showNumber
-   * @see titleLocation
-   * @see visibleIf
-   */
-  get no() {
-    return this.getPropertyValue("no", void 0, () => this.calcNo());
-  }
-  calcNo() {
-    let no = "";
-    const hasTitle = this.getHasTitleOnCalcNo() && this.showNumber && this.visibleIndex >= 0;
-    if (hasTitle) {
-      no = Helpers.getNumberByIndex(this.visibleIndex, this.getStartIndex());
-    }
-    if (this.onGetNoCallback) {
-      return this.onGetNoCallback(no);
-    }
-    if (!hasTitle)
-      return no;
-    if (!!this.parent) {
-      no = this.parent.addNoFromChild(no);
-    }
-    if (!!this.survey) {
-      no = this.survey.getUpdatedQuestionNo(this, no);
-    }
-    return no;
-  }
-  getHasTitleOnCalcNo() {
-    return this.hasTitle;
-  }
-  onSurveyLoad() {
-    this.isCustomWidgetRequested = false;
-    this.fireCallback(this.surveyLoadCallback);
-    this.updateValueWithDefaults();
-    if (this.isEmpty()) {
-      this.initDataFromSurvey();
-    }
-  }
-  onSetData() {
-    super.onSetData();
-    if (!this.isDesignMode && !!this.survey && !this.isLoadingFromJson) {
-      this.initDataFromSurvey();
-      this.onSurveyValueChanged(this.value);
-      this.updateValueWithDefaults();
-      this.updateIsAnswered();
-    }
-  }
-  initDataFromSurvey() {
-    if (!!this.data) {
-      const val = this.data.getValue(this.getValueName());
-      if (!Helpers.isValueEmpty(val) || !this.isLoadingFromJson) {
-        this.updateValueFromSurvey(val);
-      }
-      this.initCommentFromSurvey();
-    }
-  }
-  initCommentFromSurvey() {
-    if (!!this.data && this.requireUpdateCommentValue) {
-      this.updateCommentFromSurvey(this.data.getComment(this.getValueName()));
-    } else {
-      this.updateCommentFromSurvey("");
-    }
-  }
-  runExpression(expression) {
-    if (!this.survey || !expression)
-      return void 0;
-    return this.survey.runExpression(expression);
-  }
-  get commentAreaRows() {
-    return this.survey && this.survey.commentAreaRows;
-  }
-  get autoGrowComment() {
-    return this.survey && this.survey.autoGrowComment;
-  }
-  get allowResizeComment() {
-    return this.survey && this.survey.allowResizeComment;
-  }
-  get questionValue() {
-    return this.getPropertyValueWithoutDefault("value");
-  }
-  set questionValue(val) {
-    this.setPropertyValue("value", val);
-  }
-  get questionComment() {
-    return this.getPropertyValueWithoutDefault("comment");
-  }
-  set questionComment(val) {
-    this.setPropertyValue("comment", val);
-    this.fireCallback(this.commentChangedCallback);
-  }
-  get isValueArray() {
-    return false;
-  }
-  /**
-   * Gets or sets the question value.
-   *
-   * The following table illustrates how the value type depends on the question type:
-   *
-   * | Question type | Value type(s) |
-   * | ------------- | ------------- |
-   * | Checkboxes | <code>Array&lt;string &#124; number&gt;</code> |
-   * | Dropdown | `string` \| `number` |
-   * | Dynamic Matrix | `Array<object>` |
-   * | Dynamic Panel | `Array<object>` |
-   * | Expression | `string` \| `number` \| `boolean` |
-   * | File Upload | `File` \| `Array<File>` |
-   * | Image Picker | <code>Array&lt;string &#124; number&gt;</code> |
-   * | Long Text | `string` |
-   * | Multi-Select Dropdown | <code>Array&lt;string &#124; number&gt;</code> |
-   * | Multi-Select Matrix | `object` |
-   * | Multiple Textboxes | `Array<string>` |
-   * | Radio Button Group | `string` \| `number` |
-   * | Ranking | <code>Array&lt;string &#124; number&gt;</code> |
-   * | Rating Scale | `number` \| `string` |
-   * | Slider | <code>Array&lt;string &#124; number&gt;</code> |
-   * | Signature | `string` (base64-encoded image) |
-   * | Single-Line Input | `string` \| `number` \| `Date` |
-   * | Single-Select Matrix | `object` |
-   * | Yes/No (Boolean) | `boolean` \| `string` |
-   * @hidefor QuestionImageModel, QuestionHtmlModel
-   */
-  get value() {
-    return this.getValueCore();
-  }
-  set value(newValue) {
-    this.setNewValue(newValue);
-  }
-  getStructuredValue(level = -1) {
-    return this.value;
-  }
-  get hasFilteredValue() {
-    return false;
-  }
-  getFilteredValue(isUnwrapped) {
-    return this.value;
-  }
-  getFilteredName() {
-    return this.getValueName();
-  }
-  get valueForSurvey() {
-    return this.valueForSurveyCore(this.value);
-  }
-  valueForSurveyCore(val) {
-    if (!!this.valueToDataCallback) {
-      return this.valueToDataCallback(val);
-    }
-    return val;
-  }
-  valueFromDataCore(val) {
-    if (!!this.valueFromDataCallback) {
-      return this.valueFromDataCallback(val);
-    }
-    return val;
-  }
-  /**
-   * Sets the question's `value` and `comment` properties to `undefined`.
-   * @see value
-   * @see comment
-   */
-  clearValue(keepComment, fromUI) {
-    if (this.value !== void 0) {
-      this.value = void 0;
-    }
-    if (!!this.comment && keepComment !== true) {
-      this.comment = void 0;
-    }
-    this.setValueChangedDirectly(fromUI === true);
-  }
-  clearValueFromUI() {
-    this.clearValue(true, true);
-  }
-  clearValueOnly() {
-    this.clearValue(true);
-  }
-  unbindValue() {
-    this.clearValue();
-  }
-  createValueCopy() {
-    return this.getUnbindValue(this.value);
-  }
-  initDataUI() {
-  }
-  getUnbindValue(value) {
-    if (this.isValueSurveyElement(value))
-      return value;
-    return Helpers.getUnbindValue(value);
-  }
-  isValueSurveyElement(val) {
-    if (!val)
-      return false;
-    if (Array.isArray(val))
-      return val.length > 0 ? this.isValueSurveyElement(val[0]) : false;
-    return val.isSurveyObj === true;
-  }
-  canClearValueAsInvisible(reason) {
-    if (reason === "onHiddenContainer" && !this.isParentVisible)
-      return true;
-    if (this.isVisibleInSurvey)
-      return false;
-    if (!!this.page && this.page.isStartPage)
-      return false;
-    if (!this.survey)
-      return true;
-    return !this.survey.hasVisibleQuestionByValueName(this);
-  }
-  /**
-   * Returns `true` if a parent element (page or panel) is visible.
-   */
-  get isParentVisible() {
-    if (this.parentQuestion && !this.parentQuestion.isVisible)
-      return false;
-    var parent = this.parent;
-    while (parent) {
-      if (!parent.isVisible)
-        return false;
-      parent = parent.parent;
-    }
-    return true;
-  }
-  clearValueIfInvisible(reason = "onHidden") {
-    const clearIf = this.getClearIfInvisible();
-    if (clearIf === "none")
-      return;
-    if (reason === "onHidden" && clearIf === "onComplete")
-      return;
-    if (reason === "onHiddenContainer" && clearIf !== reason)
-      return;
-    this.clearValueIfInvisibleCore(reason);
-  }
-  clearValueIfInvisibleCore(reason) {
-    if (this.canClearValueAsInvisible(reason)) {
-      this.clearValue();
-    }
-  }
-  getClearIfInvisible() {
-    const res = this.clearIfInvisible;
-    if (!!this.survey)
-      return this.survey.getQuestionClearIfInvisible(res);
-    return res !== "default" ? res : "onComplete";
-  }
-  get displayValue() {
-    if (this.isLoadingFromJson)
-      return "";
-    return this.getDisplayValue(true);
-  }
-  /**
-   * Returns a display text that corresponds to the question value. For example, if you call this method for a Dropdown question, it returns an item text instead of an item value.
-   * @param keysAsText Applies when the question value is an object (in Matrix, Multiple Text, and similar questions). Pass `true` if not only values in the object should be display texts, but also keys. Default value: `false`.
-   * @param value Specify this parameter to get a display text for a specific value, not for the current question value. If the question value is an object, this parameter should be a similar object.
-   */
-  getDisplayValue(keysAsText, value = void 0) {
-    var res = this.calcDisplayValue(keysAsText, value);
-    if (this.survey) {
-      res = this.survey.getQuestionDisplayValue(this, res);
-    }
-    return !!this.displayValueCallback ? this.displayValueCallback(res) : res;
-  }
-  calcDisplayValue(keysAsText, value = void 0) {
-    if (this.customWidget) {
-      var res = this.customWidget.getDisplayValue(this, value);
-      if (res)
-        return res;
-    }
-    value = value == void 0 ? this.createValueCopy() : value;
-    if (this.isValueEmpty(value) && !this.locDefaultDisplayValue.isEmpty) {
-      value = this.defaultDisplayValue;
-    }
-    if (this.isValueEmpty(value, !this.allowSpaceAsAnswer))
-      return this.getDisplayValueEmpty();
-    return this.getDisplayValueCore(keysAsText, value);
-  }
-  getDisplayValueCore(keyAsText, value) {
-    return value;
-  }
-  getDisplayValueEmpty() {
-    return "";
-  }
-  /**
-   * A default value for the question. Ignored for question types that cannot have a [value](https://surveyjs.io/form-library/documentation/question#value) (for example, HTML).
-   *
-   * The default value is used as a question value in the following cases:
-   *
-   * - While the survey is being loaded from JSON.
-   * - The question is just added to the survey and does not yet have an answer.
-   * - The respondent left the answer empty.
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/specify-default-question-value-dynamically (linkStyle))
-   * @see defaultValueExpression
-   */
-  get defaultValue() {
-    return this.getPropertyValue("defaultValue");
-  }
-  set defaultValue(val) {
-    if (this.isValueExpression(val)) {
-      this.defaultValueExpression = val.substring(1);
-      return;
-    }
-    this.setPropertyValue("defaultValue", this.valueToData(val));
-    this.updateValueWithDefaults();
-  }
-  /**
-   * An expression used to calculate the [`defaultValue`](https://surveyjs.io/form-library/documentation/question#defaultValue).
-   *
-   * This expression applies until the question [`value`](https://surveyjs.io/form-library/documentation/question#value) is specified by an end user or programmatically.
-   *
-   * An expression can reference other questions as follows:
-   *
-   * - `{other_question_name}`
-   * - `{panel.other_question_name}` (to access questions inside the same dynamic panel)
-   * - `{row.other_question_name}` (to access questions inside the same dynamic matrix or multi-column dropdown)
-   *
-   * An expression can also include built-in and custom functions for advanced calculations. For example, if the `defaultValue` should be today's date, set the `defaultValueExpression` to `"today()"`, and the corresponding built-in function will be executed each time the survey is loaded. Refer to the following help topic for more information: [Built-In Functions](https://surveyjs.io/form-library/documentation/design-survey-conditional-logic#built-in-functions).
-   *
-   * [View Demo](https://surveyjs.io/form-library/examples/specify-default-question-value-dynamically (linkStyle))
-   * @see defaultValue
-   * @see setValueExpression
-   */
-  get defaultValueExpression() {
-    return this.getPropertyValue("defaultValueExpression");
-  }
-  set defaultValueExpression(val) {
-    this.setPropertyValue("defaultValueExpression", val);
-    this.defaultValueRunner = void 0;
-    this.updateValueWithDefaults();
-  }
-  get resizeStyle() {
-    return this.allowResizeComment ? "both" : "none";
-  }
-  /**
-   * Returns the question value as an object in which the question name, title, value, and other parameters are stored as individual properties.
-   *
-   * If the question can have more than one value (Matrix, Multiple Text), the object enables the `isNode` flag and stores information about these values in the `data` property. Refer to the following help topic for more information: [Access Full Survey Results](https://surveyjs.io/form-library/documentation/handle-survey-results-access#access-full-survey-results).
-   *
-   * Pass an object with the `includeEmpty` property set to `false` if you want to skip empty answers.
-   */
-  getPlainData(options2) {
-    if (!options2) {
-      options2 = { includeEmpty: true, includeQuestionTypes: false };
-    }
-    if (options2.includeEmpty || !this.isEmpty()) {
-      var questionPlainData = {
-        name: this.name,
-        title: this.locTitle.renderedHtml,
-        value: this.value,
-        displayValue: this.displayValue,
-        isNode: false,
-        getString: (val) => this.getValueAsString(val)
-      };
-      if (options2.includeQuestionTypes === true) {
-        questionPlainData.questionType = this.getType();
-      }
-      (options2.calculations || []).forEach((calculation2) => {
-        questionPlainData[calculation2.propertyName] = this.getPlainDataCalculatedValue(calculation2.propertyName);
-      });
-      if (this.showCommentArea) {
-        questionPlainData.isNode = true;
-        questionPlainData.data = [
-          {
-            name: 0,
-            isComment: true,
-            title: "Comment",
-            value: settings.commentSuffix,
-            displayValue: this.comment,
-            getString: (val) => this.getValueAsString(val),
-            isNode: false
-          }
-        ];
-      }
-      return questionPlainData;
-    }
-    return void 0;
-  }
-  getPlainDataCalculatedValue(propName) {
-    return this[propName];
-  }
-  /**
-   * The number of quiz questions. A question counts if it is visible, has an input field, and specifies `correctAnswer`.
-   * @see [Create a Quiz](https://surveyjs.io/form-library/documentation/design-survey-create-a-quiz)
-   * @see correctAnswer
-   * @see SurveyModel.getQuizQuestions
-   */
-  get quizQuestionCount() {
-    if (this.isVisible && this.hasInput && !this.isValueEmpty(this.correctAnswer))
-      return this.getQuizQuestionCount();
-    return 0;
-  }
-  get correctAnswerCount() {
-    if (!this.isEmpty() && !this.isValueEmpty(this.correctAnswer))
-      return this.getCorrectAnswerCount();
-    return 0;
-  }
-  getQuizQuestionCount() {
-    return 1;
-  }
-  getCorrectAnswerCount() {
-    return this.checkIfAnswerCorrect() ? 1 : 0;
-  }
-  checkIfAnswerCorrect() {
-    const isEqual = Helpers.isTwoValueEquals(this.value, this.correctAnswer, this.getAnswerCorrectIgnoreOrder(), settings.comparator.caseSensitive, true);
-    const correct = isEqual ? 1 : 0;
-    const incorrect = this.quizQuestionCount - correct;
-    const options2 = {
-      result: isEqual,
-      correctAnswers: correct,
-      correctAnswerCount: correct,
-      incorrectAnswers: incorrect,
-      incorrectAnswerCount: incorrect
-    };
-    if (!!this.survey) {
-      this.survey.onCorrectQuestionAnswer(this, options2);
-    }
-    return options2.result;
-  }
-  getAnswerCorrectIgnoreOrder() {
-    return false;
-  }
-  /**
-  * Returns `true` if a question answer matches the [`correctAnswer`](#correctAnswer) property value.
-  *
-  * [View Demo](https://surveyjs.io/form-library/examples/create-a-scored-quiz (linkStyle))
-  * @see SurveyModel.getQuizQuestions
-  */
-  isAnswerCorrect() {
-    return this.correctAnswerCount == this.quizQuestionCount;
-  }
-  updateValueWithDefaults() {
-    if (this.isLoadingFromJson || !this.isDesignMode && this.isDefaultValueEmpty())
-      return;
-    const isEmpty = this.isEmpty();
-    if (!this.isDesignMode && !isEmpty)
-      return;
-    if (isEmpty && this.isDefaultValueEmpty())
-      return;
-    if (this.isClearValueOnHidden && !this.isVisible)
-      return;
-    if (this.isDesignMode && this.isContentElement && this.isDefaultValueEmpty())
-      return;
-    this.setDefaultValue();
-  }
-  get isValueDefault() {
-    return !this.isEmpty() && (this.isTwoValueEquals(this.defaultValue, this.value) || !this.isValueChangedDirectly && !!this.defaultValueExpression);
-  }
-  get isClearValueOnHidden() {
-    const clearIf = this.getClearIfInvisible();
-    if (clearIf === "none" || clearIf === "onComplete")
-      return false;
-    return clearIf === "onHidden" || clearIf === "onHiddenContainer";
-  }
-  getQuestionFromArray(name, index) {
-    return null;
-  }
-  getDefaultValue() {
-    return this.defaultValue;
-  }
-  isDefaultValueEmpty() {
-    return !this.defaultValueExpression && this.isValueEmpty(this.defaultValue, !this.allowSpaceAsAnswer);
-  }
-  setDefaultValue() {
-    this.setDefaultValueCore((val) => {
-      val = this.convertToCorrectValue(val);
-      if (!this.isTwoValueEquals(this.value, val)) {
-        this.setDefaultIntoValue(val);
-      }
-    });
-  }
-  setDefaultIntoValue(val) {
-    this.value = val;
-  }
-  setDefaultValueCore(setFunc) {
-    const func = (val) => {
-      this.runExpressionSetValueCore(val, setFunc);
-    };
-    if (!this.runDefaultValueExpression(void 0, func)) {
-      func(this.getUnbindValue(this.defaultValue));
-    }
-  }
-  updateValueWithDefaultsOrClear() {
-    if (this.isDesignMode || this.isLoadingFromJson)
-      return;
-    if (this.isDefaultValueEmpty()) {
-      this.clearValue();
-    } else {
-      this.setDefaultValue();
-    }
-  }
-  isValueExpression(val) {
-    return !!val && typeof val == "string" && val.length > 0 && val[0] == "=";
-  }
-  convertFuncValuetoQuestionValue(val) {
-    return Helpers.convertValToQuestionVal(val);
-  }
-  runExpressionSetValueCore(val, setFunc) {
-    setFunc(this.convertFuncValuetoQuestionValue(val));
-  }
-  runExpressionSetValue(val) {
-    this.runExpressionSetValueCore(val, (val2) => {
-      if (!this.isTwoValueEquals(this.value, val2)) {
-        this.startSetValueOnExpression();
-        this.value = val2;
-        this.finishSetValueOnExpression();
-      }
-    });
-  }
-  startSetValueOnExpression() {
-    var _a2;
-    (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.startSetValueOnExpression();
-  }
-  finishSetValueOnExpression() {
-    var _a2;
-    (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.finishSetValueOnExpression();
-  }
-  runDefaultValueExpression(properties = null, setFunc) {
-    if (!this.data)
-      return false;
-    if (!setFunc) {
-      setFunc = (val) => {
-        this.runExpressionSetValue(val);
-      };
-    }
-    if (!properties) {
-      properties = this.defaultValueExpression ? this.data.getFilteredProperties() : {};
-      properties["question"] = this;
-    }
-    return this.runExpressionByProperty("defaultValueExpression", properties, (res) => {
-      if (res == void 0)
-        res = this.defaultValue;
-      this.isChangingViaDefaultValue = true;
-      setFunc(res);
-      this.isChangingViaDefaultValue = false;
-    });
-  }
-  /**
-   * A comment to the selected question value. Enable the `showCommentArea` property to allow users to leave comments.
-   * @see showCommentArea
-   * @see commentText
-   */
-  get comment() {
-    return this.getQuestionComment();
-  }
-  set comment(newValue) {
-    newValue = this.getTrimmedComment(newValue);
-    if (this.comment !== newValue) {
-      this.setNewComment(newValue);
-    }
-  }
-  getTrimmedComment(val) {
-    return typeof val === "string" && !val.trim() ? "" : val;
-  }
-  getCommentAreaCss(isOther = false) {
-    return new CssClassBuilder().append("form-group", isOther).append(this.cssClasses.formGroup, !isOther).append(this.cssClasses.commentArea).append(this.cssClasses.otherArea, isOther).toString();
-  }
-  getQuestionComment() {
-    return this.questionComment;
-  }
-  /**
-   * Returns `true` if the question value is an empty string, array, or object or if it equals `undefined` or `null`.
-   */
-  isEmpty() {
-    return this.isValueEmpty(this.value, !this.allowSpaceAsAnswer);
-  }
-  updateIsAnswered() {
-    const oldVal = this.isAnswered;
-    this.setPropertyValue("isAnswered", this.getIsAnswered());
-    if (oldVal !== this.isAnswered) {
-      this.updateQuestionCss();
-    }
-  }
-  getIsAnswered() {
-    return !this.isEmpty();
-  }
-  /**
-   * Question validators.
-   *
-   * [Data Validation](https://surveyjs.io/form-library/documentation/data-validation (linkStyle))
-   */
-  get validators() {
-    return this.getArrayPropertyValue("validators", (validator) => {
-      validator.owner = this;
-    });
-  }
-  set validators(val) {
-    this.setArrayPropertyValue("validators", val);
-  }
-  getValidators() {
-    return this.validators;
-  }
-  getSupportedValidators() {
-    const res = [];
-    let className = this.getType();
-    while (!!className) {
-      const classValidators = settings.supportedValidators[className];
-      if (!!classValidators) {
-        for (let i = classValidators.length - 1; i >= 0; i--) {
-          res.splice(0, 0, classValidators[i]);
-        }
-      }
-      const classInfo = Serializer.findClass(className);
-      className = classInfo.parentName;
-    }
-    return res;
-  }
-  addConditionObjectsByContext(objects, context2) {
-    objects.push({
-      name: this.getFilteredName(),
-      text: this.processedTitle,
-      question: this
-    });
-  }
-  /**
-   * Returns an array of questions nested within the current question. Use this method to obtain questions within [Multiple Text](https://surveyjs.io/form-library/documentation/api-reference/multiple-text-entry-question-model), [Dynamic Panel](https://surveyjs.io/form-library/documentation/api-reference/dynamic-panel-model), and [Matrix](https://surveyjs.io/form-library/documentation/api-reference/matrix-table-question-model)-like questions.
-   * @param visibleOnly A Boolean value that specifies whether to include only visible nested questions.
-   * @returns An array of nested questions.
-   */
-  getNestedQuestions(visibleOnly = false, includeNested = true, includeItSelf = false) {
-    const res = [];
-    this.collectNestedQuestions(res, visibleOnly, includeNested, includeItSelf);
-    if (!includeItSelf && res.length === 1 && res[0] === this)
-      return [];
-    return res;
-  }
-  collectNestedQuestions(questions, visibleOnly = false, includeNested = true, includeItSelf = false) {
-    if (visibleOnly && !this.isVisible)
-      return;
-    this.collectNestedQuestionsCore(questions, visibleOnly, includeNested, includeItSelf);
-  }
-  collectNestedQuestionsCore(questions, visibleOnly, includeNested, includeItSelf) {
-    questions.push(this);
-  }
-  addNestedQuestion(questions, visibleOnly, includeNested, includeItSelf) {
-    if (includeNested) {
-      this.collectNestedQuestions(questions, visibleOnly, includeNested, includeItSelf);
-    } else {
-      if (!visibleOnly || this.isVisible) {
-        questions.push(this);
-      }
-    }
-  }
-  getConditionJson(operator = null, path2 = null) {
-    const json = new JsonObject().toJsonObject(this);
-    json["type"] = this.getType();
-    return json;
-  }
-  hasErrors(fireCallback = true, focusOnFirstError = false) {
-    return !this.validateCore(fireCallback, false, focusOnFirstError);
-  }
-  /**
-   * Validates this question and returns `false` if the validation fails.
-   * @param fireCallback *(Optional)* Pass `false` if you do not want to show validation errors in the UI.
-   * @see [Data Validation](https://surveyjs.io/form-library/documentation/data-validation)
-   */
-  validate(fireCallback = true, focusFirstError = false, isOnValueChanged = false, callbackResult) {
-    return this.validateCore(fireCallback, true, focusFirstError, isOnValueChanged, callbackResult);
-  }
-  validateCore(fireCallback, isRoot, focusOnFirstError = false, isOnValueChanged = false, callbackResult) {
-    if (isRoot && isOnValueChanged && !!this.parent) {
-      this.parent.validateContainerOnly();
-    }
-    const context2 = new ValidationContext({
-      isOnValueChanged,
-      focusOnFirstError,
-      fireCallback,
-      callbackResult
-    });
-    this.validateElement(context2);
-    context2.finish();
-    return context2.runningResult;
-  }
-  validateElement(context2) {
-    return this.validateElementCore(context2);
-  }
-  validateElementCore(context2) {
-    const errors = this.checkForErrors(context2);
-    if (context2.fireCallback) {
-      this.errors = errors;
-      if (this.errors !== errors) {
-        this.errors.forEach((er) => er.locText.strChanged());
-      }
-    }
-    context2.setErrorElement(this, errors);
-    this.updateContainsErrors();
-    if (this.isCollapsed && context2.fireCallback && errors.length > 0) {
-      this.expand();
-    }
-    return errors.length === 0;
-  }
-  get currentErrorCount() {
-    return this.errors.length;
-  }
-  /**
-   * Returns a character or text string that indicates a required question.
-   * @see SurveyModel.requiredMark
-   * @see isRequired
-   */
-  get requiredMark() {
-    return this.survey != null && this.isRequired ? this.survey.requiredMark : "";
-  }
-  /**
-   * @deprecated Use the [`requiredMark`](https://surveyjs.io/form-library/documentation/api-reference/question#requiredMark) property instead.
-   */
-  get requiredText() {
-    return this.requiredMark;
-  }
-  addError(error3) {
-    if (!error3)
-      return;
-    let newError = null;
-    if (typeof error3 === "string" || error3 instanceof String) {
-      newError = this.addCustomError(error3);
-    } else {
-      newError = error3;
-    }
-    this.errors.push(newError);
-  }
-  addCustomError(error3) {
-    return new CustomError(error3, this.survey);
-  }
-  removeError(error3) {
-    if (!error3)
-      return false;
-    const errors = this.errors;
-    const index = errors.indexOf(error3);
-    if (index !== -1)
-      errors.splice(index, 1);
-    return index !== -1;
-  }
-  checkForErrors(context2) {
-    var qErrors = new Array();
-    if (this.isVisible && this.canCollectErrors()) {
-      this.collectErrors(qErrors, context2);
-    }
-    if (!!this.survey) {
-      if (this.validateValueCallback && qErrors.length === 0) {
-        const error3 = this.validateValueCallback();
-        if (error3) {
-          qErrors.push(error3);
-        }
-      }
-      this.survey.validateQuestion(this, qErrors, context2.fireCallback);
-    }
-    return qErrors;
-  }
-  canCollectErrors() {
-    return !this.isReadOnly || settings.readOnly.enableValidation;
-  }
-  collectErrors(qErrors, context2) {
-    this.onCheckForErrors(qErrors, context2.isOnValueChanged, context2.fireCallback);
-    if (qErrors.length > 0 || !this.canRunValidators(context2.isOnValueChanged))
-      return;
-    const errors = this.runValidators(context2);
-    if (errors.length > 0) {
-      qErrors.length = 0;
-      for (var i = 0; i < errors.length; i++) {
-        qErrors.push(errors[i]);
-      }
-    }
-  }
-  canRunValidators(isOnValueChanged) {
-    return true;
-  }
-  onCheckForErrors(errors, isOnValueChanged, fireCallback) {
-    if ((!isOnValueChanged || this.isOldAnswered) && this.hasRequiredError()) {
-      const err = new AnswerRequiredError(this.requiredErrorText, this);
-      err.onUpdateErrorTextCallback = (err2) => {
-        err2.text = this.requiredErrorText;
-      };
-      errors.push(err);
-    }
-    if (!this.isEmpty() && this.customWidget) {
-      const text2 = this.customWidget.validate(this);
-      if (!!text2) {
-        errors.push(this.addCustomError(text2));
-      }
-    }
-  }
-  hasRequiredError() {
-    return this.isRequired && this.isEmpty();
-  }
-  get isRunningValidators() {
-    return this.getIsRunningValidators();
-  }
-  getIsRunningValidators() {
-    return !!this.validatorRunner;
-  }
-  runValidators(context2) {
-    if (!!this.validatorRunner) {
-      this.validatorRunner.onAsyncCompleted = null;
-    }
-    this.validatorRunner = new ValidatorRunner();
-    this.validatorRunner.onAsyncCompleted = (errors) => {
-      this.doOnAsyncCompleted(context2.fireCallback, errors);
-      context2.setErrorElement(this, errors);
-      context2.removeElement(this.id);
-    };
-    context2.addElement(this.id);
-    return this.validatorRunner.run(this);
-  }
-  doOnAsyncCompleted(fireCallback, errors) {
-    if (fireCallback) {
-      errors.forEach((er) => {
-        if (this.errors.indexOf(er) < 0) {
-          this.errors.push(er);
-        }
-      });
-    }
-    this.validatorRunner = null;
-  }
-  setNewValue(newValue) {
-    if (this.survey) {
-      newValue = this.survey.questionValueChanging(this, newValue);
-    }
-    if (this.isNewValueEqualsToValue(newValue))
-      return;
-    if (!this.checkIsValueCorrect(newValue))
-      return;
-    const oldValue = this.getUnbindValue(this.value);
-    this.isOldAnswered = this.isAnswered;
-    this.isSettingQuestionValue = true;
-    this.setNewValueInData(newValue);
-    this.allowNotifyValueChanged && this.onValueChanged();
-    this.isSettingQuestionValue = false;
-    if (this.isAnswered !== this.isOldAnswered) {
-      this.updateQuestionCss();
-    }
-    this.isOldAnswered = void 0;
-    if (this.parent) {
-      this.parent.onQuestionValueChanged(this);
-    }
-    if (this.survey) {
-      this.survey.questionValueChanged(this, oldValue);
-    }
-  }
-  getValueChangingOptions(childQuestion) {
-    return void 0;
-  }
-  checkIsValueCorrect(val) {
-    const res = this.isValueEmpty(val, !this.allowSpaceAsAnswer) || this.isNewValueCorrect(val);
-    if (!res) {
-      ConsoleWarnings.inCorrectQuestionValue(this.name, val);
-    }
-    return res;
-  }
-  isNewValueCorrect(val) {
-    return true;
-  }
-  isNewValueEqualsToValue(newValue) {
-    const val = this.value;
-    if (!this.isTwoValueEquals(newValue, val, false, false))
-      return false;
-    const isObj = newValue === val && !!val && (Array.isArray(val) || typeof val === "object");
-    return !isObj;
-  }
-  isTextValue() {
-    return false;
-  }
-  getIsInputTextUpdate() {
-    return !!this.survey ? this.survey.isUpdateValueTextOnTyping : false;
-  }
-  get requireStrictCompare() {
-    return false;
-  }
-  getExpressionValue(val) {
-    return val;
-  }
-  getDataLocNotification() {
-    return this.isInputTextUpdate ? "text" : false;
-  }
-  get isInputTextUpdate() {
-    return this.getIsInputTextUpdate() && this.isTextValue();
-  }
-  setNewValueInData(newValue) {
-    newValue = this.valueToData(newValue);
-    if (!this.isValueChangedInSurvey) {
-      this.setValueCore(newValue);
-    }
-  }
-  getValueCore() {
-    return this.questionValue;
-  }
-  setValueCore(newValue) {
-    this.setQuestionValue(newValue);
-    if (this.data != null && this.canSetValueToSurvey()) {
-      newValue = this.valueForSurvey;
-      this.data.setValue(this.getValueName(), newValue, this.getDataLocNotification(), this.allowNotifyValueChanged, this.name);
-    }
-    this.isMouseDown = false;
-  }
-  canSetValueToSurvey() {
-    return true;
-  }
-  valueFromData(val) {
-    return val;
-  }
-  valueToData(val) {
-    return val;
-  }
-  convertToCorrectValue(val) {
-    return val;
-  }
-  onValueChanged() {
-  }
-  onMouseDown() {
-    this.isMouseDown = true;
-  }
-  setNewComment(newValue) {
-    if (this.questionComment === newValue)
-      return;
-    this.questionComment = newValue;
-    this.setCommentIntoData(newValue);
-  }
-  setCommentIntoData(newValue) {
-    if (this.data != null) {
-      this.data.setComment(this.getValueName(), newValue, this.getIsInputTextUpdate() ? "text" : false);
-    }
-  }
-  getValidName(name) {
-    return makeNameValid(super.getValidName(name));
-  }
-  updateValueFromSurvey(newValue, clearData = false) {
-    newValue = this.getUnbindValue(newValue);
-    newValue = this.valueFromDataCore(newValue);
-    if (!this.checkIsValueCorrect(newValue))
-      return;
-    const isEmpty = this.isValueEmpty(newValue);
-    this.isUpdateingValueFromSurvey = true;
-    if (!isEmpty && this.defaultValueExpression) {
-      this.setDefaultValueCore((val) => {
-        this.updateValueFromSurveyCore(newValue, this.isTwoValueEquals(newValue, val));
-      });
-    } else {
-      this.updateValueFromSurveyCore(newValue, this.data !== this.getSurvey());
-      if (clearData && isEmpty) {
-        this.isValueChangedDirectly = false;
-      }
-      if (isEmpty) {
-        this.updateBindingsOnClearFromSurveyCore();
-      }
-    }
-    this.isUpdateingValueFromSurvey = false;
-    this.updateDependedQuestions();
-    this.updateIsAnswered();
-  }
-  canUpdateBindings() {
-    return !this.isUpdateingValueFromSurvey;
-  }
-  updateBindingsOnClearFromSurveyCore() {
-    const surveyData = this.data;
-    if (surveyData && !this.isBindingEmpty()) {
-      this.bindings.getNames().forEach((name) => {
-        const valueName = this.bindings.getValueNameByPropertyName(name);
-        const val = surveyData.getValue(valueName);
-        if (!this.isValueEmpty(val)) {
-          this.updateBindingProp(name, val);
-        }
-      });
-    }
-  }
-  updateValueFromSurveyCore(newValue, viaDefaultVal) {
-    this.isChangingViaDefaultValue = viaDefaultVal;
-    newValue = this.valueFromData(newValue);
-    const isEqual = this.isTwoValueEquals(this.questionValue, this.convertToCorrectValue(newValue));
-    this.setQuestionValue(newValue);
-    if (!isEqual) {
-      this.resetSingleInput();
-    }
-    this.isChangingViaDefaultValue = false;
-  }
-  updateCommentFromSurvey(newValue) {
-    this.questionComment = newValue;
-  }
-  onChangeQuestionValue(newValue) {
-  }
-  setValueChangedDirectly(val) {
-    this.isValueChangedDirectly = val;
-    if (!!this.setValueChangedDirectlyCallback) {
-      this.setValueChangedDirectlyCallback(val);
-    }
-  }
-  setQuestionValue(newValue, updateIsAnswered = true) {
-    newValue = this.convertToCorrectValue(newValue);
-    const isEqual = this.isTwoValueEquals(this.questionValue, newValue);
-    if (!isEqual && !this.isChangingViaDefaultValue && !this.isParentChangingViaDefaultValue) {
-      this.setValueChangedDirectly(true);
-    }
-    this.questionValue = newValue;
-    if (!isEqual) {
-      this.onChangeQuestionValue(newValue);
-    }
-    !isEqual && this.allowNotifyValueChanged && this.fireCallback(this.valueChangedCallback);
-    if (updateIsAnswered)
-      this.updateIsAnswered();
-  }
-  get isParentChangingViaDefaultValue() {
-    var _a2;
-    return ((_a2 = this.data) === null || _a2 === void 0 ? void 0 : _a2.isChangingViaDefaultValue) === true;
-  }
-  onSurveyValueChanged(newValue) {
-  }
-  setVisibleIndex(val) {
-    if (this.isVisibleIndexNegative(val)) {
-      val = -1;
-    }
-    this.setPropertyValue("visibleIndex", val);
-    this.resetPropertyValue("no");
-    return val < 0 ? 0 : 1;
-  }
-  isVisibleIndexNegative(val) {
-    return val < 0 || !this.isVisible || !this.getHasTitleOnCalcNo() && !settings.numbering.includeQuestionsWithHiddenTitle || !this.showNumber && !settings.numbering.includeQuestionsWithHiddenNumber;
-  }
-  removeElement(element2) {
-    return false;
-  }
-  // Obsolete
-  supportGoNextPageAutomatic() {
-    return this.supportAutoAdvance();
-  }
-  supportAutoAdvance() {
-    return false;
-  }
-  supportGoNextPageError() {
-    return true;
-  }
-  /**
-   * Removes values that cannot be assigned to this question, for example, choices unlisted in the `choices` array.
-   *
-   * Call this method after you assign new question values in code to ensure that they are acceptable.
-   *
-   * > This method does not remove values that fail validation. Call the `validate()` method to validate newly assigned values.
-   *
-   * @see validate
-   */
-  clearIncorrectValues() {
-  }
-  clearOnDeletingContainer() {
-  }
-  /**
-   * Empties the `errors` array.
-   * @see errors
-   */
-  clearErrors() {
-    this.errors = [];
-  }
-  clearUnusedValues() {
-  }
-  onAnyValueChanged(name, questionName) {
-  }
-  checkBindings(valueName, value) {
-    if (this.bindings.isEmpty() || !this.data)
-      return;
-    var props = this.bindings.getPropertiesByValueName(valueName);
-    for (var i = 0; i < props.length; i++) {
-      const propName = props[i];
-      if (this.isValueEmpty(value) && Helpers.isNumber(this[propName])) {
-        value = 0;
-      }
-      this.updateBindingProp(propName, value);
-    }
-  }
-  updateBindingProp(propName, value) {
-    this[propName] = value;
-  }
-  getComponentName() {
-    return RendererFactory.Instance.getRendererByQuestion(this);
-  }
-  isDefaultRendering() {
-    return !!this.customWidget || this.getComponentName() === "default";
-  }
-  //ISurveyErrorOwner
-  getErrorCustomText(text2, error3) {
-    if (!!this.survey)
-      return this.survey.getSurveyErrorCustomText(this, text2, error3);
-    return text2;
-  }
-  createRegexValidator(validator, pattern, flags) {
-    var _a2;
-    return ((_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.createRegexValidator(this, validator, pattern, flags)) || new RegExp(pattern, flags);
-  }
-  //IValidatorOwner
-  getValidatorTitle() {
-    return null;
-  }
-  get validatedValue() {
-    return this.value;
-  }
-  set validatedValue(val) {
-    this.value = val;
-  }
-  processPopupVisiblilityChanged(popupModel, visible) {
-    this.survey.processPopupVisiblityChanged(this, popupModel, visible);
-  }
-  processOpenDropdownMenu(options2) {
-    this.survey.processOpenDropdownMenu(this, options2);
-  }
-  onTextKeyDownHandler(event) {
-    if (event.keyCode === 13) {
-      this.survey.questionEditFinishCallback(this, event);
-    }
-  }
-  transformToMobileView() {
-  }
-  transformToDesktopView() {
-  }
-  needResponsiveWidth() {
-    return false;
-  }
-  //responsiveness methods
-  supportResponsiveness() {
-    return false;
-  }
-  needResponsiveness() {
-    return this.supportResponsiveness() && !this.isDesignMode;
-  }
-  checkForResponsiveness(el) {
-    if (this.needResponsiveness()) {
-      if (this.isCollapsed) {
-        const onStateChanged = () => {
-          if (this.isExpanded) {
-            this.initResponsiveness(el);
-            this.unregisterPropertyChangedHandlers(["state"], "for-responsiveness");
-          }
-        };
-        this.registerPropertyChangedHandlers(["state"], onStateChanged, "for-responsiveness");
-      } else {
-        this.initResponsiveness(el);
-      }
-    }
-  }
-  getObservedElementSelector() {
-    return ".sd-scrollable-container";
-  }
-  onMobileChanged() {
-    this.onMobileChangedCallback && this.onMobileChangedCallback();
-  }
-  triggerResponsiveness(hard = true) {
-    if (this.triggerResponsivenessCallback) {
-      this.triggerResponsivenessCallback(hard);
-    }
-  }
-  initResponsiveness(el) {
-    if (!DomDocumentHelper.isAvailable()) {
-      return;
-    }
-    this.destroyResizeObserver();
-    if (!!el && this.isDefaultRendering()) {
-      const scrollableSelector = this.getObservedElementSelector();
-      if (!scrollableSelector)
-        return;
-      const defaultRootEl = el.querySelector(scrollableSelector);
-      if (!defaultRootEl)
-        return;
-      let isProcessed = false;
-      let requiredWidth = void 0;
-      this.triggerResponsivenessCallback = (hard) => {
-        if (hard) {
-          requiredWidth = void 0;
-          this.renderAs = "default";
-          isProcessed = false;
-        }
-        const callback = () => {
-          const rootEl = el.querySelector(scrollableSelector);
-          if (this.isDefaultRendering()) {
-            requiredWidth = rootEl.scrollWidth;
-          }
-          if (isProcessed || !isContainerVisible(rootEl)) {
-            isProcessed = false;
-          } else {
-            const availableWidth = getElementWidth(rootEl);
-            isProcessed = this.processResponsiveness(requiredWidth, availableWidth);
-          }
-        };
-        if (hard) {
-          setTimeout(callback, 1);
-        } else {
-          callback();
-        }
-      };
-      this.resizeObserver = new ResizeObserver((entries) => {
-        DomWindowHelper.requestAnimationFrame(() => {
-          this.triggerResponsiveness(false);
-        });
-      });
-      this.onMobileChangedCallback = () => {
-        setTimeout(() => {
-          const rootEl = el.querySelector(scrollableSelector);
-          this.processResponsiveness(requiredWidth, getElementWidth(rootEl));
-        }, 0);
-      };
-      this.resizeObserver.observe(el);
-    }
-  }
-  getCompactRenderAs() {
-    return "default";
-  }
-  getDesktopRenderAs() {
-    return "default";
-  }
-  onBeforeSetCompactRenderer() {
-  }
-  onBeforeSetDesktopRenderer() {
-  }
-  processResponsiveness(requiredWidth, availableWidth) {
-    availableWidth = Math.round(availableWidth);
-    if (Math.abs(requiredWidth - availableWidth) > 2) {
-      const oldRenderAs = this.renderAs;
-      if (requiredWidth > availableWidth) {
-        this.onBeforeSetCompactRenderer();
-        this.renderAs = this.getCompactRenderAs();
-      } else {
-        this.onBeforeSetDesktopRenderer();
-        this.renderAs = this.getDesktopRenderAs();
-      }
-      return oldRenderAs !== this.renderAs;
-    }
-    return false;
-  }
-  destroyResizeObserver() {
-    if (!!this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = void 0;
-      this.onMobileChangedCallback = void 0;
-      this.triggerResponsivenessCallback = void 0;
-      this.renderAs = this.getDesktopRenderAs();
-    }
-  }
-  dispose() {
-    super.dispose();
-    this.resetDependedQuestions();
-    this.destroyResizeObserver();
-  }
-  resetDependedQuestions() {
-    for (var i = 0; i < this.dependedQuestions.length; i++) {
-      this.dependedQuestions[i].resetDependedQuestion();
-    }
-  }
-  //a11y
-  get isNewA11yStructure() {
-    return false;
-  }
-  get ariaLabel() {
-    if (this.isNewA11yStructure || this.hasTitle && !this.parentQuestion)
-      return null;
-    return this.locTitle.renderedHtml;
-  }
-  get ariaRole() {
-    if (this.isNewA11yStructure)
-      return null;
-    return "textbox";
-  }
-  get ariaRequired() {
-    if (this.isNewA11yStructure)
-      return null;
-    return this.isRequired ? "true" : "false";
-  }
-  get ariaInvalid() {
-    if (this.isNewA11yStructure)
-      return null;
-    return this.hasCssError() ? "true" : "false";
-  }
-  get ariaLabelledBy() {
-    if (this.isNewA11yStructure || !this.hasTitle || this.parentQuestion)
-      return null;
-    return this.ariaTitleId;
-  }
-  get ariaDescribedBy() {
-    if (this.isNewA11yStructure)
-      return null;
-    if (this.hasTitle && this.hasDescription) {
-      return this.ariaDescriptionId;
-    } else {
-      return null;
-    }
-  }
-  getContentAriaHidden() {
-    return null;
-  }
-  get contentAriaHidden() {
-    return this.getContentAriaHidden();
-  }
-  get ariaErrormessage() {
-    if (this.isNewA11yStructure)
-      return null;
-    return this.hasCssError() ? this.id + "_errors" : null;
-  }
-  //EO a11y
-  //new a11y
-  get a11y_input_ariaRole() {
-    return null;
-  }
-  get a11y_input_ariaRequired() {
-    return this.isRequired ? "true" : "false";
-  }
-  get a11y_input_ariaInvalid() {
-    return this.hasCssError() ? "true" : "false";
-  }
-  get a11y_input_ariaLabel() {
-    if (this.hasTitle && !this.parentQuestion) {
-      return null;
-    } else {
-      return this.locTitle.renderedHtml;
-    }
-  }
-  get a11y_input_ariaLabelledBy() {
-    if (this.hasTitle && !this.parentQuestion) {
-      return this.ariaTitleId;
-    } else {
-      return null;
-    }
-  }
-  get a11y_input_ariaDescribedBy() {
-    let result = null;
-    if (this.hasCssError()) {
-      result = this.id + "_errors";
-    } else if (this.hasTitle && !this.parentQuestion && this.hasDescription && this.descriptionLocation !== "hidden") {
-      result = this.ariaDescriptionId;
-    }
-    return result;
-  }
-  get a11y_input_ariaErrormessage() {
-    return null;
-  }
-  get a11y_input_ariaExpanded() {
-    return this.getPropertyValue("ariaExpanded");
-  }
-  //EO new a11y
-  get dragDropMatrixAttribute() {
-    return null;
-  }
-}
-__decorate([
-  property({ defaultValue: false })
-], Question.prototype, "_isMobile", void 0);
-__decorate([
-  property()
-], Question.prototype, "forceIsInputReadOnly", void 0);
-__decorate([
-  property({ onSet: (val, obj) => {
-    obj.onVisibleChangedCore();
-    obj.notifySurveyVisibilityChanged();
-  } })
-], Question.prototype, "visible", void 0);
-__decorate([
-  property()
-], Question.prototype, "useDisplayValuesInDynamicTexts", void 0);
-__decorate([
-  property()
-], Question.prototype, "visibleIf", void 0);
-__decorate([
-  property()
-], Question.prototype, "showNumber", void 0);
-__decorate([
-  property()
-], Question.prototype, "errorLocation", void 0);
-__decorate([
-  property()
-], Question.prototype, "descriptionLocation", void 0);
-__decorate([
-  property({ localizable: true })
-], Question.prototype, "requiredErrorText", void 0);
-__decorate([
-  property({ localizable: { defaultStr: true, markdown: true } })
-], Question.prototype, "commentText", void 0);
-__decorate([
-  property({ localizable: true })
-], Question.prototype, "commentPlaceholder", void 0);
-__decorate([
-  property({ localizable: true })
-], Question.prototype, "defaultDisplayValue", void 0);
-__decorate([
-  property()
-], Question.prototype, "startWithNewLine", void 0);
-__decorate([
-  property()
-], Question.prototype, "isRequired", void 0);
-__decorate([
-  property()
-], Question.prototype, "requiredIf", void 0);
-__decorate([
-  property()
-], Question.prototype, "id", void 0);
-__decorate([
-  property()
-], Question.prototype, "enableIf", void 0);
-__decorate([
-  property()
-], Question.prototype, "clearIfInvisible", void 0);
-__decorate([
-  property()
-], Question.prototype, "resetValueIf", void 0);
-__decorate([
-  property()
-], Question.prototype, "setValueIf", void 0);
-__decorate([
-  property()
-], Question.prototype, "setValueExpression", void 0);
-__decorate([
-  property({ onSetting: (val, obj) => obj.valueToData(val) })
-], Question.prototype, "correctAnswer", void 0);
-__decorate([
-  property({ returnValue: false })
-], Question.prototype, "isAnswered", void 0);
-__decorate([
-  property()
-], Question.prototype, "renderAs", void 0);
-__decorate([
-  property({ defaultValue: false })
-], Question.prototype, "inMatrixMode", void 0);
-function makeNameValid(str) {
-  if (!str)
-    return str;
-  str = str.trim().replace(/[\{\}]+/g, "");
-  while (!!str && str[0] === settings.expressionDisableConversionChar) {
-    str = str.substring(1);
-  }
-  return str;
-}
-Serializer.addClass("question", [
-  { name: "!name", onSettingValue: (obj, val) => {
-    return makeNameValid(val);
-  } },
-  {
-    name: "state",
-    default: "default",
-    choices: ["default", "collapsed", "expanded"]
-  },
-  { name: "visible:switch", default: true, overridingProperty: "visibleIf" },
-  { name: "useDisplayValuesInDynamicTexts:boolean", alternativeName: "useDisplayValuesInTitle", default: true, layout: "row" },
-  "visibleIf:condition",
-  { name: "width" },
-  { name: "minWidth", defaultFunc: () => settings.minWidth },
-  { name: "maxWidth", defaultFunc: () => settings.maxWidth },
-  {
-    name: "colSpan:number",
-    visible: false,
-    onSerializeValue: (obj) => {
-      return obj.getPropertyValue("colSpan");
-    }
-  },
-  {
-    name: "effectiveColSpan:number",
-    minValue: 1,
-    isSerializable: false,
-    visibleIf: function(obj) {
-      return !!obj && !!obj.survey && obj.survey.gridLayoutEnabled;
-    }
-  },
-  { name: "startWithNewLine:boolean", default: true, layout: "row" },
-  { name: "indent:number", default: 0, choices: [0, 1, 2, 3], layout: "row" },
-  {
-    name: "page",
-    isSerializable: false,
-    visibleIf: function(obj) {
-      var survey = obj ? obj.survey : null;
-      return !survey || !survey.pages || survey.pages.length > 1;
-    },
-    choices: function(obj) {
-      var survey = obj ? obj.survey : null;
-      return survey ? survey.pages.map((p2) => {
-        return { value: p2.name, text: p2.title };
-      }) : [];
-    }
-  },
-  {
-    name: "title:text",
-    serializationProperty: "locTitle",
-    layout: "row",
-    dependsOn: "name",
-    onPropertyEditorUpdate: function(obj, editor) {
-      if (!!obj && !!editor) {
-        editor.placeholder = obj.locTitle.getPlaceholder();
-      }
-    }
-  },
-  {
-    name: "titleLocation",
-    default: "default",
-    choices: ["default", "top", "bottom", "left", "hidden"],
-    layout: "row"
-  },
-  {
-    name: "showTitle:boolean",
-    isSerializable: false,
-    dependsOn: "titleLocation"
-  },
-  {
-    name: "description:text",
-    serializationProperty: "locDescription",
-    layout: "row"
-  },
-  {
-    name: "descriptionLocation",
-    default: "default",
-    choices: ["default", "underInput", "underTitle"]
-  },
-  {
-    name: "showNumber:boolean",
-    dependsOn: "titleLocation",
-    default: true,
-    visibleIf: function(obj) {
-      if (!obj) {
-        return true;
-      }
-      if (obj.titleLocation === "hidden") {
-        return false;
-      }
-      var parent = obj ? obj.parent : null;
-      var numberingAllowedByParent = !parent || parent.showQuestionNumbers !== "off";
-      if (!numberingAllowedByParent) {
-        return false;
-      }
-      var survey = obj ? obj.survey : null;
-      return !survey || survey.showQuestionNumbers !== "off" || !!parent && parent.showQuestionNumbers === "onpanel";
-    }
-  },
-  { name: "hideNumber:boolean", visible: false, isSerializable: false },
-  { name: "valueName", onSettingValue: (obj, val) => {
-    return makeNameValid(val);
-  } },
-  "enableIf:condition",
-  "resetValueIf:condition",
-  "setValueIf:condition",
-  "setValueExpression:expression",
-  "defaultValue:value",
-  "defaultValueExpression:expression",
-  "correctAnswer:value",
-  {
-    name: "clearIfInvisible",
-    default: "default",
-    choices: ["default", "none", "onComplete", "onHidden", "onHiddenContainer"]
-  },
-  { name: "isRequired:switch", overridingProperty: "requiredIf" },
-  "requiredIf:condition",
-  {
-    name: "requiredErrorText:text",
-    serializationProperty: "locRequiredErrorText"
-  },
-  { name: "errorLocation", default: "default", choices: ["default", "top", "bottom"] },
-  { name: "readOnly:switch", overridingProperty: "enableIf" },
-  {
-    name: "validators:validators",
-    baseClassName: "surveyvalidator",
-    classNamePart: "validator"
-  },
-  {
-    name: "bindings:bindings",
-    serializationProperty: "bindings",
-    isSerializableFunc: (obj) => !obj.isBindingEmpty(),
-    visibleIf: function(obj) {
-      return obj.bindings.getNames().length > 0;
-    }
-  },
-  { name: "renderAs", default: "default", visible: false },
-  { name: "showCommentArea:switch", visible: false, layout: "row", alternativeName: "hasComment" },
-  {
-    name: "commentText",
-    dependsOn: "showCommentArea",
-    visibleIf: function(obj) {
-      return obj.showCommentArea;
-    },
-    serializationProperty: "locCommentText"
-  },
-  {
-    name: "commentPlaceholder",
-    alternativeName: "commentPlaceHolder",
-    serializationProperty: "locCommentPlaceholder",
-    dependsOn: "showCommentArea",
-    visibleIf: function(obj) {
-      return obj.showCommentArea;
-    }
-  },
-  { name: "defaultDisplayValue", serializationProperty: "locDefaultDisplayValue" }
-]);
-Serializer.addAlterNativeClassName("question", "questionbase");
-class ItemValueGetterContext {
-  constructor(item) {
-    this.item = item;
-  }
-  getObj() {
-    return this.item;
-  }
-  getValue(params) {
-    const path2 = params.path;
-    const name = path2.length > 0 ? path2[0].name.toLocaleLowerCase() : "";
-    const expVar = settings.expressionVariables;
-    const isItemVar = [expVar.item, expVar.choice, expVar.self].indexOf(name) > -1;
-    if (path2.length === 1 && isItemVar) {
-      return { isFound: true, value: this.item.value, context: this };
-    }
-    if (params.isProperty && path2.length > 1 && isItemVar) {
-      params.path = path2.slice(1);
-      return new PropertyGetterContext(this.item).getValue(params);
-    }
-    const owner = this.item.locOwner;
-    if (owner && owner.getValueGetterContext) {
-      return owner.getValueGetterContext().getValue(params);
-    }
-    return void 0;
-  }
-  getRootObj() {
-    const owner = this.item.locOwner;
-    if (owner && owner.getValueGetterContext)
-      return owner;
-    return this.item.getSurvey();
-  }
-  getTextValue(name, value, isDisplayValue) {
-    if (isDisplayValue && value === this.item.value)
-      return this.item.textOrHtml;
-    return value !== void 0 && value !== null ? value.toString() : "";
-  }
-}
-class ItemValue extends BaseAction {
-  getMarkdownHtml(text2, name, item) {
-    return !!this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item || this) : void 0;
-  }
-  getRenderer(name) {
-    return !!this.locOwner ? this.locOwner.getRenderer(name, this) : null;
-  }
-  getRendererContext(locStr) {
-    return !!this.locOwner ? this.locOwner.getRendererContext(locStr, this) : locStr;
-  }
-  getProcessedText(text2) {
-    return this.locOwner ? this.locOwner.getProcessedText(text2, this) : text2;
-  }
-  static get Separator() {
-    return settings.itemValueSeparator;
-  }
-  static set Separator(val) {
-    settings.itemValueSeparator = val;
-  }
-  /**
-   * Resets the input array and fills it with values from the values array
-   */
-  static setData(items, values, type2) {
-    items.length = 0;
-    for (let i = 0; i < values.length; i++) {
-      const value = values[i];
-      const itemType = !!value && typeof value.getType === "function" ? value.getType() : type2 !== null && type2 !== void 0 ? type2 : "itemvalue";
-      const item = Serializer.createClass(itemType);
-      item.setData(value);
-      if (!!value.originalItem) {
-        item.originalItem = value.originalItem;
-      }
-      if (!!value.data) {
-        item.data = value.data;
-      }
-      items.push(item);
-    }
-  }
-  static getData(items) {
-    var result = [];
-    for (var i = 0; i < items.length; i++) {
-      result.push(items[i].getData());
-    }
-    return result;
-  }
-  getOwner() {
-    return this.locOwner || super.getOwner();
-  }
-  static getItemByValue(items, val) {
-    if (!Array.isArray(items))
-      return null;
-    const valIsEmpty = Helpers.isValueEmpty(val);
-    for (var i = 0; i < items.length; i++) {
-      if (valIsEmpty && Helpers.isValueEmpty(items[i].value))
-        return items[i];
-      if (Helpers.isTwoValueEquals(items[i].value, val, false, true, false))
-        return items[i];
-    }
-    return null;
-  }
-  static getTextOrHtmlByValue(items, val) {
-    var item = ItemValue.getItemByValue(items, val);
-    return item !== null ? item.textOrHtml : "";
-  }
-  static locStrsChanged(items) {
-    for (var i = 0; i < items.length; i++) {
-      items[i].locStrsChanged();
-    }
-  }
-  static runConditionsForItems(items, filteredItems, runner, properties, useItemExpression = true, onItemCallBack) {
-    return ItemValue.runConditionsForItemsCore(items, filteredItems, runner, properties, true, useItemExpression, onItemCallBack);
-  }
-  static runEnabledConditionsForItems(items, runner, properties, onItemCallBack) {
-    return ItemValue.runConditionsForItemsCore(items, null, runner, properties, false, true, onItemCallBack);
-  }
-  static runConditionsForItemsCore(items, filteredItems, runner, properties, isVisible, useItemExpression = true, onItemCallBack) {
-    var hasChanded = false;
-    for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      var itemRunner = useItemExpression && !!item.getConditionRunner ? item.getConditionRunner(isVisible) : false;
-      if (!itemRunner) {
-        itemRunner = runner;
-      }
-      var newValue = true;
-      if (itemRunner) {
-        newValue = itemRunner.runContext(item.getValueGetterContext(), properties);
-      }
-      if (!!onItemCallBack) {
-        newValue = onItemCallBack(item, newValue);
-      }
-      if (!!filteredItems && newValue) {
-        filteredItems.push(item);
-      }
-      var oldValue = isVisible ? item.isVisible : item.isEnabled;
-      if (newValue != oldValue) {
-        hasChanded = true;
-        if (isVisible) {
-          if (!!item.setIsVisible)
-            item.setIsVisible(newValue);
-        } else {
-          if (!!item.setIsEnabled)
-            item.setIsEnabled(newValue);
-        }
-      }
-    }
-    return hasChanded;
-  }
-  constructor(value, text2, typeName) {
-    super();
-    this.typeName = typeName;
-    this.ownerPropertyName = "";
-    if (text2)
-      this.locText.text = text2;
-    if (!!value && typeof value === "object") {
-      this.setData(value, true);
-    } else {
-      this.setValue(value, true);
-    }
-    if (this.getType() != this.getBaseType()) {
-      CustomPropertiesCollection.createProperties(this);
-    }
-  }
-  getType() {
-    return this.typeName || this.getBaseType();
-  }
-  getBaseType() {
-    return "itemvalue";
-  }
-  getSurvey(live = false) {
-    return !!this.locOwner && !!this.locOwner["getSurvey"] ? this.locOwner.getSurvey() : null;
-  }
-  getLocale() {
-    return !!this.locOwner && this.locOwner.getLocale ? this.locOwner.getLocale() : "";
-  }
-  getLocalizableString(name) {
-    if (name === "text")
-      return this.locText;
-    return super.getLocalizableString(name);
-  }
-  getValueGetterContext() {
-    return new ItemValueGetterContext(this);
-  }
-  get isInternal() {
-    return this.isGhost === true;
-  }
-  createLocText() {
-    const res = this.createLocalizableStringCore(this, "text", true, "text");
-    res.onGetTextCallback = (txt) => {
-      return this.onGetText(txt);
-    };
-    return res;
-  }
-  onGetText(text2) {
-    return text2 || this.getValueText();
-  }
-  getValueText() {
-    const val = this.value;
-    return !Helpers.isValueEmpty(val) ? val.toString() : null;
-  }
-  get locText() {
-    return this.getLocText();
-  }
-  getLocText() {
-    if (!this.locTextValue) {
-      this.locTextValue = this.createLocText();
-    }
-    return this.locTextValue;
-  }
-  setLocText(locText) {
-    this.locTextValue = locText;
-  }
-  get locOwner() {
-    return this._locOwner;
-  }
-  set locOwner(value) {
-    this._locOwner = value;
-    this.onLocOwnerChanged();
-  }
-  onLocOwnerChanged() {
-  }
-  onDependencyValueChanged(obj, propertyName) {
-    const owner = this.locOwner;
-    if (owner && owner.onDependencyValueChanged) {
-      owner.onDependencyValueChanged(obj, propertyName);
-    } else {
-      super.onDependencyValueChanged(obj, propertyName);
-    }
-  }
-  get value() {
-    return this.getPropertyValue("value");
-  }
-  set value(newValue) {
-    this.setValue(newValue, false);
-  }
-  setValue(newValue, newItem) {
-    let text2 = void 0;
-    newValue = this.getCorrectValue(newValue);
-    const sep = settings.itemValueSeparator;
-    if (!!sep && !Helpers.isValueEmpty(newValue)) {
-      var str = newValue.toString();
-      var index = str.indexOf(sep);
-      if (index > -1) {
-        newValue = str.slice(0, index);
-        text2 = str.slice(index + 1);
-      }
-    }
-    if (newItem) {
-      this.setPropertyValueDirectly("value", newValue);
-    } else {
-      this.setPropertyValue("value", newValue);
-    }
-    if (!!text2) {
-      this.text = text2;
-    }
-    this.id = this.value;
-  }
-  getCorrectValue(value) {
-    return value;
-  }
-  get hasText() {
-    return this.pureText ? true : false;
-  }
-  get pureText() {
-    var _a2;
-    return ((_a2 = this.locTextValue) === null || _a2 === void 0 ? void 0 : _a2.pureText) || "";
-  }
-  set pureText(val) {
-    this.text = val;
-  }
-  get text() {
-    return this.calculatedText;
-  }
-  set text(newText) {
-    this.locText.text = newText;
-  }
-  get textOrHtml() {
-    if (this.locTextValue)
-      return this.locText.textOrHtml;
-    return this.getValueText();
-  }
-  get calculatedText() {
-    if (this.locTextValue)
-      return this.locText.calculatedText;
-    return this.getValueText();
-  }
-  get shortcutText() {
-    return this.text;
-  }
-  canSerializeValue() {
-    const val = this.value;
-    if (val === void 0 || val === null)
-      return false;
-    return !Array.isArray(val) && typeof val !== "object";
-  }
-  getData(options2) {
-    var json = this.toJSON(options2);
-    if (!!json["value"] && !!json["value"]["pos"]) {
-      delete json["value"]["pos"];
-    }
-    if (Helpers.isValueEmpty(json.value))
-      return json;
-    const canSerializeVal = this.canSerializeValue();
-    const canSerializeAsContant = !canSerializeVal || !settings.serialization.itemValueSerializeAsObject && !settings.serialization.itemValueSerializeDisplayText;
-    if (canSerializeAsContant && Object.keys(json).length == 1)
-      return this.value;
-    if (settings.serialization.itemValueSerializeDisplayText && json.text === void 0 && canSerializeVal) {
-      json.text = this.value.toString();
-    }
-    return json;
-  }
-  toJSON(options2) {
-    var res = {};
-    var properties = Serializer.getProperties(this.getType());
-    if (!properties || properties.length == 0) {
-      properties = Serializer.getProperties(this.getBaseType());
-    }
-    var jsoObj = new JsonObject();
-    for (var i = 0; i < properties.length; i++) {
-      const prop = properties[i];
-      if (this.canAddPpropertyToJSON(prop)) {
-        jsoObj.valueToJson(this, res, prop, options2);
-      }
-    }
-    return res;
-  }
-  isPropertyStoredInHash(name) {
-    return name !== "text";
-  }
-  canAddPpropertyToJSON(prop) {
-    if (prop.name === "text" && (!this.locTextValue || !this.locTextValue.hasNonDefaultText() && Helpers.isTwoValueEquals(this.value, this.locTextValue.getLocaleText(""), false, true, false))) {
-      return false;
-    }
-    return true;
-  }
-  setData(value, isNewItem) {
-    var _a2;
-    if (Helpers.isValueEmpty(value))
-      return;
-    if (typeof value.value === "undefined" && typeof value.text !== "undefined" && Object.keys(value).length === 1) {
-      value.value = value.text;
-    }
-    if (typeof value.value !== "undefined") {
-      let json;
-      if (typeof value.toJSON === "function") {
-        json = value.toJSON();
-      } else {
-        if (Array.isArray(value.elements)) {
-          json = {};
-          for (var key in value) {
-            if (key !== "elements") {
-              json[key] = value[key];
-            }
-          }
-        } else {
-          json = value;
-        }
-      }
-      new JsonObject().toObject(json, this);
-    } else {
-      this.setValue(value, isNewItem);
-    }
-    if (!isNewItem) {
-      (_a2 = this.locTextValue) === null || _a2 === void 0 ? void 0 : _a2.strChanged();
-    }
-  }
-  get visibleIf() {
-    return this.getPropertyValueWithoutDefault("visibleIf") || "";
-  }
-  set visibleIf(val) {
-    this.setPropertyValue("visibleIf", val);
-  }
-  get enableIf() {
-    return this.getPropertyValueWithoutDefault("enableIf") || "";
-  }
-  set enableIf(val) {
-    this.setPropertyValue("enableIf", val);
-  }
-  get isVisible() {
-    const res = this.getPropertyValueWithoutDefault("isVisible");
-    return res !== void 0 ? res : true;
-  }
-  setIsVisible(val) {
-    this.setPropertyValue("isVisible", val);
-  }
-  get isEnabled() {
-    const res = this.getPropertyValueWithoutDefault("isEnabled");
-    return res !== void 0 ? res : true;
-  }
-  setIsEnabled(val) {
-    this.setPropertyValue("isEnabled", val);
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-    var _a2;
-    if (name === "value" && !this.hasText) {
-      (_a2 = this.locTextValue) === null || _a2 === void 0 ? void 0 : _a2.strChanged();
-    }
-    var funcName = "itemValuePropertyChanged";
-    if (!this.locOwner || !this.locOwner[funcName])
-      return;
-    this.locOwner[funcName](this, name, oldValue, newValue);
-  }
-  getConditionRunner(isVisible) {
-    if (isVisible)
-      return this.getVisibleConditionRunner();
-    return this.getEnableConditionRunner();
-  }
-  getVisibleConditionRunner() {
-    const expression = this.getExpressionFromSurvey("visibleIf");
-    if (!expression)
-      return null;
-    if (!this.visibleConditionRunner)
-      this.visibleConditionRunner = new ConditionRunner(expression);
-    this.visibleConditionRunner.expression = expression;
-    return this.visibleConditionRunner;
-  }
-  getEnableConditionRunner() {
-    const expression = this.getExpressionFromSurvey("enableIf");
-    if (!expression)
-      return null;
-    if (!this.enableConditionRunner)
-      this.enableConditionRunner = new ConditionRunner(expression);
-    this.enableConditionRunner.expression = expression;
-    return this.enableConditionRunner;
-  }
-  get selected() {
-    const locOwner = this._locOwner;
-    if (locOwner instanceof Question && locOwner.isItemSelected && this.selectedValue === void 0) {
-      this.selectedValue = new ComputedUpdater(() => locOwner.isItemSelected(this));
-    }
-    return this.selectedValue;
-  }
-  getComponent() {
-    if (this._locOwner instanceof Question) {
-      return this.componentValue || this._locOwner.itemComponent;
-    }
-    return this.componentValue;
-  }
-  setComponent(val) {
-    this.componentValue = val;
-  }
-  setRootElement(val) {
-    this._htmlElement = val;
-  }
-  getRootElement() {
-    return this._htmlElement;
-  }
-  getEnabled() {
-    return this.isEnabled;
-  }
-  setEnabled(val) {
-    this.setIsEnabled(val);
-  }
-  getVisible() {
-    const isVisible = this.isVisible === void 0 ? true : this.isVisible;
-    const visible = this._visible === void 0 ? true : this._visible;
-    return isVisible && visible;
-  }
-  setVisible(val) {
-    if (this.visible !== val) {
-      this._visible = val;
-    }
-  }
-  get _visible() {
-    return this.getPropertyValue("visible", true);
-  }
-  set _visible(val) {
-    this.setPropertyValue("visible", val);
-  }
-  getLocTitle() {
-    return this.locText;
-  }
-  getTitle() {
-    return this.text;
-  }
-  setLocTitle(val) {
-  }
-  setTitle(val) {
-  }
-}
-__decorate([
-  property()
-], ItemValue.prototype, "selectedValue", void 0);
-__decorate([
-  property({ defaultValue: "" })
-], ItemValue.prototype, "icon", void 0);
-Base.createItemValue = function(source, type2) {
-  var item = null;
-  if (!!type2) {
-    item = JsonObject.metaData.createClass(type2, {});
-  } else if (typeof source.getType === "function") {
-    item = new ItemValue(null, void 0, source.getType());
-  } else {
-    item = new ItemValue(null);
-  }
-  item.setData(source);
-  return item;
-};
-Base.itemValueLocStrChanged = function(arr2) {
-  ItemValue.locStrsChanged(arr2);
-};
-JsonObjectProperty.getItemValuesDefaultValue = (val, type2) => {
-  const res = new Array();
-  ItemValue.setData(res, Array.isArray(val) ? val : [], type2);
-  return res;
-};
-Serializer.addClass("itemvalue", [
-  { name: "!value", isUnique: true },
-  {
-    name: "text",
-    serializationProperty: "locText"
-  },
-  { name: "visibleIf:condition", locationInTable: "detail" },
-  {
-    name: "enableIf:condition",
-    locationInTable: "detail",
-    visibleIf: (obj) => {
-      return !obj || obj.ownerPropertyName !== "rateValues";
-    }
-  }
-], (value) => new ItemValue(value));
-class CalculatedValue extends Base {
-  constructor(name = null, expression = null) {
-    super();
-    this.expressionIsRunning = false;
-    this.isCalculated = false;
-    if (!!name) {
-      this.name = name;
-    }
-    if (!!expression) {
-      this.expression = expression;
-    }
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "expression") {
-      this.rerunExpression();
-    }
-  }
-  setOwner(data2) {
-    this.data = data2;
-    this.rerunExpression();
-  }
-  getOwner() {
-    return this.data;
-  }
-  getType() {
-    return "calculatedvalue";
-  }
-  getSurvey(live = false) {
-    return !!this.data && !!this.data["getSurvey"] ? this.data.getSurvey() : null;
-  }
-  get owner() {
-    return this.data;
-  }
-  locCalculation() {
-    this.expressionIsRunning = true;
-  }
-  unlocCalculation() {
-    this.expressionIsRunning = false;
-  }
-  resetCalculation() {
-    this.isCalculated = false;
-  }
-  doCalculation(calculatedValues, properties) {
-    if (this.isCalculated)
-      return;
-    this.runExpressionCore(calculatedValues, properties);
-    this.isCalculated = true;
-  }
-  runExpression(properties) {
-    this.runExpressionCore(null, properties);
-  }
-  get value() {
-    if (!this.data)
-      return void 0;
-    return this.data.getVariable(this.name);
-  }
-  setValue(val) {
-    if (!this.data)
-      return;
-    this.data.setVariable(this.name, val);
-  }
-  get canRunExpression() {
-    return !!this.data && !this.isLoadingFromJson && !!this.expression && !this.expressionIsRunning && !!this.name;
-  }
-  rerunExpression() {
-    if (!this.canRunExpression)
-      return;
-    this.runExpression({ survey: this.getSurvey() });
-  }
-  runExpressionCore(calculatedValues, properties) {
-    if (!this.canRunExpression || !this.ensureExpression())
-      return;
-    this.locCalculation();
-    if (!!calculatedValues) {
-      this.runDependentExpressions(calculatedValues, properties);
-    }
-    this.expressionRunner.runContext(this.getValueGetterContext(), this.getPropertiesCopy(properties, "expression"));
-  }
-  runDependentExpressions(calculatedValues, properties) {
-    var variables = this.expressionRunner.getVariables();
-    if (!variables)
-      return;
-    for (var i = 0; i < calculatedValues.length; i++) {
-      var calcItem = calculatedValues[i];
-      if (calcItem === this || variables.indexOf(calcItem.name) < 0)
-        continue;
-      calcItem.doCalculation(calculatedValues, properties);
-    }
-  }
-  ensureExpression() {
-    const expression = this.getExpressionFromSurvey("expression");
-    if (!expression)
-      return false;
-    if (!!this.expressionRunner) {
-      this.expressionRunner.expression = expression;
-    } else {
-      this.expressionRunner = this.createExpressionRunner(expression);
-      this.expressionRunner.onRunComplete = (newValue) => {
-        if (!Helpers.isTwoValueEquals(newValue, this.value, false, true, false)) {
-          this.setValue(newValue);
-        }
-        this.unlocCalculation();
-      };
-    }
-    return true;
-  }
-}
-__decorate([
-  property()
-], CalculatedValue.prototype, "name", void 0);
-__decorate([
-  property()
-], CalculatedValue.prototype, "includeIntoResult", void 0);
-__decorate([
-  property()
-], CalculatedValue.prototype, "expression", void 0);
-Serializer.addClass("calculatedvalue", [
-  { name: "!name", isUnique: true },
-  "expression:expression",
-  "includeIntoResult:boolean"
-], function() {
-  return new CalculatedValue();
-}, "base");
-class ExpressionItem extends Base {
-  constructor(expression = null) {
-    super();
-    this.expression = expression;
-  }
-  getType() {
-    return "expressionitem";
-  }
-  getOwner() {
-    return this.locOwner;
-  }
-  runCondition(properties) {
-    let res = false;
-    this.runExpressionByProperty("expression", properties, (val) => {
-      res = val === true;
-    });
-    return res;
-  }
-  get locHtml() {
-    return this.getLocalizableString("html");
-  }
-  getLocale() {
-    return !!this.locOwner ? this.locOwner.getLocale() : "";
-  }
-  getMarkdownHtml(text2, name, item) {
-    return !!this.locOwner ? this.locOwner.getMarkdownHtml(text2, name, item) : void 0;
-  }
-  getRenderer(name) {
-    return !!this.locOwner ? this.locOwner.getRenderer(name) : null;
-  }
-  getRendererContext(locStr) {
-    return !!this.locOwner ? this.locOwner.getRendererContext(locStr) : locStr;
-  }
-  getProcessedText(text2) {
-    return this.locOwner ? this.locOwner.getProcessedText(text2) : text2;
-  }
-  getSurvey(isLive = false) {
-    return this.locOwner;
-  }
-}
-__decorate([
-  property({ returnValue: "" })
-], ExpressionItem.prototype, "expression", void 0);
-class HtmlConditionItem extends ExpressionItem {
-  constructor(expression = null, html = null) {
-    super(expression);
-    if (html) {
-      this.html = html;
-    }
-  }
-  getType() {
-    return "htmlconditionitem";
-  }
-}
-__decorate([
-  property({ localizable: { markdown: true } })
-], HtmlConditionItem.prototype, "html", void 0);
-class UrlConditionItem extends ExpressionItem {
-  constructor(expression = null, url = null) {
-    super(expression);
-    if (url) {
-      this.url = url;
-    }
-  }
-  getType() {
-    return "urlconditionitem";
-  }
-}
-__decorate([
-  property({ localizable: true })
-], UrlConditionItem.prototype, "url", void 0);
-Serializer.addClass("expressionitem", ["expression:condition"], function() {
-  return new ExpressionItem();
-}, "base");
-Serializer.addClass("htmlconditionitem", [{ name: "html:html", serializationProperty: "locHtml" }], function() {
-  return new HtmlConditionItem();
-}, "expressionitem");
-Serializer.addClass("urlconditionitem", [{ name: "url:string", serializationProperty: "locUrl" }], function() {
-  return new UrlConditionItem();
-}, "expressionitem");
-class XmlParser {
-  constructor() {
-    this.parser = new DOMParser();
-  }
-  assignValue(target, name, value) {
-    if (Array.isArray(target[name])) {
-      target[name].push(value);
-    } else if (target[name] !== void 0) {
-      target[name] = [target[name]].concat(value);
-    } else if (typeof value === "object" && Object.keys(value).length === 1 && Object.keys(value)[0] === name) {
-      target[name] = value[name];
-    } else {
-      target[name] = value;
-    }
-  }
-  xml2Json(xmlNode, result) {
-    if (xmlNode.children && xmlNode.children.length > 0) {
-      for (let i = 0; i < xmlNode.children.length; i++) {
-        let childNode = xmlNode.children[i];
-        let childObject = {};
-        this.xml2Json(childNode, childObject);
-        this.assignValue(result, childNode.nodeName, childObject);
-      }
-    } else {
-      this.assignValue(result, xmlNode.nodeName, xmlNode.textContent);
-    }
-  }
-  parseXmlString(xmlString) {
-    let xmlRoot = this.parser.parseFromString(xmlString, "text/xml");
-    let json = {};
-    this.xml2Json(xmlRoot, json);
-    return json;
-  }
-}
-class ChoicesRestful extends Base {
-  constructor() {
-    super(...arguments);
-    this.lastObjHash = "";
-    this.isRunningValue = false;
-    this.processedUrl = "";
-    this.processedPath = "";
-    this.isUsingCacheFromUrl = void 0;
-    this.error = null;
-    this.createItemValue = (value) => {
-      return new ItemValue(value);
-    };
-  }
-  static get EncodeParameters() {
-    return settings.web.encodeUrlParams;
-  }
-  static set EncodeParameters(val) {
-    settings.web.encodeUrlParams = val;
-  }
-  static clearCache() {
-    ChoicesRestful.itemsResult = {};
-    ChoicesRestful.sendingSameRequests = {};
-  }
-  static addSameRequest(obj) {
-    if (!obj.isUsingCache)
-      return false;
-    var hash = obj.objHash;
-    var res = ChoicesRestful.sendingSameRequests[hash];
-    if (!res) {
-      ChoicesRestful.sendingSameRequests[obj.objHash] = [];
-      return false;
-    }
-    res.push(obj);
-    obj.isRunningValue = true;
-    return true;
-  }
-  static unregisterSameRequests(obj, items) {
-    if (!obj.isUsingCache)
-      return;
-    var res = ChoicesRestful.sendingSameRequests[obj.objHash];
-    delete ChoicesRestful.sendingSameRequests[obj.objHash];
-    if (!res)
-      return;
-    for (var i = 0; i < res.length; i++) {
-      res[i].isRunningValue = false;
-      if (!!res[i].getResultCallback) {
-        res[i].getResultCallback(items);
-      }
-    }
-  }
-  static get onBeforeSendRequest() {
-    return settings.web.onBeforeRequestChoices;
-  }
-  static set onBeforeSendRequest(val) {
-    settings.web.onBeforeRequestChoices = val;
-  }
-  static getCachedItemsResult(obj) {
-    var hash = obj.objHash;
-    var res = ChoicesRestful.itemsResult[hash];
-    if (!res)
-      return false;
-    if (obj.getResultCallback) {
-      obj.getResultCallback(res);
-    }
-    return true;
-  }
-  onPropertyValueChanged(name, oldValue, newValue) {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "url") {
-      if (this.owner) {
-        this.owner.setPropertyValue("isUsingRestful", !!newValue);
-      }
-      this.isUsingCacheFromUrl = void 0;
-      if (!newValue)
-        return;
-      if (newValue.indexOf(ChoicesRestful.cacheText) > -1) {
-        this.isUsingCacheFromUrl = true;
-      } else {
-        if (newValue.indexOf(ChoicesRestful.noCacheText) > -1) {
-          this.isUsingCacheFromUrl = false;
-        }
-      }
-    }
-  }
-  getSurvey(live = false) {
-    return !!this.owner ? this.owner.survey : null;
-  }
-  run(textProcessor = null) {
-    if (!this.url || !this.getResultCallback)
-      return;
-    this.processedText(textProcessor);
-    if (!this.processedUrl) {
-      this.doEmptyResultCallback({});
-      this.lastObjHash = this.objHash;
-      return;
-    }
-    if (this.lastObjHash === this.objHash)
-      return;
-    this.lastObjHash = this.objHash;
-    this.error = null;
-    if (this.useChangedItemsResults())
-      return;
-    if (ChoicesRestful.addSameRequest(this))
-      return;
-    this.sendRequest();
-  }
-  get isUsingCache() {
-    if (this.isUsingCacheFromUrl === true)
-      return true;
-    if (this.isUsingCacheFromUrl === false)
-      return false;
-    return settings.web.cacheLoadedChoices;
-  }
-  get isRunning() {
-    return this.getIsRunning();
-  }
-  getIsRunning() {
-    return this.isRunningValue;
-  }
-  get isWaitingForParameters() {
-    return this.url && !this.processedUrl;
-  }
-  useChangedItemsResults() {
-    return ChoicesRestful.getCachedItemsResult(this);
-  }
-  doEmptyResultCallback(serverResult) {
-    var items = [];
-    if (this.updateResultCallback) {
-      items = this.updateResultCallback(items, serverResult);
-    }
-    this.getResultCallback(items);
-  }
-  processedText(textProcessor) {
-    var urlText = this.url;
-    if (!!urlText) {
-      urlText = urlText.replace(ChoicesRestful.cacheText, "").replace(ChoicesRestful.noCacheText, "");
-    }
-    if (textProcessor) {
-      var pUrl = textProcessor.processTextEx({ text: urlText, runAtDesign: true });
-      var pPath = textProcessor.processTextEx({ text: this.path, runAtDesign: true });
-      if (!pUrl.hasAllValuesOnLastRun || !pPath.hasAllValuesOnLastRun) {
-        this.processedUrl = "";
-        this.processedPath = "";
-      } else {
-        this.processedUrl = pUrl.text;
-        this.processedPath = pPath.text;
-      }
-    } else {
-      this.processedUrl = urlText;
-      this.processedPath = this.path;
-    }
-    if (this.onProcessedUrlCallback) {
-      this.onProcessedUrlCallback(this.processedUrl, this.processedPath);
-    }
-  }
-  parseResponse(response) {
-    let parsedResponse;
-    if (!!response && typeof response.indexOf === "function" && response.indexOf("<") === 0) {
-      var parser = new XmlParser();
-      parsedResponse = parser.parseXmlString(response);
-    } else {
-      try {
-        parsedResponse = JSON.parse(response);
-      } catch (_a2) {
-        parsedResponse = (response || "").split("\n").map((s) => s.trim(" ")).filter((s) => !!s);
-      }
-    }
-    return parsedResponse;
-  }
-  sendRequest() {
-    if (typeof XMLHttpRequest !== "undefined") {
-      this.sendXmlHttpRequest();
-    } else if (typeof fetch !== "undefined") {
-      this.sendFetchRequest();
-    } else {
-      this.error = new WebRequestError("The browser does not support XMLHttpRequest or fetch API", "", this.owner);
-      this.doEmptyResultCallback("");
-    }
-  }
-  sendXmlHttpRequest() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", this.processedUrl);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    var self2 = this;
-    var loadingObjHash = this.objHash;
-    xhr.onload = function() {
-      self2.beforeLoadRequest();
-      if (xhr.status === 200) {
-        self2.onLoad(self2.parseResponse(xhr.response), loadingObjHash);
-      } else {
-        self2.onError(xhr.statusText, xhr.responseText);
-      }
-    };
-    var options2 = { url: this.processedUrl, request: xhr };
-    if (!!settings.web.onBeforeRequestChoices) {
-      settings.web.onBeforeRequestChoices(this, options2);
-    }
-    this.beforeSendRequest();
-    options2.request.send();
-  }
-  sendFetchRequest() {
-    const self2 = this;
-    const loadingObjHash = this.objHash;
-    let url = this.processedUrl;
-    const fetchOptions = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      }
-    };
-    const options2 = { url, fetchOptions };
-    if (settings.web.onBeforeRequestChoices) {
-      settings.web.onBeforeRequestChoices(this, options2);
-    }
-    this.beforeSendRequest();
-    fetch(options2.url, options2.fetchOptions).then((response) => {
-      self2.beforeLoadRequest();
-      if (response.status === 200) {
-        return response.text().then((text2) => {
-          self2.onLoad(self2.parseResponse(text2), loadingObjHash);
-        });
-      } else {
-        return response.text().then((errorText) => {
-          self2.onError(response.statusText, errorText);
-        });
-      }
-    }).catch((error3) => {
-      self2.onError(error3.message, "");
-    });
-  }
-  getType() {
-    return "choicesByUrl";
-  }
-  get isEmpty() {
-    return !this.url && !this.path;
-  }
-  dispose() {
-    super.dispose();
-    this.getResultCallback = null;
-    this.beforeSendRequestCallback = null;
-    this.updateResultCallback = null;
-    this.getItemValueCallback = null;
-  }
-  getCustomPropertiesNames() {
-    var properties = this.getCustomProperties();
-    var res = new Array();
-    for (var i = 0; i < properties.length; i++) {
-      res.push(this.getCustomPropertyName(properties[i].name));
-    }
-    return res;
-  }
-  getCustomPropertyName(propertyName) {
-    return propertyName + "Name";
-  }
-  getCustomProperties() {
-    var properties = Serializer.getProperties(this.itemValueType);
-    var res = [];
-    for (var i = 0; i < properties.length; i++) {
-      if (properties[i].name === "value" || properties[i].name === "text" || properties[i].name === "visibleIf" || properties[i].name === "enableIf")
-        continue;
-      res.push(properties[i]);
-    }
-    return res;
-  }
-  getAllPropertiesNames() {
-    const res = new Array();
-    Serializer.getPropertiesByObj(this).forEach((prop) => res.push(prop.name));
-    this.getCustomPropertiesNames().forEach((prop) => res.push(prop));
-    return res;
-  }
-  setData(json) {
-    if (!json)
-      json = {};
-    this.getAllPropertiesNames().forEach((name) => {
-      this[name] = json[name];
-    });
-    const attach2 = json.attachData || json.attachOriginalItems;
-    if (attach2 !== void 0) {
-      this.attachData = attach2;
-    }
-  }
-  getData() {
-    const res = {};
-    let hasValue = false;
-    this.getAllPropertiesNames().forEach((name) => {
-      const val = this[name];
-      if (!this.isValueEmpty(val) && val !== this.getDefaultPropertyValue(name)) {
-        res[name] = val;
-        hasValue = true;
-      }
-    });
-    return hasValue ? res : null;
-  }
-  get attachOriginalItems() {
-    return this.attachData;
-  }
-  set attachOriginalItems(val) {
-    this.attachData = val;
-  }
-  get itemValueType() {
-    if (!this.owner)
-      return "itemvalue";
-    var prop = Serializer.findProperty(this.owner.getType(), "choices");
-    if (!prop)
-      return "itemvalue";
-    if (prop.type == "itemvalue[]")
-      return "itemvalue";
-    return prop.type;
-  }
-  clear() {
-    this.setData(void 0);
-  }
-  beforeSendRequest() {
-    this.isRunningValue = true;
-    if (!!this.beforeSendRequestCallback) {
-      this.beforeSendRequestCallback();
-    }
-  }
-  beforeLoadRequest() {
-    this.isRunningValue = false;
-  }
-  onLoad(result, loadingObjHash = null) {
-    if (!loadingObjHash) {
-      loadingObjHash = this.objHash;
-    }
-    let items = new Array();
-    const updatedResult = this.getResultAfterPath(result);
-    if (updatedResult && updatedResult["length"]) {
-      for (let i = 0; i < updatedResult.length; i++) {
-        const itemValue = updatedResult[i];
-        if (!itemValue)
-          continue;
-        const value = !!this.getItemValueCallback ? this.getItemValueCallback(itemValue) : this.getValue(itemValue);
-        const item = this.createItemValue(value);
-        this.setTitle(item, itemValue);
-        this.setCustomProperties(item, itemValue);
-        if (this.attachData) {
-          item.originalItem = itemValue;
-          item.data = itemValue;
-        }
-        const imageLink = this.getImageLink(itemValue);
-        if (!!imageLink) {
-          item.imageLink = imageLink;
-        }
-        this.setItemValueProperties(item, itemValue);
-        items.push(item);
-      }
-    } else {
-      if (!this.allowEmptyResponse) {
-        this.error = new WebRequestEmptyError(null, this.owner);
-      }
-    }
-    if (this.updateResultCallback) {
-      items = this.updateResultCallback(items, result);
-    }
-    if (this.isUsingCache) {
-      ChoicesRestful.itemsResult[loadingObjHash] = items;
-    }
-    this.callResultCallback(items, loadingObjHash);
-    ChoicesRestful.unregisterSameRequests(this, items);
-  }
-  setItemValueProperties(item, itemValue) {
-    const props = ["isExclusive", "showCommentArea", "isCommentRequired", "visibleIf", "enableIf"];
-    props.forEach((propName) => {
-      if (itemValue[propName] !== void 0) {
-        item[propName] = itemValue[propName];
-      }
-    });
-  }
-  callResultCallback(items, loadingObjHash) {
-    if (loadingObjHash != this.objHash)
-      return;
-    this.getResultCallback(items);
-  }
-  setCustomProperties(item, itemValue) {
-    var properties = this.getCustomProperties();
-    for (var i = 0; i < properties.length; i++) {
-      var prop = properties[i];
-      var val = this.getValueCore(itemValue, this.getPropertyBinding(prop.name));
-      if (!this.isValueEmpty(val)) {
-        item[prop.name] = val;
-      }
-    }
-  }
-  getPropertyBinding(propertyName) {
-    if (this[this.getCustomPropertyName(propertyName)])
-      return this[this.getCustomPropertyName(propertyName)];
-    if (this[propertyName])
-      return this[propertyName];
-    return propertyName;
-  }
-  onError(status, response) {
-    this.error = new WebRequestError(status, response, this.owner);
-    this.doEmptyResultCallback(response);
-    ChoicesRestful.unregisterSameRequests(this, []);
-  }
-  getResultAfterPath(result) {
-    if (!result)
-      return result;
-    if (!this.processedPath)
-      return result;
-    var pathes = this.getPathes();
-    for (var i = 0; i < pathes.length; i++) {
-      result = result[pathes[i]];
-      if (!result)
-        return null;
-    }
-    return result;
-  }
-  getPathes() {
-    var pathes = [];
-    if (this.processedPath.indexOf(";") > -1) {
-      pathes = this.path.split(";");
-    } else if (this.processedPath.indexOf(",") > -1) {
-      pathes = this.processedPath.split(",");
-    } else {
-      pathes = this.processedPath.split(".");
-    }
-    if (pathes.length == 0)
-      pathes.push(this.processedPath);
-    return pathes;
-  }
-  getValue(item) {
-    if (!item)
-      return null;
-    if (this.valueName)
-      return this.getValueCore(item, this.valueName);
-    if (!(item instanceof Object))
-      return item;
-    var len = Object.keys(item).length;
-    if (len < 1)
-      return null;
-    return item[Object.keys(item)[0]];
-  }
-  setTitle(item, itemValue) {
-    var title = this.titleName ? this.titleName : "title";
-    var val = this.getValueCore(itemValue, title);
-    if (!val)
-      return;
-    item.locText.setJson(val);
-  }
-  getImageLink(item) {
-    var imageLink = this.imageLinkName ? this.imageLinkName : "imageLink";
-    return this.getValueCore(item, imageLink);
-  }
-  getValueCore(item, property2) {
-    if (!item)
-      return null;
-    if (property2.indexOf(".") < 0)
-      return item[property2];
-    var properties = property2.split(".");
-    for (var i = 0; i < properties.length; i++) {
-      item = item[properties[i]];
-      if (!item)
-        return null;
-    }
-    return item;
-  }
-  get objHash() {
-    return this.processedUrl + ";" + this.processedPath + ";" + this.valueName + ";" + this.titleName + ";" + this.imageLinkName + ";" + this.attachData;
-  }
-}
-ChoicesRestful.cacheText = "{CACHE}";
-ChoicesRestful.noCacheText = "{NOCACHE}";
-ChoicesRestful.itemsResult = {};
-ChoicesRestful.sendingSameRequests = {};
-__decorate([
-  property({ returnValue: "" })
-], ChoicesRestful.prototype, "url", void 0);
-__decorate([
-  property({ returnValue: "" })
-], ChoicesRestful.prototype, "path", void 0);
-__decorate([
-  property({ returnValue: "" })
-], ChoicesRestful.prototype, "valueName", void 0);
-__decorate([
-  property({ returnValue: "" })
-], ChoicesRestful.prototype, "titleName", void 0);
-__decorate([
-  property({ returnValue: "" })
-], ChoicesRestful.prototype, "imageLinkName", void 0);
-__decorate([
-  property()
-], ChoicesRestful.prototype, "allowEmptyResponse", void 0);
-__decorate([
-  property()
-], ChoicesRestful.prototype, "attachData", void 0);
-Serializer.addClass("choicesByUrl", [
-  "url",
-  "path",
-  "valueName",
-  "titleName",
-  {
-    name: "imageLinkName",
-    visibleIf: function(obj) {
-      return !!obj && !!obj.owner && obj.owner.getType() == "imagepicker";
-    }
-  },
-  { name: "allowEmptyResponse:boolean" },
-  { name: "attachData:boolean", alternativeName: "attachOriginalItems", visible: false }
-], function() {
-  return new ChoicesRestful();
-});
+setCreateExpressionExecutor((expression) => new ExpressionExecutor(expression));
 class QuestionMatrixBaseModel extends Question {
   createColumnValues() {
     return this.createItemValues("columns");
@@ -87270,9 +87137,11 @@ class TextPreProcessor {
     if (!this.canProcess())
       return text2;
     const items = this.getItems(text2);
+    const startLen = settings.expressionVariableDelimiters.start.length;
+    const endLen = settings.expressionVariableDelimiters.end.length;
     for (let i = items.length - 1; i >= 0; i--) {
       const item = items[i];
-      const name = this.getName(text2.substring(item.start + 1, item.end));
+      const name = this.getName(text2.substring(item.start + startLen, item.end + 1 - endLen));
       if (!!name) {
         const textValue = new TextPreProcessorValue(name, returnDisplayValue === true);
         this.onProcessValue(textValue);
@@ -87322,21 +87191,28 @@ class TextPreProcessor {
     var items = [];
     var length = text2.length;
     var start = -1;
-    var ch = "";
+    const startBrace = settings.expressionVariableDelimiters.start;
+    const endBrace = settings.expressionVariableDelimiters.end;
+    const startLen = startBrace.length;
+    const endLen = endBrace.length;
     for (var i = 0; i < length; i++) {
-      ch = text2[i];
-      if (ch == "{")
+      if (text2.substring(i, i + startLen) === startBrace) {
         start = i;
-      if (ch == "}") {
+        i += startLen - 1;
+        continue;
+      }
+      if (text2.substring(i, i + endLen) === endBrace) {
         if (start > -1) {
           var item = new TextPreProcessorItem();
           item.start = start;
-          item.end = i;
-          if (this.isValidItemName(text2.substring(start + 1, i))) {
+          item.end = i + endLen - 1;
+          if (this.isValidItemName(text2.substring(start + startLen, i))) {
             items.push(item);
           }
         }
         start = -1;
+        i += endLen - 1;
+        continue;
       }
     }
     return items;
@@ -88668,7 +88544,7 @@ class QuestionExpressionModel extends Question {
       res = !this.format ? str : this.format["format"](str);
     }
     if (!!this.survey) {
-      res = this.survey.getExpressionDisplayValue(this, val, res);
+      res = this.titleSettings.getExpressionDisplayValue(this, val, res);
     }
     return res;
   }
@@ -91739,6 +91615,12 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
     this.isRowChanging = false;
     this.lockResetRenderedTable = false;
   }
+  get matrixCallbacks() {
+    return this.survey;
+  }
+  get choiceCallbacks() {
+    return this.survey;
+  }
   static get defaultCellType() {
     return settings.matrix.defaultCellType;
   }
@@ -91756,7 +91638,7 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
       if (this.onAddColumn)
         this.onAddColumn(item);
       if (this.survey) {
-        this.survey.matrixColumnAdded(this, item);
+        this.matrixCallbacks.matrixColumnAdded(this, item);
       }
     }, (item) => {
       item.colOwner = null;
@@ -92055,7 +91937,7 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
       if (!!this.onCellCreatedCallback) {
         this.onCellCreatedCallback(options2);
       }
-      this.survey.matrixCellCreated(this, options2);
+      this.matrixCallbacks.matrixCellCreated(this, options2);
     }
   }
   isSelectCellType() {
@@ -92187,7 +92069,7 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
       columnName: column.name,
       cellType
     };
-    this.survey.matrixCellCreating(this, options2);
+    this.matrixCallbacks.matrixCellCreating(this, options2);
     return options2.cellType;
   }
   getConditionJson(operator = null, path2 = null) {
@@ -92495,7 +92377,7 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
       locStr.owner = new MatrixSingleInputLocOwner(this);
     });
   }
-  getSingleQuestionLocTitleCore() {
+  getMatrixDropdownBaseSingleQuestionLocTitleCore() {
     return this.locSingleInputTitleTemplate;
   }
   getSingleInputTitleTemplate() {
@@ -92511,21 +92393,11 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
     }
     return text2;
   }
-  singleInputMoveToFirstCore() {
-    var _a2;
-    const data2 = (_a2 = this.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.data;
-    this.singleInputEditRow(data2);
-  }
-  singleInputEditRow(row) {
-    if (!row)
-      return;
-    const qs = row.visibleQuestions;
-    if (Array.isArray(qs) && qs.length > 0) {
-      this.setSingleInputQuestion(qs[0]);
-    }
+  createSingleInputBehavior() {
+    return new MatrixDropdownBaseSingleInputBehavior(this);
   }
   get storeOthersAsComment() {
-    return !!this.survey ? this.survey.storeOthersAsComment : false;
+    return !!this.survey ? this.choiceCallbacks.storeOthersAsComment : false;
   }
   addColumn(name, title) {
     var column = new MatrixDropdownColumn(name, title, this);
@@ -93217,16 +93089,16 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
     if (!!this.onCellValueChangedCallback) {
       this.onCellValueChangedCallback(options2);
     }
-    this.survey.matrixCellValueChanged(this, options2);
+    this.matrixCallbacks.matrixCellValueChanged(this, options2);
   }
   validateCell(row, columnName, rowValue) {
     if (!this.survey)
       return;
     var options2 = this.getOnCellValueChangedOptions(row, columnName, rowValue);
-    return this.survey.matrixCellValidate(this, options2);
+    return this.matrixCallbacks.matrixCellValidate(this, options2);
   }
   get isValidateOnValueChanging() {
-    return !!this.survey ? this.survey.isValidateOnValueChanging : false;
+    return !!this.survey ? this.validationCallbacks.isValidateOnValueChanging : false;
   }
   get hasInvisibleRows() {
     const rows = this.generatedVisibleRows;
@@ -93256,7 +93128,7 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
       options2.value = this.cellValueChangingCallback(row, columnName, options2.value, options2.oldValue);
     }
     if (!!this.survey) {
-      this.survey.matrixCellValueChanging(this, options2);
+      this.matrixCallbacks.matrixCellValueChanging(this, options2);
     }
     return options2.value;
   }
@@ -93369,7 +93241,7 @@ class QuestionMatrixDropdownModelBase extends QuestionMatrixBaseModel {
       this.renderedTable.onDetailPanelChangeVisibility(row, val);
     }
     if (this.survey) {
-      this.survey.matrixDetailPanelVisibleChanged(this, row.rowIndex - 1, row, val);
+      this.matrixCallbacks.matrixDetailPanelVisibleChanged(this, row.rowIndex - 1, row, val);
     }
   }
   getDetailPanelButtonCss(row) {
@@ -93559,6 +93431,27 @@ __decorate([
 __decorate([
   property({ localizable: { defaultStr: true } })
 ], QuestionMatrixDropdownModelBase.prototype, "keyDuplicationError", void 0);
+class MatrixDropdownBaseSingleInputBehavior extends QuestionSingleInputBehavior {
+  get matrixBase() {
+    return this.question;
+  }
+  getSingleQuestionLocTitleCore() {
+    return this.matrixBase.locSingleInputTitleTemplate;
+  }
+  singleInputMoveToFirstCore() {
+    var _a2;
+    const data2 = (_a2 = this.matrixBase.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.data;
+    this.singleInputEditRow(data2);
+  }
+  singleInputEditRow(row) {
+    if (!row)
+      return;
+    const qs = row.visibleQuestions;
+    if (Array.isArray(qs) && qs.length > 0) {
+      this.setSingleInputQuestion(qs[0]);
+    }
+  }
+}
 Serializer.addClass("matrixdropdownbase", [
   {
     name: "columns:matrixdropdowncolumns",
@@ -93879,6 +93772,25 @@ class QuestionMatrixDropdownModel extends QuestionMatrixDropdownModelBase {
       this.updateProgressInfoByRow(res, !!rowName ? rowName : {});
     }
   }
+  sortVisibleRows(array2) {
+    if (!!this.survey && this.survey.isDesignMode)
+      return array2;
+    if (this.rowOrder.toLowerCase() === "random")
+      return Helpers.randomizeArray(array2, this.randomSeed);
+    return array2;
+  }
+  endLoadingFromJson() {
+    super.endLoadingFromJson();
+    this.rows = this.sortVisibleRows(this.rows);
+  }
+  randomSeedChanged() {
+    if (this.rowOrder.toLowerCase() !== "random")
+      return;
+    this.rows = this.sortVisibleRows(this.rows);
+    this.clearGeneratedRows();
+    this.resetRenderedTable();
+    super.randomSeedChanged();
+  }
 }
 __decorate([
   property({ localizable: { markdown: true } })
@@ -93886,6 +93798,9 @@ __decorate([
 __decorate([
   property()
 ], QuestionMatrixDropdownModel.prototype, "hideIfRowsEmpty", void 0);
+__decorate([
+  property({ isLowerCase: true })
+], QuestionMatrixDropdownModel.prototype, "rowOrder", void 0);
 Serializer.addClass("matrixdropdown", [
   {
     name: "rows:itemvalue[]",
@@ -93894,7 +93809,12 @@ Serializer.addClass("matrixdropdown", [
   "rowsVisibleIf:condition",
   "rowTitleWidth",
   { name: "totalText", serializationProperty: "locTotalText" },
-  "hideIfRowsEmpty:boolean"
+  "hideIfRowsEmpty:boolean",
+  {
+    name: "rowOrder",
+    default: "initial",
+    choices: ["initial", "random"]
+  }
 ], function() {
   return new QuestionMatrixDropdownModel("");
 }, "matrixdropdownbase");
@@ -93905,6 +93825,63 @@ QuestionFactory.Instance.registerQuestion("matrixdropdown", (name) => {
   QuestionMatrixDropdownModelBase.addDefaultColumns(q);
   return q;
 });
+function confirmAction(message) {
+  if (!!settings && !!settings.confirmActionFunc)
+    return settings.confirmActionFunc(message);
+  return confirm(message);
+}
+function confirmActionAsync(options2) {
+  const callbackFunc = (res) => {
+    if (res)
+      options2.funcOnYes();
+    else if (!!options2.funcOnNo)
+      options2.funcOnNo();
+  };
+  if (!!settings && !!settings.confirmActionFunc) {
+    callbackFunc(confirmAction(options2.message));
+    return;
+  }
+  if (!!settings && !!settings.confirmActionAsync) {
+    settings.confirmActionAsync(options2.message, callbackFunc, options2);
+  } else {
+    showConfirmDialog(options2.message, callbackFunc, options2);
+  }
+}
+function showConfirmDialog(message, callback, options2 = {}) {
+  const locStr = new LocalizableString(void 0, false);
+  locStr.defaultValue = message || options2.message;
+  const popupViewModel = settings.showDialog({
+    componentName: "sv-string-viewer",
+    data: { model: locStr },
+    onApply: () => {
+      callback(true);
+      return true;
+    },
+    onCancel: () => {
+      callback(false);
+      return false;
+    },
+    displayMode: "popup",
+    isFocusedContent: false,
+    cssClass: options2.cssClass || "sv-popup--confirm"
+  }, options2.rootElement);
+  const toolbar = popupViewModel.footerToolbar;
+  const applyBtn = toolbar.getActionById("apply");
+  const cancelBtn = toolbar.getActionById("cancel");
+  cancelBtn.title = getLocaleString("cancel", options2.locale);
+  applyBtn.title = options2.applyTitle || getLocaleString("ok", options2.locale);
+  applyBtn.innerCss = "sd-btn--danger";
+  configConfirmDialog(popupViewModel);
+  return true;
+}
+function configConfirmDialog(popupViewModel) {
+  popupViewModel.width = "min-content";
+}
+if (!settings.confirmActionAsync) {
+  settings.confirmActionAsync = (message, callback, options2) => {
+    showConfirmDialog(message, callback, options2);
+  };
+}
 if (DomWindowHelper.getWindow()) {
   DomWindowHelper.getWindow().addEventListener("touchmove", (event) => {
     if (!DragDropDOMAdapter.PreventScrolling) {
@@ -94741,7 +94718,7 @@ class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase {
     return target.getAttribute("contenteditable") === "true" || target.nodeName === "INPUT" || !this.isDragHandleAreaValid(target);
   }
   isDragHandleAreaValid(node) {
-    if (this.survey.matrixDragHandleArea === "icon") {
+    if (this.matrixCallbacks.matrixDragHandleArea === "icon") {
       return node.classList.contains(this.cssClasses.dragElementDecorator);
     }
     return true;
@@ -95018,7 +94995,7 @@ class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase {
     const index = row.rowIndex - 1;
     if (this.lockedRowCount > 0 && index < this.lockedRowCount)
       return false;
-    return this.survey.matrixAllowRemoveRow(this, index, row);
+    return this.matrixCallbacks.matrixAllowRemoveRow(this, index, row);
   }
   addRowUI() {
     this.addRow(true);
@@ -95044,7 +95021,7 @@ class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase {
     const allow = this.canAddRow;
     var options2 = { question: this, canAddRow: allow, allow };
     if (!!this.survey) {
-      this.survey.matrixBeforeRowAdded(options2);
+      this.matrixCallbacks.matrixBeforeRowAdded(options2);
     }
     const newAllow = allow !== options2.allow ? options2.allow : allow !== options2.canAddRow ? options2.canAddRow : allow;
     if (!newAllow)
@@ -95107,7 +95084,7 @@ class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase {
       const rows = this.visibleRows;
       if (prevRowCount + 1 == this.rowCount && rows.length > 0) {
         const row = rows[rows.length - 1];
-        this.survey.matrixRowAdded(this, row);
+        this.matrixCallbacks.matrixRowAdded(this, row);
         this.onRowsChanged();
       }
     }
@@ -95216,7 +95193,7 @@ class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase {
     onRowRemoved && onRowRemoved();
   }
   removeRowAsync(index, row) {
-    if (!!row && !!this.survey && !this.survey.matrixRowRemoving(this, index, row))
+    if (!!row && !!this.survey && !this.matrixCallbacks.matrixRowRemoving(this, index, row))
       return;
     this.onStartRowAddingRemoving();
     this.removeRowCore(index);
@@ -95250,74 +95227,11 @@ class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase {
     }
     this.onRowsChanged();
     if (this.survey) {
-      this.survey.matrixRowRemoved(this, index, row);
+      this.matrixCallbacks.matrixRowRemoved(this, index, row);
     }
   }
-  onSingleInputQuestionAdded(question) {
-    if (!this.showHeader) {
-      question.titleLocation = "hidden";
-    }
-  }
-  getSingleInputQuestionsCore(question, checkDynamic) {
-    const res = new Array();
-    const rows = this.visibleRows;
-    if (checkDynamic) {
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row.hasValueAnyQuestion(true) || !row.validate(new ValidationContext())) {
-          this.fillSingleInputQuestionsByRow(res, row);
-        }
-      }
-    }
-    return this.getSingleInputQuestionsForDynamic(question, res);
-  }
-  fillSingleInputQuestionsInContainer(res, innerQuestion) {
-    const row = this.getRowByQuestion(innerQuestion);
-    this.fillSingleInputQuestionsByRow(res, row);
-  }
-  fillSingleInputQuestionsByRow(res, row) {
-    if (row) {
-      row.questions.forEach((q) => q.addNestedQuestion(res, true, false, false));
-    }
-  }
-  getSingleInputAddTextCore() {
-    if (!this.canAddRow)
-      return void 0;
-    return this.addRowText;
-  }
-  singleInputAddItemCore() {
-    this.addRowUI();
-  }
-  getSingleQuestionOnChange(index) {
-    const rows = this.visibleRows;
-    if (rows.length > 0) {
-      if (index < 0 || index >= rows.length)
-        index = rows.length - 1;
-      const row = rows[index];
-      const vQs = row.visibleQuestions;
-      if (vQs.length > 0) {
-        return vQs[0];
-      }
-    }
-    return null;
-  }
-  createSingleInputSummary() {
-    const res = new QuestionSingleInputSummary(this, this.locNoRowsText);
-    const items = new Array();
-    const canRemoveRows = this.canRemoveRows;
-    this.visibleRows.forEach((row) => {
-      const locText = new LocalizableString(new MatrixSingleInputLocOwner(this, row), true, void 0, this.getSingleInputTitleTemplate());
-      locText.setJson(this.locSingleInputTitleTemplate.getJson());
-      const bntEdit = new Action({ locTitle: this.locEditRowText, action: () => {
-        this.singleInputEditRow(row);
-      } });
-      const btnRemove = canRemoveRows && this.canRemoveRow(row) ? new Action({ locTitle: this.locRemoveRowText, action: () => {
-        this.removeRowUI(row);
-      } }) : void 0;
-      items.push(new QuestionSingleInputSummaryItem(locText, bntEdit, btnRemove));
-    });
-    res.items = items;
-    return res;
+  createSingleInputBehavior() {
+    return new MatrixDynamicSingleInputBehavior(this);
   }
   get defaultAddRowText() {
     return this.getLocalizationString(this.isColumnLayoutHorizontal ? "addRow" : "addColumn");
@@ -95642,6 +95556,78 @@ __decorate([
 class QuestionMatrixDynamicRenderedTable extends QuestionMatrixDropdownRenderedTable {
   setDefaultRowActions(row, actions) {
     super.setDefaultRowActions(row, actions);
+  }
+}
+class MatrixDynamicSingleInputBehavior extends MatrixDropdownBaseSingleInputBehavior {
+  get matrixDynamic() {
+    return this.question;
+  }
+  onSingleInputQuestionAdded(question) {
+    if (!this.matrixDynamic.showHeader) {
+      question.titleLocation = "hidden";
+    }
+  }
+  getSingleInputQuestionsCore(question, checkDynamic) {
+    const res = new Array();
+    const rows = this.matrixDynamic.visibleRows;
+    if (checkDynamic) {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row.hasValueAnyQuestion(true) || !row.validate(new ValidationContext())) {
+          this.fillSingleInputQuestionsByRow(res, row);
+        }
+      }
+    }
+    return this.getSingleInputQuestionsForDynamic(question, res);
+  }
+  fillSingleInputQuestionsInContainer(res, innerQuestion) {
+    const row = innerQuestion.data;
+    this.fillSingleInputQuestionsByRow(res, row);
+  }
+  fillSingleInputQuestionsByRow(res, row) {
+    if (row) {
+      row.questions.forEach((q) => q.addNestedQuestion(res, true, false, false));
+    }
+  }
+  getSingleInputAddTextCore() {
+    if (!this.matrixDynamic.canAddRow)
+      return void 0;
+    return this.matrixDynamic.addRowText;
+  }
+  singleInputAddItemCore() {
+    this.matrixDynamic.addRowUI();
+  }
+  getSingleQuestionOnChange(index) {
+    const rows = this.matrixDynamic.visibleRows;
+    if (rows.length > 0) {
+      if (index < 0 || index >= rows.length)
+        index = rows.length - 1;
+      const row = rows[index];
+      const vQs = row.visibleQuestions;
+      if (vQs.length > 0) {
+        return vQs[0];
+      }
+    }
+    return null;
+  }
+  createSingleInputSummary() {
+    const md = this.matrixDynamic;
+    const res = new QuestionSingleInputSummary(md, md.locNoRowsText);
+    const items = new Array();
+    const canRemoveRows = md.canRemoveRows;
+    md.visibleRows.forEach((row) => {
+      const locText = new LocalizableString(new MatrixSingleInputLocOwner(md, row), true, void 0, md.getSingleInputTitleTemplate());
+      locText.setJson(md.locSingleInputTitleTemplate.getJson());
+      const bntEdit = new Action({ locTitle: md.locEditRowText, action: () => {
+        this.singleInputEditRow(row);
+      } });
+      const btnRemove = canRemoveRows && md.canRemoveRow(row) ? new Action({ locTitle: md.locRemoveRowText, action: () => {
+        md.removeRowUI(row);
+      } }) : void 0;
+      items.push(new QuestionSingleInputSummaryItem(locText, bntEdit, btnRemove));
+    });
+    res.items = items;
+    return res;
   }
 }
 Serializer.addClass("matrixdynamic", [
@@ -96851,6 +96837,39 @@ __decorate([
 __decorate([
   property({ defaultValue: 0 })
 ], SurveyTimerModel.prototype, "spent", void 0);
+function loadFileFromBase64(b64Data, fileName) {
+  try {
+    const byteString = atob(b64Data.split(",")[1]);
+    const mimeString = b64Data.split(",")[0].split(":")[1].split(";")[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const bb = new Blob([ab], { type: mimeString });
+    if (!!navigator && navigator["msSaveBlob"]) {
+      navigator["msSaveOrOpenBlob"](bb, fileName);
+    }
+  } catch (err) {
+  }
+}
+function chooseFiles(input, callback) {
+  if (!DomWindowHelper.isFileReaderAvailable())
+    return;
+  input.value = "";
+  input.onchange = (event) => {
+    if (!DomWindowHelper.isFileReaderAvailable())
+      return;
+    if (!input || !input.files || input.files.length < 1)
+      return;
+    let files2 = [];
+    for (let i = 0; i < input.files.length; i++) {
+      files2.push(input.files[i]);
+    }
+    callback(files2);
+  };
+  input.click();
+}
 class Notifier extends Base {
   constructor(cssClasses) {
     super();
@@ -97588,6 +97607,9 @@ __decorate([
   property()
 ], QuestionRowModel.prototype, "isNeedRender", void 0);
 class PanelModelBase extends SurveyElement {
+  get validationCallbacks() {
+    return this.survey;
+  }
   /**
    * An array of columns used to arrange survey elements within this page or panel. Applies only if you set the `SurveyModel`'s [`gridLayoutEnabled`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#gridLayoutEnabled) property to `true`.
    *
@@ -97812,7 +97834,7 @@ class PanelModelBase extends SurveyElement {
    * @see isRequired
    */
   get requiredMark() {
-    return !!this.survey && this.isRequired ? this.survey.requiredMark : "";
+    return !!this.survey && this.isRequired ? this.titleSettings.requiredMark : "";
   }
   /**
    * @deprecated Use the [`requiredMark`](https://surveyjs.io/form-library/documentation/api-reference/panel-model#requiredMark) property instead.
@@ -97821,7 +97843,7 @@ class PanelModelBase extends SurveyElement {
     return this.requiredMark;
   }
   get titlePattern() {
-    return !!this.survey ? this.survey.questionTitlePattern : "numTitleRequire";
+    return !!this.survey ? this.titleSettings.questionTitlePattern : "numTitleRequire";
   }
   get isRequireTextOnStart() {
     return this.isRequired && this.titlePattern == "requireNumTitle";
@@ -97918,7 +97940,7 @@ class PanelModelBase extends SurveyElement {
       classes.rowMultiple = css.rowMultiple;
     }
     if (this.survey) {
-      this.survey.updatePanelCssClasses(this, classes);
+      this.cssCallbacks.updatePanelCssClasses(this, classes);
     }
     return classes;
   }
@@ -98221,7 +98243,7 @@ class PanelModelBase extends SurveyElement {
     var errors = [];
     this.validateRequired(context2, errors);
     if (this.survey) {
-      this.survey.validatePanel(this, errors, context2.fireCallback);
+      this.validationCallbacks.validatePanel(this, errors, context2.fireCallback);
       context2.setErrorElement(this, errors);
     }
     if (!!context2.fireCallback) {
@@ -98256,7 +98278,7 @@ class PanelModelBase extends SurveyElement {
   }
   validateCore(context2) {
     var _a2;
-    let singleQ = (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.currentSingleQuestion;
+    let singleQ = (_a2 = this.singleInput) === null || _a2 === void 0 ? void 0 : _a2.currentSingleQuestion;
     if (singleQ && this.questions.indexOf(singleQ) < 0) {
       singleQ = void 0;
     }
@@ -98436,7 +98458,7 @@ class PanelModelBase extends SurveyElement {
       return this.questionTitleLocation;
     if (this.parent)
       return this.parent.getQuestionTitleLocation();
-    return this.survey ? this.survey.questionTitleLocation : "top";
+    return this.survey ? this.titleSettings.questionTitleLocation : "top";
   }
   availableQuestionTitleWidth() {
     return this.getQuestionTitleLocation() === "left" || this.hasElementWithTitleLocationLeft();
@@ -98526,7 +98548,7 @@ class PanelModelBase extends SurveyElement {
     return result;
   }
   isQuestionIndexRecursive() {
-    return !!this.survey && this.survey.showQuestionNumbers === "recursive";
+    return !!this.survey && this.titleSettings.showQuestionNumbers === "recursive";
   }
   getQuestionStartIndex() {
     const res = this.getStartIndex();
@@ -98751,9 +98773,9 @@ class PanelModelBase extends SurveyElement {
     if (!this.canFireAddRemoveNotifications(element2))
       return;
     if (!element2.isPanel) {
-      this.survey.questionRemoved(element2);
+      this.lifecycleCallbacks.questionRemoved(element2);
     } else {
-      this.survey.panelRemoved(element2);
+      this.lifecycleCallbacks.panelRemoved(element2);
     }
   }
   onElementVisibilityChanged(element2) {
@@ -99222,7 +99244,7 @@ class PanelModelBase extends SurveyElement {
       return this.questionErrorLocation;
     if (this.parent)
       return this.parent.getQuestionErrorLocation();
-    return this.survey ? this.survey.questionErrorLocation : "top";
+    return this.survey ? this.titleSettings.questionErrorLocation : "top";
   }
   //ITitleOwner
   getTitleOwner() {
@@ -99432,7 +99454,7 @@ class PanelModel extends PanelModelBase {
       no = this.parent.addNoFromChild(no);
     }
     if (this.survey) {
-      no = this.survey.getUpdatedPanelNo(this, no);
+      no = this.titleSettings.getUpdatedPanelNo(this, no);
     }
     return no || "";
   }
@@ -99491,7 +99513,7 @@ class PanelModel extends PanelModelBase {
   }
   notifySurveyOnVisibilityChanged() {
     if (this.survey != null && !this.isLoadingFromJson) {
-      this.survey.panelVisibilityChanged(this, this.isVisible);
+      this.lifecycleCallbacks.panelVisibilityChanged(this, this.isVisible);
     }
   }
   getRenderedTitle(str) {
@@ -99803,7 +99825,7 @@ class PageModel extends PanelModel {
   getElementsForRows() {
     var _a2;
     if (!this.isStartPage) {
-      const q = (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.currentSingleElement;
+      const q = (_a2 = this.singleInput) === null || _a2 === void 0 ? void 0 : _a2.currentSingleElement;
       if (!!q) {
         if (q.page === this)
           return [q];
@@ -99835,7 +99857,7 @@ class PageModel extends PanelModel {
     if (!this.canShowPageNumber() || !this.survey)
       return "";
     let no = this.isStartPage ? "" : this.num + ". ";
-    return this.survey.getUpdatedPageNo(this, no);
+    return this.titleSettings.getUpdatedPageNo(this, no);
   }
   addNoFromChild(no) {
     return no;
@@ -99977,7 +99999,7 @@ class PageModel extends PanelModel {
       classes.rowReplace = css.rowReplace;
     }
     if (this.survey) {
-      this.survey.updatePageCssClasses(this, classes);
+      this.cssCallbacks.updatePageCssClasses(this, classes);
     }
     return classes;
   }
@@ -100069,9 +100091,9 @@ class PageModel extends PanelModel {
       }
     }
     if (this.randomizeElements(this.areQuestionsRandomized)) {
-      const singleQuestion = (_a2 = this.survey) === null || _a2 === void 0 ? void 0 : _a2.currentSingleElement;
+      const singleQuestion = (_a2 = this.singleInput) === null || _a2 === void 0 ? void 0 : _a2.currentSingleElement;
       if ((singleQuestion === null || singleQuestion === void 0 ? void 0 : singleQuestion.page) === this) {
-        this.survey.currentSingleElement = this.getFirstVisibleElement();
+        this.singleInput.currentSingleElement = this.getFirstVisibleElement();
       }
     }
   }
@@ -100118,7 +100140,7 @@ class PageModel extends PanelModel {
       return;
     super.onVisibleChanged();
     if (this.survey != null) {
-      this.survey.pageVisibilityChanged(this, this.isVisible);
+      this.lifecycleCallbacks.pageVisibilityChanged(this, this.isVisible);
     }
   }
   ensureRowsVisibility() {
@@ -100210,6 +100232,10 @@ class ProgressButtons extends Base {
     super();
     this.survey = survey;
     this.onResize = this.addEvent();
+    survey.onPagesVisibleChangedCallback = () => {
+      this.visiblePages = survey.visiblePages;
+    };
+    this.visiblePages = survey.visiblePages;
   }
   isListElementClickable(index) {
     if (!this.survey.onServerValidateQuestions || this.survey.onServerValidateQuestions.isEmpty || this.survey.checkErrorsMode === "onComplete") {
@@ -100263,12 +100289,6 @@ class ProgressButtons extends Base {
     if (listContainerElement.parentElement.clientWidth < this.minListWidth) {
       return false;
     }
-    const expectedElementWidth = listContainerElement.children[0].clientWidth;
-    for (let i = 0; i < listContainerElement.children.length; i++) {
-      if (Math.abs(listContainerElement.children[i].clientWidth - expectedElementWidth) > 5) {
-        return false;
-      }
-    }
     return true;
   }
   get isFitToSurveyWidth() {
@@ -100321,6 +100341,9 @@ class ProgressButtons extends Base {
     this.onResize.fire(this, { width });
   }
 }
+__decorate([
+  propertyArray()
+], ProgressButtons.prototype, "visiblePages", void 0);
 class ProgressButtonsResponsivityManager {
   constructor(model, element2, viewModel) {
     this.model = model;
@@ -100344,6 +100367,15 @@ class ProgressButtonsResponsivityManager {
     this.model.survey.registerFunctionOnPropertiesValueChanged(this.criticalProperties, () => this.forceUpdate(), "ProgressButtonsResponsivityManager" + this.viewModel.container);
     this.model.onResize.add(this.processResponsiveness);
     this.forceUpdate();
+    this.observer = new MutationObserver(() => {
+      const els = element2.querySelectorAll("ul > li");
+      if (this.pages !== els.length) {
+        this.pages = els.length;
+        this.model.minListWidth = void 0;
+        this.forceUpdate();
+      }
+    });
+    this.observer.observe(element2, { childList: true, subtree: true });
   }
   forceUpdate() {
     this.viewModel.onUpdateSettings();
@@ -100352,6 +100384,8 @@ class ProgressButtonsResponsivityManager {
   dispose() {
     this.model.onResize.remove(this.processResponsiveness);
     this.model.survey.unRegisterFunctionOnPropertiesValueChanged(this.criticalProperties, "ProgressButtonsResponsivityManager" + this.viewModel.container);
+    this.observer.disconnect();
+    this.observer = void 0;
     this.element = void 0;
     this.model = void 0;
   }
@@ -100451,6 +100485,7 @@ class TOCModel {
     this.popupModel.overlayDisplayMode = "tablet-dropdown-overlay";
     this.popupModel.displayMode = new ComputedUpdater(() => this.isMobile ? "overlay" : "popup");
     if (TOCModel.StickyPosition) {
+      survey.registerFunctionOnPropertyValueChanged("_isMobile", () => this.updateStickyTOCSize(survey.rootElement), "toc");
       survey.onAfterRenderSurvey.add((s, o2) => this.initStickyTOCSubscriptions(o2.htmlElement));
       this.initStickyTOCSubscriptions(survey.rootElement);
     }
@@ -100491,6 +100526,7 @@ class TOCModel {
     return getTocRootCss(this.survey, this.isMobile);
   }
   dispose() {
+    this.survey.unRegisterFunctionOnPropertyValueChanged("_isMobile", "toc");
     const [handler] = this.survey.unRegisterFunctionOnPropertyValueChanged("pages", "toc");
     this.survey.onEndLoadingFromJson.remove(handler);
     this.survey.onPageAdded.remove(handler);
@@ -103059,6 +103095,7 @@ class SurveyModel extends SurveyElementCore {
           page,
           visible: page.isVisible
         });
+        this.onPagesVisibleChangedCallback && this.onPagesVisibleChangedCallback();
       }
     }
   }
@@ -104335,17 +104372,21 @@ class SurveyModel extends SurveyElementCore {
       htmlElement = SurveyElement.GetFirstNonTextElement(htmlElement);
     }
     let observedElement = htmlElement;
+    this._processingResponsivenessFunc = void 0;
     const cssVariables = this.css.variables;
     if (!!cssVariables) {
       const mobileWidth = Number.parseFloat(DomDocumentHelper.getComputedStyle(observedElement).getPropertyValue(cssVariables.mobileWidth));
       if (!!mobileWidth) {
         let isProcessed = false;
+        this._processingResponsivenessFunc = () => {
+          return this.processResponsiveness(observedElement.offsetWidth, mobileWidth, observedElement.offsetHeight);
+        };
         this.resizeObserver = new ResizeObserver((entries) => {
           DomWindowHelper.requestAnimationFrame(() => {
             if (isProcessed || !isContainerVisible(observedElement)) {
               isProcessed = false;
             } else {
-              isProcessed = this.processResponsiveness(observedElement.offsetWidth, mobileWidth, observedElement.offsetHeight);
+              isProcessed = !!this._processingResponsivenessFunc && this._processingResponsivenessFunc();
             }
           });
         });
@@ -104360,7 +104401,13 @@ class SurveyModel extends SurveyElementCore {
     this.scrollerElement = htmlElement.getElementsByClassName("sv-scroll__scroller")[0];
     this.addScrollEventListener();
   }
+  forceProcessResponsiveness() {
+    if (!!this._processingResponsivenessFunc) {
+      this._processingResponsivenessFunc();
+    }
+  }
   beforeDestroySurveyElement() {
+    this._processingResponsivenessFunc = void 0;
     this.destroyResizeObserver();
     this.removeScrollEventListener();
     this.rootElement = void 0;
@@ -106047,6 +106094,7 @@ class SurveyModel extends SurveyElementCore {
       page,
       visible: newValue
     });
+    this.onPagesVisibleChangedCallback && this.onPagesVisibleChangedCallback();
   }
   panelVisibilityChanged(panel, newValue) {
     if (!!panel.page) {
@@ -107985,6 +108033,9 @@ __decorate([
   property({ localizable: true })
 ], ChoiceItem.prototype, "commentPlaceholder", void 0);
 class QuestionSelectBase extends Question {
+  get choiceCallbacks() {
+    return this.survey;
+  }
   get waitingChoicesByURL() {
     return !this.isChoicesLoaded && this.hasChoicesUrl;
   }
@@ -108240,6 +108291,12 @@ class QuestionSelectBase extends Question {
     if (val !== oldVal) {
       this.prevOtherErrorValue = oldVal;
     }
+  }
+  setNewComment(newValue) {
+    if (this.isOtherSelected && this.getStoreOthersAsComment()) {
+      this.updatePrevOtherErrorValue(newValue);
+    }
+    super.setNewComment(newValue);
   }
   get otherValue() {
     if (this.getStoreOthersAsComment())
@@ -108544,10 +108601,10 @@ class QuestionSelectBase extends Question {
     return null;
   }
   canSurveyChangeItemVisibility() {
-    return !!this.survey && this.survey.canChangeChoiceItemsVisibility();
+    return !!this.survey && this.choiceCallbacks.canChangeChoiceItemsVisibility();
   }
   changeItemVisibility() {
-    return this.canSurveyChangeItemVisibility() ? (item, val) => this.survey.getChoiceItemVisibility(this, item, val) : null;
+    return this.canSurveyChangeItemVisibility() ? (item, val) => this.choiceCallbacks.getChoiceItemVisibility(this, item, val) : null;
   }
   runConditionsForItems(properties) {
     this.filteredChoicesValue = [];
@@ -108627,8 +108684,8 @@ class QuestionSelectBase extends Question {
     }
     return val;
   }
-  clearValue(keepComment, fromUI) {
-    super.clearValue(keepComment, fromUI);
+  onClearValue() {
+    super.onClearValue();
     this.selectedItemValues = void 0;
   }
   get renderedValue() {
@@ -108800,7 +108857,7 @@ class QuestionSelectBase extends Question {
     if (hasItemWithoutValues && (this.choicesLazyLoadEnabled || this.hasChoicesUrl)) {
       this.waitingGetChoiceDisplayValueResponse = true;
       this.updateIsReady();
-      this.survey.getChoiceDisplayValue({
+      this.choiceCallbacks.getChoiceDisplayValue({
         question: this,
         values: valueArray,
         setItems: (displayValues, ...customValues) => {
@@ -108922,7 +108979,7 @@ class QuestionSelectBase extends Question {
     };
     res.updateResultCallback = (items, serverResult) => {
       if (this.survey) {
-        return this.survey.updateChoicesFromServer(this, items, serverResult);
+        return this.choiceCallbacks.updateChoicesFromServer(this, items, serverResult);
       }
       return items;
     };
@@ -109378,6 +109435,7 @@ class QuestionSelectBase extends Question {
     if (this.isAddDefaultItems) {
       this.updateVisibleChoices();
     }
+    this.randomSeedChanged();
   }
   setSurveyCore(value) {
     super.setSurveyCore(value);
@@ -109390,7 +109448,7 @@ class QuestionSelectBase extends Question {
       return false;
     if (this.checkHasChoicesComments())
       return true;
-    return this.storeOthersAsComment === true || this.storeOthersAsComment == "default" && (this.survey != null ? this.survey.storeOthersAsComment : true) || this.hasChoicesUrl && !this.choicesFromUrl;
+    return this.storeOthersAsComment === true || this.storeOthersAsComment == "default" && (this.survey != null ? this.choiceCallbacks.storeOthersAsComment : true) || this.hasChoicesUrl && !this.choicesFromUrl;
   }
   checkHasChoicesComments() {
     const choices = this.choices;
@@ -109675,6 +109733,8 @@ class QuestionSelectBase extends Question {
     });
   }
   randomSeedChanged() {
+    if (this.choicesOrder.toLowerCase() !== "random")
+      return;
     this.updateVisibleChoices();
   }
   randomizeArray(array2) {
@@ -109745,7 +109805,7 @@ class QuestionSelectBase extends Question {
     return item.value === this.renderedValue;
   }
   clearDisabledValues() {
-    if (!this.survey || !this.survey.clearDisabledChoices)
+    if (!this.survey || !this.choiceCallbacks.clearDisabledChoices)
       return;
     this.clearDisabledValuesCore();
   }
@@ -109785,7 +109845,7 @@ class QuestionSelectBase extends Question {
     var res = this.getItemClassCore(item, options2);
     options2.css = res;
     if (!!this.survey) {
-      this.survey.updateChoiceItemCss(this, options2);
+      this.cssCallbacks.updateChoiceItemCss(this, options2);
     }
     return options2.css;
   }
@@ -109971,7 +110031,7 @@ class QuestionSelectBase extends Question {
     this.isChoicesLoaded = true;
     this.updateIsReady();
     if (this.survey) {
-      this.survey.loadedChoicesFromServer(this);
+      this.choiceCallbacks.loadedChoicesFromServer(this);
     }
     if (this.loadedChoicesFromServerCallback) {
       this.loadedChoicesFromServerCallback();
@@ -110291,6 +110351,55 @@ Serializer.addClass("checkboxbase", [
     layout: "row"
   }
 ], null, "selectbase");
+const keyFocusedClassName = "sv-focused--by-key";
+function doKey2ClickBlur(evt) {
+  const element2 = evt.target;
+  if (!element2 || !element2.classList)
+    return;
+  element2.classList.remove(keyFocusedClassName);
+}
+function doKey2ClickUp(evt, options2) {
+  if (!!evt.target && evt.target["contentEditable"] === "true") {
+    return;
+  }
+  const element2 = evt.target;
+  if (!element2)
+    return;
+  const char = evt.which || evt.keyCode;
+  if (char === 9) {
+    if (!!element2.classList && !element2.classList.contains(keyFocusedClassName)) {
+      element2.classList.add(keyFocusedClassName);
+    }
+    return;
+  }
+  if (options2) {
+    if (!options2.__keyDownReceived)
+      return;
+    options2.__keyDownReceived = false;
+  }
+  if (char === 13 || char === 32) {
+    if (element2.click)
+      element2.click();
+  } else if ((!options2 || options2.processEsc) && char === 27) {
+    if (element2.blur)
+      element2.blur();
+  }
+}
+function doKey2ClickDown(evt, options2 = { processEsc: true }) {
+  if (options2)
+    options2.__keyDownReceived = true;
+  if (!!evt.target && evt.target["contentEditable"] === "true") {
+    return;
+  }
+  var char = evt.which || evt.keyCode;
+  const supportedCodes = [13, 32];
+  if (options2.processEsc) {
+    supportedCodes.push(27);
+  }
+  if (supportedCodes.indexOf(char) !== -1) {
+    evt.preventDefault();
+  }
+}
 class DropdownListModel extends Base {
   get focusFirstInputSelector() {
     return this.getFocusFirstInputSelector();
@@ -111067,11 +111176,18 @@ class DropdownListModel extends Base {
     return { stopPropagation: false };
   }
   handleEnter(event) {
-    if (!this.popupModel.isVisible) {
-      this.question.survey.questionEditFinishCallback(this.question, event);
-      return { stopPropagation: true };
+    if (this.popupModel.isVisible) {
+      this.handleEnterWhenPopupVisible(event);
+    } else {
+      this.handleEnterWhenPopupHidden(event);
     }
-    const shouldClearOnEnter = this.searchEnabled && !this.inputString && this.question instanceof QuestionDropdownModel && !this._markdownMode && !!this.question.value;
+    return { stopPropagation: true };
+  }
+  handleEnterWhenPopupHidden(event) {
+    this.question.survey.questionEditFinishCallback(this.question, event);
+  }
+  handleEnterWhenPopupVisible(event) {
+    const shouldClearOnEnter = this.searchEnabled && !this.inputString && !this._markdownMode && !!this.question.value;
     if (shouldClearOnEnter) {
       this._popupModel.hide();
       this.onClear(event);
@@ -111079,7 +111195,6 @@ class DropdownListModel extends Base {
       this.listModel.selectFocusedItem();
       this.onFocus(event);
     }
-    return { stopPropagation: true };
   }
   handleDelete(event) {
     if (!this.inputAvailable) {
@@ -111316,9 +111431,9 @@ function questionDropdownMixin(Base2) {
       }
       return classes;
     }
-    clearValue(keepComment, fromUI) {
+    onClearValue() {
       var _a2;
-      super.clearValue(keepComment, fromUI);
+      super.onClearValue();
       (_a2 = this.dropdownListModelValue) === null || _a2 === void 0 ? void 0 : _a2.clear();
     }
     dispose() {
@@ -111494,8 +111609,8 @@ class QuestionDropdownModel extends questionDropdownMixin(QuestionSelectBase) {
     const postFix = addPostFix && this.useDropdownList ? "_0" : "";
     return this.inputId + postFix;
   }
-  clearValue(keepComment, fromUI) {
-    super.clearValue(keepComment, fromUI);
+  onClearValue() {
+    super.onClearValue();
     this.lastSelectedItemValue = null;
   }
   afterRenderCore(el) {
@@ -112136,15 +112251,7 @@ class QuestionMatrixModel extends QuestionMatrixBaseModel {
     });
     return rows;
   }
-  getRowByName(name) {
-    const rows = this.visibleRows;
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].name === name)
-        return rows[i];
-    }
-    return null;
-  }
-  getSingleInputQuestionsCore(question, checkDynamic) {
+  getMatrixSingleInputQuestions(question, checkDynamic) {
     if (!!this.nestedQuestionsValue)
       return this.nestedQuestionsValue;
     const res = [];
@@ -112168,6 +112275,17 @@ class QuestionMatrixModel extends QuestionMatrixBaseModel {
       this.nestedQuestionsValue.forEach((q) => q.dispose());
       this.nestedQuestionsValue = null;
     }
+  }
+  getRowByName(name) {
+    const rows = this.visibleRows;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].name === name)
+        return rows[i];
+    }
+    return null;
+  }
+  createSingleInputBehavior() {
+    return new MatrixSingleInputBehavior(this);
   }
   resetSingleInput() {
     this.disposeNestedQuestions();
@@ -112218,6 +112336,8 @@ class QuestionMatrixModel extends QuestionMatrixBaseModel {
     return array2;
   }
   randomSeedChanged() {
+    if (this.rowOrder.toLowerCase() !== "random")
+      return;
     this.rows = this.sortVisibleRows(this.rows);
     this.onRowsChanged();
   }
@@ -112695,6 +112815,14 @@ QuestionFactory.Instance.registerQuestion("matrix", (name) => {
   q.columns = QuestionFactory.DefaultColums;
   return q;
 });
+class MatrixSingleInputBehavior extends QuestionSingleInputBehavior {
+  get matrix() {
+    return this.question;
+  }
+  getSingleInputQuestionsCore(question, checkDynamic) {
+    return this.matrix.getMatrixSingleInputQuestions(question, checkDynamic);
+  }
+}
 class CharacterCounter extends Base {
   updateRemainingCharacterCounter(newValue, maxLength) {
     this.remainingCharacterCounter = Helpers.getRemainingCharacterCounterText(newValue, maxLength);
@@ -113182,6 +113310,7 @@ class QuestionTextModel extends QuestionTextBase {
   /**
    * A value passed on to the [`min`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/min) attribute of the underlying `<input>` element.
    * @see minValueExpression
+   * @see minErrorText
    */
   get min() {
     return this.getPropertyValue("min");
@@ -113196,6 +113325,7 @@ class QuestionTextModel extends QuestionTextBase {
   /**
    * A value passed on to the [`max`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/max) attribute of the underlying `<input>` element.
    * @see maxValueExpression
+   * @see maxErrorText
    */
   get max() {
     return this.getPropertyValue("max");
@@ -113345,7 +113475,7 @@ class QuestionTextModel extends QuestionTextBase {
     if (!this.isMinMaxType)
       return true;
     const isValid = !this.isValueLessMin && !this.isValueGreaterMax;
-    if ((!isValid || this.errors.length > 0) && !!this.survey && (this.survey.isValidateOnValueChanging || this.survey.isValidateOnValueChanged)) {
+    if ((!isValid || this.errors.length > 0) && !!this.survey && (this.validationCallbacks.isValidateOnValueChanging || this.validationCallbacks.isValidateOnValueChanged)) {
       this.validate();
     }
     return isValid;
@@ -113364,7 +113494,7 @@ class QuestionTextModel extends QuestionTextBase {
     return errorText.replace("{0}", errorValue);
   }
   getStepErrorText() {
-    const text2 = this.getLocalizationString("stepError");
+    const text2 = this.stepErrorText;
     return text2.replace("{0}", this.renderedStep);
   }
   get isValueLessMin() {
@@ -113577,6 +113707,9 @@ __decorate([
   property({ localizable: { defaultStr: "maxError", markdown: true } })
 ], QuestionTextModel.prototype, "maxErrorText", void 0);
 __decorate([
+  property({ localizable: { defaultStr: "stepError", markdown: true } })
+], QuestionTextModel.prototype, "stepErrorText", void 0);
+__decorate([
   property()
 ], QuestionTextModel.prototype, "_inputValue", void 0);
 __decorate([
@@ -113651,6 +113784,9 @@ function propertyEditorMinMaxUpdate(obj, propertyEditor) {
     propertyEditor.inputType = obj.inputType !== "range" ? obj.inputType : "number";
     propertyEditor.textUpdateMode = "onBlur";
   }
+}
+function isStepVisible(obj) {
+  return obj.inputType === "number" || obj.inputType === "range";
 }
 Serializer.addClass("text", [
   {
@@ -113742,6 +113878,12 @@ Serializer.addClass("text", [
       return isMinMaxType(obj);
     }
   },
+  {
+    name: "stepErrorText",
+    serializationProperty: "locStepErrorText",
+    dependsOn: "inputType",
+    visibleIf: (obj) => isStepVisible(obj)
+  },
   { name: "inputTextAlignment", default: "auto", choices: ["left", "right", "auto"] },
   {
     name: "maskType",
@@ -113774,11 +113916,7 @@ Serializer.addClass("text", [
   {
     name: "step:number",
     dependsOn: "inputType",
-    visibleIf: function(obj) {
-      if (!obj)
-        return false;
-      return obj.inputType === "number" || obj.inputType === "range";
-    }
+    visibleIf: (obj) => isStepVisible(obj)
   },
   {
     name: "maxLength:number",
@@ -116068,6 +116206,10 @@ class DropdownMultiSelectListModel extends DropdownListModel {
     }
     this.syncFilterStringPlaceholder();
   }
+  handleEnterWhenPopupVisible(event) {
+    this.listModel.selectFocusedItem();
+    this.onFocus(event);
+  }
   onPropertyChangedHandler(sender, options2) {
     super.onPropertyChangedHandler(sender, options2);
     if (options2.name === "value" || options2.name === "renderedValue" || options2.name === "placeholder") {
@@ -117461,6 +117603,16 @@ Serializer.addClass("comment", [
 QuestionFactory.Instance.registerQuestion("comment", (name) => {
   return new QuestionCommentModel(name);
 });
+function detectIEOrEdge() {
+  if (typeof detectIEOrEdge.isIEOrEdge === "undefined") {
+    const ua = navigator.userAgent;
+    const msie = ua.indexOf("MSIE ");
+    const trident = ua.indexOf("Trident/");
+    const edge = ua.indexOf("Edge/");
+    detectIEOrEdge.isIEOrEdge = edge > 0 || trident > 0 || msie > 0;
+  }
+  return detectIEOrEdge.isIEOrEdge;
+}
 const envStr = "environment";
 const userStr = "user";
 let Camera$1 = class Camera2 {
@@ -117681,14 +117833,17 @@ class QuestionFileModelBase extends Question {
   get showLoadingIndicator() {
     return this.isUploading;
   }
+  get fileCallbacks() {
+    return this.survey;
+  }
   clearValue(keepComment, fromUI) {
     this.clearOnDeletingContainer();
     super.clearValue(keepComment, fromUI);
   }
   clearOnDeletingContainer() {
-    if (!this.survey)
+    if (!this.fileCallbacks)
       return;
-    this.survey.clearFiles(this, this.name, this.value, null, () => {
+    this.fileCallbacks.clearFiles(this, this.name, this.value, null, () => {
     });
   }
   onCheckForErrors(errors, isOnValueChanged, fireCallback) {
@@ -117698,10 +117853,10 @@ class QuestionFileModelBase extends Question {
     }
   }
   uploadFiles(files2, sourceType) {
-    if (this.survey) {
+    if (this.fileCallbacks) {
       this.errors = [];
       this.stateChanged("loading");
-      this.survey.uploadFiles(this, this.name, files2, (arg1, arg2) => {
+      this.fileCallbacks.uploadFiles(this, this.name, files2, (arg1, arg2) => {
         if (Array.isArray(arg1)) {
           this.setValueFromResult(arg1);
           if (Array.isArray(arg2)) {
@@ -118218,8 +118373,8 @@ class QuestionFileModel extends QuestionFileModelBase {
     event.preventDefault();
     event.stopImmediatePropagation();
     if (inputElement) {
-      if (this.survey) {
-        this.survey.chooseFiles(inputElement, (files2) => this.loadFiles(files2, "file"), { element: this, elementType: this.getType(), propertyName: this.name });
+      if (this.fileCallbacks) {
+        this.fileCallbacks.chooseFiles(inputElement, (files2) => this.loadFiles(files2, "file"), { element: this, elementType: this.getType(), propertyName: this.name });
       } else {
         inputElement.click();
       }
@@ -118280,11 +118435,11 @@ class QuestionFileModel extends QuestionFileModelBase {
     return this.isEmpty() || this.allowMultiple ? this.chooseButtonCaption : this.replaceButtonCaption;
   }
   clear(doneCallback) {
-    if (!this.survey)
+    if (!this.fileCallbacks)
       return;
     this.containsMultiplyFiles = false;
     this.isClearingFiles = true;
-    this.survey.clearFiles(this, this.name, this.value, null, (status, data2) => {
+    this.fileCallbacks.clearFiles(this, this.name, this.value, null, (status, data2) => {
       if (status === "success") {
         this.value = void 0;
         this.errors = [];
@@ -118330,10 +118485,10 @@ class QuestionFileModel extends QuestionFileModelBase {
     this.removeFileByContent(this.value.filter((f) => f.name === name)[0]);
   }
   removeFileByContent(content) {
-    if (!this.survey)
+    if (!this.fileCallbacks)
       return;
     this.isClearingFiles = true;
-    this.survey.clearFiles(this, this.name, this.value, content.name, (status, data2) => {
+    this.fileCallbacks.clearFiles(this, this.name, this.value, content.name, (status, data2) => {
       if (status === "success") {
         var oldValue = this.value;
         if (Array.isArray(oldValue)) {
@@ -118841,8 +118996,8 @@ class FileLoader2 {
     let downloadedCount = 0;
     this.loaded = new Array(files2.length);
     files2.forEach((value, index) => {
-      if (this.fileQuestion.survey) {
-        this.fileQuestion.survey.downloadFile(this.fileQuestion, this.fileQuestion.name, value, (status, data2) => {
+      if (this.fileQuestion.fileCallbacks) {
+        this.fileQuestion.fileCallbacks.downloadFile(this.fileQuestion, this.fileQuestion.name, value, (status, data2) => {
           if (!this.fileQuestion || !this.callback) {
             return;
           }
@@ -119615,7 +119770,7 @@ class QuestionRatingModel extends Question {
     const options2 = { item, css: "" };
     options2.css = new CssClassBuilder().append(itemClass).append(itemSelectedClass, isSelected).append(itemDisabledClass, this.isDisabledStyle).append(itemReadOnlyClass, this.isReadOnlyStyle).append(itemPreviewClass, this.isPreviewStyle).append(itemHoverClass, allowHover).append(itemHighlightedClass, isHighlighted).append(itemScaleColoredClass, this.scaleColorMode == "colored").append(itemRateColoredClass, this.rateColorMode == "scale" && isSelected).append(itemUnhighlightedClass, isUnhighlighted).append(itemitemOnErrorClass, this.hasCssError()).append(itemSmallClass, this.itemSmallMode).append(this.cssClasses.itemFixedSize, hasFixedSize).toString();
     if (!!this.survey) {
-      this.survey.updateChoiceItemCss(this, options2);
+      this.cssCallbacks.updateChoiceItemCss(this, options2);
     }
     return options2.css;
   }
@@ -123093,9 +123248,9 @@ class QuestionSignaturePadModel extends QuestionFileModelBase {
     this.value = (arg === null || arg === void 0 ? void 0 : arg.length) ? arg.map((r2) => r2.content)[0] : void 0;
     this.valueIsUpdatingInternally = false;
   }
-  clearValue(keepComment, fromUI) {
+  onClearValue() {
+    super.onClearValue();
     this.valueWasChangedFromLastUpload = false;
-    super.clearValue(keepComment, fromUI);
     this._loadedData = void 0;
     this.loadPreview(this.value);
   }
@@ -123449,6 +123604,9 @@ class QuestionPanelDynamicTemplateSurveyImpl {
   }
 }
 class QuestionPanelDynamicModel extends Question {
+  get dynamicPanelCallbacks() {
+    return this.survey;
+  }
   constructor(name) {
     super(name);
     this._renderedPanels = [];
@@ -123499,7 +123657,7 @@ class QuestionPanelDynamicModel extends Question {
         });
     }
     if (name === "showQuestionNumbers" && this.survey) {
-      this.survey.questionVisibilityChanged(this, this.visible, true);
+      this.lifecycleCallbacks.questionVisibilityChanged(this, this.visible, true);
     }
     if (name === "tabAlign" && this.isRenderModeTab) {
       this.tabbedMenu.containerCss = this.getTabbedMenuCss();
@@ -123855,7 +124013,7 @@ class QuestionPanelDynamicModel extends Question {
         panel: val,
         visiblePanelIndex: index
       };
-      this.survey.dynamicPanelCurrentIndexChanged(this, options2);
+      this.dynamicPanelCallbacks.dynamicPanelCurrentIndexChanged(this, options2);
     }
   }
   getUIState() {
@@ -124264,115 +124422,11 @@ class QuestionPanelDynamicModel extends Question {
     super.resetSingleInput();
     this.locTemplateTitle.onGetTextCallback = null;
   }
-  getSingleInputQuestionsCore(question, checkDynamic) {
-    this.onFirstRendering();
-    const res = new Array();
-    const panels = this.visiblePanels;
-    if (checkDynamic) {
-      for (let i = 0; i < panels.length; i++) {
-        const panel = panels[i];
-        if (!panel.hasValueAnyQuestion(true) || !panel.validate(false, false)) {
-          this.fillSingleInputQuestionsByPanel(res, panel);
-        }
-      }
-    }
-    return this.getSingleInputQuestionsForDynamic(question, res);
-  }
-  fillSingleInputQuestionsInContainer(res, innerQuestion) {
-    const panel = this.getPanelByQuestion(innerQuestion);
-    this.fillSingleInputQuestionsByPanel(res, panel);
-  }
-  fillSingleInputQuestionsByPanel(res, panel) {
-    if (panel) {
-      panel.visibleQuestions.forEach((q) => q.addNestedQuestion(res, true, false, false));
-    }
-  }
-  getSingleQuestionLocTitleCore() {
-    const res = this.locTemplateTitle;
-    res.onGetTextCallback = (text2) => {
-      const q = this.singleInputQuestion;
-      if (!q)
-        return text2;
-      return this.processSingleInputTitle(text2, this.getPanelByQuestion(q));
-    };
-    return res;
-  }
-  processSingleInputTitle(text2, panel) {
-    if (!text2)
-      text2 = this.getSingleInputTitleTemplate();
-    if (!panel)
-      return text2;
-    return panel.getProcessedText(text2);
-  }
-  getSingleInputTitleTemplate() {
-    return this.getLocalizationString("panelDynamicTabTextFormat");
-  }
-  getPanelByQuestion(question) {
-    let parent = question.parent;
-    while (!!parent && !!parent.parent) {
-      parent = parent.parent;
-    }
-    return parent;
-  }
-  getSingleInputAddTextCore() {
-    if (!this.canAddPanel)
-      return void 0;
-    return this.addPanelText;
-  }
-  singleInputAddItemCore() {
-    this.addPanelUI();
-  }
-  getSingleQuestionOnChange(index) {
-    const panels = this.visiblePanelsCore;
-    if (panels.length > 0) {
-      if (index < 0 || index >= panels.length)
-        index = panels.length - 1;
-      const row = panels[index];
-      const vQs = row.visibleQuestions;
-      if (vQs.length > 0) {
-        return vQs[0];
-      }
-    }
-    return null;
-  }
-  createSingleInputSummary() {
-    const res = new QuestionSingleInputSummary(this, this.locNoEntriesText);
-    const items = new Array();
-    this.visiblePanels.forEach((panel) => {
-      const locText = new LocalizableString(this, true, void 0, this.locTemplateTitle.localizationName);
-      locText.setJson(this.locTemplateTitle.getJson());
-      locText.onGetTextCallback = (text2) => {
-        return this.processSingleInputTitle(this.templateTitle, panel);
-      };
-      const bntEdit = new Action({ locTitle: this.locEditPanelText, action: () => {
-        this.singInputEditPanel(panel);
-      } });
-      const btnRemove = this.canRemovePanel ? new Action({ locTitle: this.locRemovePanelText, action: () => {
-        this.removePanelUI(panel);
-      } }) : void 0;
-      items.push(new QuestionSingleInputSummaryItem(locText, bntEdit, btnRemove));
-    });
-    res.items = items;
-    return res;
-  }
   get locEditPanelText() {
     return this.getOrCreateLocStr("editPanelText", false, "editText");
   }
-  singleInputMoveToFirstCore() {
-    var _a2;
-    let panel = (_a2 = this.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.parent;
-    while (!!panel && !!panel.parent) {
-      panel = panel.parent;
-    }
-    this.singInputEditPanel(panel);
-  }
-  singInputEditPanel(panel) {
-    if (!panel)
-      return;
-    const qs = panel.visibleQuestions;
-    if (qs.length > 0) {
-      this.setSingleInputQuestion(qs[0]);
-    }
+  createSingleInputBehavior() {
+    return new PanelDynamicSingleInputBehavior(this);
   }
   getShowQuestionNumbers() {
     var _a2;
@@ -124755,7 +124809,7 @@ class QuestionPanelDynamicModel extends Question {
     const index = this.panelsCore.indexOf(panel);
     if (index < 0)
       return;
-    if (this.survey && !this.survey.dynamicPanelRemoving(this, index, panel))
+    if (this.survey && !this.dynamicPanelCallbacks.dynamicPanelRemoving(this, index, panel))
       return;
     this.panelsCore.splice(index, 1);
     this.setPropertyValue("panelCount", this.panelCount);
@@ -124781,9 +124835,9 @@ class QuestionPanelDynamicModel extends Question {
     if (this.survey) {
       const updateIndeces = sQN === "default";
       if (isAdded) {
-        this.survey.dynamicPanelAdded(this, index, panel, updateIndeces);
+        this.dynamicPanelCallbacks.dynamicPanelAdded(this, index, panel, updateIndeces);
       } else {
-        this.survey.dynamicPanelRemoved(this, index, panel, updateIndeces);
+        this.dynamicPanelCallbacks.dynamicPanelRemoved(this, index, panel, updateIndeces);
       }
     }
     if (isAdded && !!panel && (sQN === "onpanel" || sQN === "recursive")) {
@@ -125290,7 +125344,7 @@ class QuestionPanelDynamicModel extends Question {
       }));
     }
     if (!!this.survey) {
-      actions = this.survey.getUpdatedPanelFooterActions(panel, actions, this);
+      actions = this.titleSettings.getUpdatedPanelFooterActions(panel, actions, this);
     }
     return actions;
   }
@@ -125490,7 +125544,12 @@ class QuestionPanelDynamicModel extends Question {
       if (!Array.isArray(this.changingValueQuestions)) {
         this.changingValueQuestions = [];
       }
-      const q = this.panelsCore[index].getQuestionByValueName(name);
+      let qName = name;
+      const suffix = settings.commentSuffix;
+      if (qName.endsWith(suffix)) {
+        qName = qName.substring(0, qName.length - suffix.length);
+      }
+      const q = this.panelsCore[index].getQuestionByValueName(qName);
       if (!!q) {
         this.changingValueQuestions.push(q);
       }
@@ -125711,7 +125770,7 @@ class QuestionPanelDynamicModel extends Question {
         panel,
         visiblePanelIndex: visPanelIndex
       };
-      this.survey.dynamicPanelGetTabTitle(this, options2);
+      this.dynamicPanelCallbacks.dynamicPanelGetTabTitle(this, options2);
       return options2.title;
     };
     locTitle.sharedData = this.locTemplateTabTitle;
@@ -125907,6 +125966,119 @@ __decorate([
     target.updateFooterActions();
   } })
 ], QuestionPanelDynamicModel.prototype, "legacyNavigation", void 0);
+class PanelDynamicSingleInputBehavior extends QuestionSingleInputBehavior {
+  get panelDynamic() {
+    return this.question;
+  }
+  getSingleInputQuestionsCore(question, checkDynamic) {
+    this.panelDynamic.onFirstRendering();
+    const res = new Array();
+    const panels = this.panelDynamic.visiblePanels;
+    if (checkDynamic) {
+      for (let i = 0; i < panels.length; i++) {
+        const panel = panels[i];
+        if (!panel.hasValueAnyQuestion(true) || !panel.validate(false, false)) {
+          this.fillSingleInputQuestionsByPanel(res, panel);
+        }
+      }
+    }
+    return this.getSingleInputQuestionsForDynamic(question, res);
+  }
+  fillSingleInputQuestionsInContainer(res, innerQuestion) {
+    const panel = this.getPanelByQuestion(innerQuestion);
+    this.fillSingleInputQuestionsByPanel(res, panel);
+  }
+  fillSingleInputQuestionsByPanel(res, panel) {
+    if (panel) {
+      panel.visibleQuestions.forEach((q) => q.addNestedQuestion(res, true, false, false));
+    }
+  }
+  getSingleQuestionLocTitleCore() {
+    const res = this.panelDynamic.locTemplateTitle;
+    res.onGetTextCallback = (text2) => {
+      const q = this.panelDynamic.singleInputQuestion;
+      if (!q)
+        return text2;
+      return this.processSingleInputTitle(text2, this.getPanelByQuestion(q));
+    };
+    return res;
+  }
+  processSingleInputTitle(text2, panel) {
+    if (!text2)
+      text2 = this.getSingleInputTitleTemplate();
+    if (!panel)
+      return text2;
+    return panel.getProcessedText(text2);
+  }
+  getSingleInputTitleTemplate() {
+    return this.panelDynamic.getLocalizationString("panelDynamicTabTextFormat");
+  }
+  getPanelByQuestion(question) {
+    let parent = question.parent;
+    while (!!parent && !!parent.parent) {
+      parent = parent.parent;
+    }
+    return parent;
+  }
+  getSingleInputAddTextCore() {
+    if (!this.panelDynamic.canAddPanel)
+      return void 0;
+    return this.panelDynamic.addPanelText;
+  }
+  singleInputAddItemCore() {
+    this.panelDynamic.addPanelUI();
+  }
+  getSingleQuestionOnChange(index) {
+    const panels = this.panelDynamic.visiblePanels;
+    if (panels.length > 0) {
+      if (index < 0 || index >= panels.length)
+        index = panels.length - 1;
+      const row = panels[index];
+      const vQs = row.visibleQuestions;
+      if (vQs.length > 0) {
+        return vQs[0];
+      }
+    }
+    return null;
+  }
+  createSingleInputSummary() {
+    const pd = this.panelDynamic;
+    const res = new QuestionSingleInputSummary(pd, pd.locNoEntriesText);
+    const items = new Array();
+    pd.visiblePanels.forEach((panel) => {
+      const locText = new LocalizableString(pd, true, void 0, pd.locTemplateTitle.localizationName);
+      locText.setJson(pd.locTemplateTitle.getJson());
+      locText.onGetTextCallback = (text2) => {
+        return this.processSingleInputTitle(pd.templateTitle, panel);
+      };
+      const bntEdit = new Action({ locTitle: pd.locEditPanelText, action: () => {
+        this.singInputEditPanel(panel);
+      } });
+      const btnRemove = pd.canRemovePanel ? new Action({ locTitle: pd.locRemovePanelText, action: () => {
+        pd.removePanelUI(panel);
+      } }) : void 0;
+      items.push(new QuestionSingleInputSummaryItem(locText, bntEdit, btnRemove));
+    });
+    res.items = items;
+    return res;
+  }
+  singleInputMoveToFirstCore() {
+    var _a2;
+    let panel = (_a2 = this.panelDynamic.singleInputQuestion) === null || _a2 === void 0 ? void 0 : _a2.parent;
+    while (!!panel && !!panel.parent) {
+      panel = panel.parent;
+    }
+    this.singInputEditPanel(panel);
+  }
+  singInputEditPanel(panel) {
+    if (!panel)
+      return;
+    const qs = panel.visibleQuestions;
+    if (qs.length > 0) {
+      this.setSingleInputQuestion(qs[0]);
+    }
+  }
+}
 Serializer.addClass("paneldynamic", [
   { name: "showCommentArea:switch", visible: true },
   {
@@ -127884,6 +128056,193 @@ class ButtonGroupItemModel {
     this.question.selectItem(this.item);
   }
 }
+const renamedIcons = {
+  "changecamera": "flip-24x24",
+  "clear": "clear-24x24",
+  "cancel": "cancel-24x24",
+  "closecamera": "close-24x24",
+  "defaultfile": "file-72x72",
+  "choosefile": "folder-24x24",
+  "file": "toolbox-file-24x24",
+  "left": "chevronleft-16x16",
+  "modernbooleancheckchecked": "plus-32x32",
+  "modernbooleancheckunchecked": "minus-32x32",
+  "more": "more-24x24",
+  "navmenu_24x24": "navmenu-24x24",
+  "removefile": "error-24x24",
+  "takepicture": "camera-32x32",
+  "takepicture_24x24": "camera-24x24",
+  "v2check": "check-16x16",
+  "checked": "check-16x16",
+  "v2check_24x24": "check-24x24",
+  "back-to-panel_16x16": "restoredown-16x16",
+  "clear_16x16": "clear-16x16",
+  "close_16x16": "close-16x16",
+  "collapsedetail": "collapsedetails-16x16",
+  "expanddetail": "expanddetails-16x16",
+  "full-screen_16x16": "maximize-16x16",
+  "loading": "loading-48x48",
+  "minimize_16x16": "minimize-16x16",
+  "next_16x16": "chevronright-16x16",
+  "previous_16x16": "chevronleft-16x16",
+  "no-image": "noimage-48x48",
+  "ranking-dash": "rankingundefined-16x16",
+  "drag-n-drop": "drag-24x24",
+  "ranking-arrows": "reorder-24x24",
+  "restore_16x16": "fullsize-16x16",
+  "reset": "restore-24x24",
+  "search": "search-24x24",
+  "average": "smiley-rate5-24x24",
+  "excellent": "smiley-rate9-24x24",
+  "good": "smiley-rate7-24x24",
+  "normal": "smiley-rate6-24x24",
+  "not-good": "smiley-rate4-24x24",
+  "perfect": "smiley-rate10-24x24",
+  "poor": "smiley-rate3-24x24",
+  "terrible": "smiley-rate1-24x24",
+  "very-good": "smiley-rate8-24x24",
+  "very-poor": "smiley-rate2-24x24",
+  "add_16x16": "add-16x16",
+  "add_24x24": "add-24x24",
+  "alert_24x24": "warning-24x24",
+  "apply": "apply-24x24",
+  "arrow-down": "arrowdown-24x24",
+  "arrow-left": "arrowleft-24x24",
+  "arrow-left_16x16": "arrowleft-16x16",
+  "arrowleft": "arrowleft-16x16",
+  "arrow-right": "arrowright-24x24",
+  "arrow-right_16x16": "arrowright-16x16",
+  "arrowright": "arrowright-16x16",
+  "arrow-up": "arrowup-24x24",
+  "boolean": "toolbox-boolean-24x24",
+  "change-question-type_16x16": "speechbubble-16x16",
+  "checkbox": "toolbox-checkbox-24x24",
+  "collapse-detail_16x16": "minusbox-16x16",
+  "collapse-panel": "collapse-pg-24x24",
+  "collapse_16x16": "collapse-16x16",
+  "color-picker": "dropper-16x16",
+  "comment": "toolbox-longtext-24x24",
+  "config": "wrench-24x24",
+  "copy": "copy-24x24",
+  "default": "toolbox-customquestion-24x24",
+  "delete_16x16": "delete-16x16",
+  "delete_24x24": "delete-24x24",
+  "delete": "delete-24x24",
+  "description-hide": "hidehint-16x16",
+  "description": "hint-16x16",
+  "device-desktop": "desktop-24x24",
+  "device-phone": "phone-24x24",
+  "device-rotate": "rotate-24x24",
+  "device-tablet": "tablet-24x24",
+  "download": "download-24x24",
+  "drag-area-indicator": "drag-24x24",
+  "drag-area-indicator_24x16": "draghorizontal-24x16",
+  "v2dragelement_16x16": "draghorizontal-24x16",
+  "drop-down-arrow": "chevrondown-24x24",
+  "drop-down-arrow_16x16": "chevrondown-16x16",
+  "chevron_16x16": "chevrondown-16x16",
+  "dropdown": "toolbox-dropdown-24x24",
+  "duplicate_16x16": "copy-16x16",
+  "edit": "edit-24x24",
+  "edit_16x16": "edit-16x16",
+  "editing-finish": "finishedit-24x24",
+  "error": "error-16x16",
+  "expand-detail_16x16": "plusbox-16x16",
+  "expand-panel": "expand-pg-24x24",
+  "expand_16x16": "expand-16x16",
+  "expression": "toolbox-expression-24x24",
+  "fast-entry": "textedit-24x24",
+  "fix": "fix-24x24",
+  "html": "toolbox-html-24x24",
+  "image": "toolbox-image-24x24",
+  "imagepicker": "toolbox-imagepicker-24x24",
+  "import": "import-24x24",
+  "invisible-items": "invisible-24x24",
+  "language": "language-24x24",
+  "load": "import-24x24",
+  "logic-collapse": "collapse-24x24",
+  "logic-expand": "expand-24x24",
+  "logo": "image-48x48",
+  "matrix": "toolbox-matrix-24x24",
+  "matrixdropdown": "toolbox-multimatrix-24x24",
+  "matrixdynamic": "toolbox-dynamicmatrix-24x24",
+  "multipletext": "toolbox-multipletext-24x24",
+  "panel": "toolbox-panel-24x24",
+  "paneldynamic": "toolbox-dynamicpanel-24x24",
+  "preview": "preview-24x24",
+  "radiogroup": "toolbox-radiogroup-24x24",
+  "ranking": "toolbox-ranking-24x24",
+  "rating": "toolbox-rating-24x24",
+  "slider": "toolbox-slider-24x24",
+  "redo": "redo-24x24",
+  "remove_16x16": "remove-16x16",
+  "required": "required-16x16",
+  "save": "save-24x24",
+  "select-page": "selectpage-24x24",
+  "settings": "settings-24x24",
+  "settings_16x16": "settings-16x16",
+  "signaturepad": "toolbox-signature-24x24",
+  "switch-active_16x16": "switchon-16x16",
+  "switch-inactive_16x16": "switchoff-16x16",
+  "tagbox": "toolbox-tagbox-24x24",
+  "text": "toolbox-singleline-24x24",
+  "theme": "theme-24x24",
+  "toolbox": "toolbox-24x24",
+  "undo": "undo-24x24",
+  "visible": "visible-24x24",
+  "wizard": "wand-24x24",
+  "searchclear": "clear-16x16",
+  "chevron-16x16": "chevrondown-16x16",
+  "chevron": "chevrondown-24x24",
+  "progressbuttonv2": "arrowleft-16x16",
+  "right": "chevronright-16x16",
+  "add-lg": "add-24x24",
+  "add": "add-24x24"
+};
+function getNewIconName(iconName) {
+  const prefix = "icon-";
+  const nameWithoutPrefix = iconName.replace(prefix, "");
+  const result = renamedIcons[nameWithoutPrefix] || nameWithoutPrefix;
+  return prefix + result;
+}
+function getCustomNewIconNameIfExists(iconName) {
+  let result = settings.customIcons[iconName];
+  if (result)
+    return getNewIconName(result);
+  iconName = getNewIconName(iconName);
+  result = settings.customIcons[iconName];
+  if (result)
+    return result;
+  return null;
+}
+function createSvg(size, width, height, iconName, svgElem, title) {
+  if (!svgElem)
+    return;
+  if (size !== "auto") {
+    svgElem.style.width = (size || width || 16) + "px";
+    svgElem.style.height = (size || height || 16) + "px";
+  }
+  const node = svgElem.childNodes[0];
+  const realIconName = getIconNameFromProxy(iconName);
+  node.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + realIconName);
+  let titleElement = svgElem.getElementsByTagName("title")[0];
+  if (!title) {
+    if (!!titleElement) {
+      svgElem.removeChild(titleElement);
+    }
+    return;
+  } else {
+    if (!titleElement) {
+      titleElement = DomDocumentHelper.getDocument().createElementNS("http://www.w3.org/2000/svg", "title");
+      svgElem.appendChild(titleElement);
+    }
+  }
+  titleElement.textContent = title;
+}
+function getIconNameFromProxy(iconName) {
+  const customIconName = getCustomNewIconNameIfExists(iconName);
+  return customIconName || getNewIconName(iconName);
+}
 class InputMaskBase extends Base {
   getSurvey(live = false) {
     var _a2;
@@ -128991,7 +129350,7 @@ Serializer.addClass("currencymask", [
   return new InputMaskCurrency();
 }, "numericmask");
 var Version;
-Version = `${"2.5.13"}`;
+Version = `${"2.5.15"}`;
 settings.version = Version;
 function checkLibraryVersion(ver, libraryName) {
   if (Version != ver) {
@@ -130789,7 +131148,7 @@ function attachKey2click(element2, viewModel, options2 = { processEsc: true, dis
   };
   return reactExports.cloneElement(element2, props);
 }
-class SurveyNavigationBase extends reactExports.Component {
+class SurveyNavigationBase extends SurveyElementBase {
   constructor(props) {
     super(props);
     this.updateStateFunction = null;
@@ -134512,6 +134871,9 @@ class SurveyProgressButtons extends SurveyNavigationBase {
   get container() {
     return this.props.container;
   }
+  getStateElement() {
+    return this.model;
+  }
   onResize(canShowItemTitles) {
     this.setState({ canShowItemTitles });
     this.setState({ canShowHeader: !canShowItemTitles });
@@ -134526,7 +134888,7 @@ class SurveyProgressButtons extends SurveyNavigationBase {
   render() {
     return reactExports.createElement(
       "div",
-      { className: this.model.getRootCss(this.props.container), style: { "maxWidth": this.model.progressWidth, ["--sd-progress-buttons-pages-count"]: this.survey.visiblePages.length }, role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-label": this.model.progressBarAriaLabel },
+      { className: this.model.getRootCss(this.props.container), style: { "maxWidth": this.model.progressWidth, ["--sd-progress-buttons-pages-count"]: this.model.visiblePages.length }, role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-label": this.model.progressBarAriaLabel },
       this.state.canShowHeader ? reactExports.createElement(
         "div",
         { className: this.css.progressButtonsHeader },
@@ -134552,7 +134914,7 @@ class SurveyProgressButtons extends SurveyNavigationBase {
   }
   getListElements() {
     let buttons = [];
-    this.survey.visiblePages.forEach((page, index) => {
+    this.model.visiblePages.forEach((page, index) => {
       buttons.push(this.renderListElement(page, index));
     });
     return buttons;
@@ -135879,7 +136241,7 @@ class SurveyLocStringEditor extends reactExports.Component {
 ReactElementFactory.Instance.registerElement(LocalizableString.editableRenderer, (props) => {
   return reactExports.createElement(SurveyLocStringEditor, props);
 });
-checkLibraryVersion(`${"2.5.13"}`, "survey-react-ui");
+checkLibraryVersion(`${"2.5.15"}`, "survey-react-ui");
 const quizQuestions = [
   {
     id: "Q1",
@@ -215940,6 +216302,9 @@ function ResultsPage() {
     });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-container", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Your Results" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-overview", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "You are the..." }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "results-title", children: [
@@ -215947,7 +216312,7 @@ function ResultsPage() {
         " ",
         primary
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "Your mantra could be" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "Your mantra could be..." }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "results-subtitle results-mantra", children: primaryData.mantra }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
         "You are most alive when ",
@@ -215966,16 +216331,17 @@ function ResultsPage() {
       ] })) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { children: [
-            "Your Primary Archetype: ",
-            primary
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { children: [
+            primary,
+            " (Primary Archetype)"
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: primaryData.description })
         ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
         secondaryData && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { children: [
-            "Your Secondary Archetype: ",
-            secondary
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { children: [
+            secondary,
+            " (Secondary Archetype)"
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: secondaryData.description })
         ] })
