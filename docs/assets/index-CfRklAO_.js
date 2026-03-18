@@ -66441,7 +66441,11 @@ function MainApp() {
       document.getElementById("designer").style.visibility = "none";
     } else {
       document.getElementById("designer").style.visibility = "visible";
-      document.getElementById("name").innerText = designers[faceIndex];
+      let name = designers[faceIndex];
+      if (name === "Eike Konig") {
+        name = "Eike König";
+      }
+      document.getElementById("name").innerText = name;
       document.getElementById("archetype").innerText = archetypes[faceIndex];
       document.getElementById("bio").innerText = bios[faceIndex];
       document.getElementById("headshot").setAttribute("src", `/headshots/${designers[faceIndex]}.png`);

@@ -203,7 +203,7 @@ export default function MainApp() {
             if (name === 'Eike Konig') {
                 name = 'Eike König'
             }
-            document.getElementById('name').innerText = designers[faceIndex]
+            document.getElementById('name').innerText = name
             document.getElementById('archetype').innerText = archetypes[faceIndex]
             document.getElementById('bio').innerText = bios[faceIndex]
             document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`)
