@@ -2,8 +2,10 @@ import { test, expect } from 'playwright/test'
 
 test.describe('Quiz Styling E2E Tests', () => {
     test.beforeEach(async ({ page }) => {
-    // Navigate to the quiz page
-        await page.goto('/quiz', { waitUntil: 'networkidle' })
+        // Navigate to the quiz page (using hash router)
+        await page.goto('/#/quiz', { waitUntil: 'networkidle' })
+        // Wait for survey to fully render
+        await page.waitForSelector('.sd-question', { timeout: 10000 })
     })
 
     test('should render quiz with properly styled questions', async ({ page }) => {

@@ -66423,7 +66423,7 @@ class Dodecahedron extends React.Component {
     if (!intersect2) return;
     const triangleIndex = intersect2.faceIndex;
     const faceIndex = Math.floor(triangleIndex / 3);
-    this.setState((prevState) => {
+    this.setState((_prevState) => {
       const newFaceState = new Array(12).fill("white");
       newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length];
       return { faceState: newFaceState };
@@ -136581,26 +136581,33 @@ function calculateScores(responses) {
 const ARCHETYPES = Object.keys(archetypeData);
 const DIM_KEYS = ARCHETYPES.length > 0 ? Object.keys(archetypeData[ARCHETYPES[0]].dimensions) : [];
 function encodeDimsV1(dims) {
-  const raw = DIM_KEYS.map((k2) => `${k2}:${dims[k2] ?? 0}`).join(",");
-  const versioned = `v1:${raw}`;
-  return btoa(versioned);
+  return "v1:" + DIM_KEYS.map((k2) => `${k2}:${dims[k2] ?? 0}`).join(",");
 }
 function decodeDims(b64) {
+  let result = null;
   try {
     const decoded = atob(b64);
-    if (!decoded.startsWith("v1:")) return null;
-    const raw = decoded.slice(3);
-    const dims = Object.fromEntries(
-      raw.split(",").map((pair) => {
-        const [k2, v] = pair.split(":");
-        return [k2, parseFloat(v)];
-      })
-    );
-    if (!DIM_KEYS.every((k2) => typeof dims[k2] === "number" && !isNaN(dims[k2]))) return null;
-    return dims;
+    const version2 = decoded.match(/v(\d):/);
+    switch (parseInt(version2?.[1], 10)) {
+      case 1: {
+        const raw = decoded.slice(3);
+        const dims = Object.fromEntries(
+          raw.split(",").map((pair) => {
+            const [k2, v] = pair.split(":");
+            return [k2, parseFloat(v)];
+          })
+        );
+        if (DIM_KEYS.every((k2) => typeof dims[k2] === "number" && !isNaN(dims[k2]))) {
+          result = dims;
+        }
+        break;
+      }
+      default:
+        break;
+    }
   } catch {
-    return null;
   }
+  return result;
 }
 function dimsToArray(dims) {
   return DIM_KEYS.map((k2) => dims[k2]);
@@ -136691,7 +136698,7 @@ function QuizPage() {
         setTimeout(() => applyPanelStyle(options2.question.name), 0);
       }
     });
-    surveyModel.onCurrentPageChanged.add((sender, options2) => {
+    surveyModel.onCurrentPageChanged.add((sender, _options) => {
       const allAnswered = checkCompletion(sender.data);
       setIsComplete(allAnswered);
     });
@@ -136705,10 +136712,19 @@ function QuizPage() {
       options2.htmlElement.style.color = colors.fg;
       options2.htmlElement.style.setProperty("--panel-fg", colors.fg);
       options2.htmlElement.classList.add("quiz-panel", panelClass);
+      const parentEl = options2.htmlElement.closest(".sd-row__question, .sd-question");
+      if (parentEl && parentEl !== options2.htmlElement) {
+        parentEl.classList.add("quiz-panel", panelClass);
+      }
     });
     const initiallyComplete = checkCompletion(surveyModel.data);
     setIsComplete(initiallyComplete);
     setSurvey(surveyModel);
+    setTimeout(() => {
+      quizQuestions.forEach((q) => {
+        applyPanelStyle(q.id);
+      });
+    }, 100);
   }, []);
   const handleSubmit = () => {
     if (!survey || !isComplete) return;
@@ -136720,7 +136736,18 @@ function QuizPage() {
     DIM_KEYS.forEach((k2) => {
       if (!(k2 in dims)) dims[k2] = 0;
     });
-    const dimsB64 = encodeDimsV1(dims);
+    const dimsRaw = encodeDimsV1(dims);
+    const dimsB64 = btoa(dimsRaw);
+    window.gtag?.("event", "quiz_complete", {
+      dims_raw: dimsRaw,
+      version: 1,
+      strategy: dims.strategy,
+      adaptability: dims.adaptability,
+      collaboration: dims.collaboration,
+      experimentation: dims.experimentation,
+      impact: dims.impact,
+      question_answers: JSON.stringify(survey.data)
+    });
     navigate(`/results?dims=${encodeURIComponent(dimsB64)}`);
   };
   if (!survey) {
@@ -216288,5 +216315,5 @@ function App() {
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
-document.body.addEventListener("click", function(evt) {
+document.body.addEventListener("click", function(_evt) {
 });

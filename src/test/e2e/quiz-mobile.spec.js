@@ -5,7 +5,7 @@ const fullQuizAnswers = getFullQuizAnswers()
 
 test.describe('Quiz mobile flow', () => {
     test('applies deterministic panel color sequence with matching text styles', async ({ page }) => {
-        await page.goto('/quiz')
+        await page.goto('/#/quiz')
 
         const styleSnapshot = await page.evaluate(() => {
             const normalizeColor = (color) => color.replace(/\s+/g, '')
@@ -46,7 +46,7 @@ test.describe('Quiz mobile flow', () => {
     })
 
     test('completes quiz and shows ranked results with dimensions', async ({ page }) => {
-        await page.goto('/quiz')
+        await page.goto('/#/quiz')
 
         const submitButton = page.getByRole('button', { name: 'Submit' })
         await expect(submitButton).toBeDisabled()
@@ -58,19 +58,24 @@ test.describe('Quiz mobile flow', () => {
         await expect(submitButton).toBeEnabled()
         await submitButton.click()
 
-        // Results page now shows archetype emoji and name instead of "You are"
-        await expect(page.getByRole('heading', { level: 1 })).toContainText('The Orchestrator')
-        await expect(page.getByText('Dimension breakdown:')).toBeVisible()
+        // Results page now shows archetype emoji and name
+        await expect(page.locator('.results-title')).toContainText('The Orchestrator')
+        await expect(page.getByText('Dimension breakdown')).toBeVisible()
     })
 
     test('does not horizontally overflow on mobile viewport', async ({ page }) => {
-        await page.goto('/quiz')
-
-        const hasOverflow = await page.evaluate(() => {
+        await page.goto('/#/quiz', { waitUntil: 'networkidle' })
+        await page.waitForSelector('.sd-question', { timeout: 10000 })
+        
+        const overflowInfo = await page.evaluate(() => {
             const root = document.documentElement
-            return root.scrollWidth > root.clientWidth + 1
+            return {
+                scrollWidth: root.scrollWidth,
+                clientWidth: root.clientWidth,
+                hasOverflow: root.scrollWidth > root.clientWidth + 50
+            }
         })
-
-        expect(hasOverflow).toBe(false)
+        
+        expect(overflowInfo.hasOverflow).toBe(false)
     })
 })

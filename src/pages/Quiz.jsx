@@ -94,6 +94,12 @@ export default function QuizPage() {
             options.htmlElement.style.color = colors.fg
             options.htmlElement.style.setProperty('--panel-fg', colors.fg)
             options.htmlElement.classList.add('quiz-panel', panelClass)
+            
+            // Also apply to parent row/container on mobile (sd-question--mobile)
+            const parentEl = options.htmlElement.closest('.sd-row__question, .sd-question')
+            if (parentEl && parentEl !== options.htmlElement) {
+                parentEl.classList.add('quiz-panel', panelClass)
+            }
         })
     
         // Set initial state
@@ -101,6 +107,13 @@ export default function QuizPage() {
         setIsComplete(initiallyComplete)
     
         setSurvey(surveyModel)
+        
+        // Apply panel styles after initial render (handles mobile where onAfterRenderQuestion may not fire)
+        setTimeout(() => {
+            quizQuestions.forEach(q => {
+                applyPanelStyle(q.id)
+            })
+        }, 100)
     }, [])
   
     const handleSubmit = () => {

@@ -26,8 +26,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'bun run build && npm start',
+    command: 'bun run build && bun run start',
     port: 4173,
     reuseExistingServer: !process.env.CI,
+    timeout: 120000,
   },
+  timeout: 120000,
 })
