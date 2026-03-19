@@ -6,7 +6,6 @@ export default [
     plugins: {
       react,
     },
-    ignores: ['src/test/**', 'src/tests/**'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

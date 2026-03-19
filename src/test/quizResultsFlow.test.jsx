@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { encodeDimsV1, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
+import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
 import { calculateScores } from '../data/scoringUtils'
 import { quizQuestions } from '../data/quizData'
 import { getAnswerForArchetype, ORCHESTRATOR, DISRUPTOR } from './utils/archetypeTestUtils'
@@ -173,7 +173,7 @@ describe('Quiz to Results Flow', () => {
             const partialResponses = createResponsesForArchetype(ORCHESTRATOR).slice(0, 6)
             const scores = calculateScores(partialResponses)
             
-            scores.dimensionScores.forEach(([key, value]) => {
+            scores.dimensionScores.forEach(([_key, value]) => {
                 expect(value).toBeGreaterThan(0)
                 expect(value).toBeLessThanOrEqual(30)
             })

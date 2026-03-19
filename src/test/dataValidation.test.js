@@ -18,7 +18,7 @@ describe('Data Validation', () => {
         })
 
         it('should have exactly 5 choices per question', () => {
-            quizQuestions.forEach((question, index) => {
+            quizQuestions.forEach(question => {
                 expect(question.choices).toHaveLength(5)
                 expect(question.text).toBeTruthy()
                 expect(question.text.length).toBeGreaterThan(0)
@@ -26,7 +26,7 @@ describe('Data Validation', () => {
         })
 
         it('should have unique answer texts within each question', () => {
-            quizQuestions.forEach((question, index) => {
+            quizQuestions.forEach(question => {
                 const answerTexts = question.choices.map(c => c.text)
                 const uniqueTexts = [...new Set(answerTexts)]
         
@@ -38,8 +38,8 @@ describe('Data Validation', () => {
         it('should have valid archetype mappings', () => {
             const allArchetypes = Object.keys(archetypeData)
       
-            quizQuestions.forEach((question, index) => {
-                question.choices.forEach((choice, choiceIndex) => {
+            quizQuestions.forEach(question => {
+                question.choices.forEach(choice => {
                     expect(choice.archetype).toBeTruthy()
                     expect(allArchetypes).toContain(choice.archetype)
                 })
@@ -66,7 +66,7 @@ describe('Data Validation', () => {
         it('should have all required fields for each archetype', () => {
             const requiredFields = ['emoji', 'description', 'mostAliveWhen', 'mantra', 'designers', 'dimensions']
       
-            Object.entries(archetypeData).forEach(([name, data]) => {
+            Object.entries(archetypeData).forEach(([_name, data]) => {
                 requiredFields.forEach(field => {
                     expect(data).toHaveProperty(field)
                     expect(data[field]).toBeTruthy()

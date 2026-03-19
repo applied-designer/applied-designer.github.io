@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { calculateScores } from '../data/scoringUtils'
-import { quizQuestions } from '../data/quizData'
 import { 
     ORCHESTRATOR, CONNECTOR, MULTIDISCIPLINARY, EXPERIMENTALIST, EDUCATOR, 
     RESEARCHER, DIRECTOR, getAnswerForArchetype 

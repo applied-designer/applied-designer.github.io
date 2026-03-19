@@ -1,4 +1,4 @@
-import { test, expect } from 'playwright/test'
+import { test } from 'playwright/test'
 
 test.describe('Debug Mobile SurveyJS', () => {
     test('check mobile quiz page content', async ({ page }) => {

@@ -199,7 +199,7 @@ describe('Quiz Scoring Validation', () => {
    * All dimension values should be positive and reasonable
    */
     it('should have valid archetype dimension profiles', () => {
-        Object.entries(archetypeData).forEach(([name, data]) => {
+        Object.entries(archetypeData).forEach(([_name, data]) => {
             expect(data.dimensions).toBeDefined()
 
             DIM_KEYS.forEach((key) => {

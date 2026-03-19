@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import fs from 'fs'
 import path from 'path'
 import readline from 'readline'
-import { getClosestArchetypes, dimsToArray } from '../data/quizUtils'
+import { getClosestArchetypes } from '../data/quizUtils'
 import { archetypeData } from '../data/archetypeData'
 import { ARCHETYPES, SHORT_TO_FULL } from './utils/archetypeTestUtils'
 
