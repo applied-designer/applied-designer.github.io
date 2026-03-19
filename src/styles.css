@@ -429,8 +429,9 @@ canvas {
   display: block;
   margin: 3rem auto;
   background-color: var(--color-black);
-  color: var(--color-light-gray);
+  color: var(--color-white);
   border: none;
+  border-radius: 0.5rem;
   padding: 1rem 3rem;
   font-size: 1.1rem;
   font-weight: 600;
