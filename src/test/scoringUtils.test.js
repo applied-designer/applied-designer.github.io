@@ -5,7 +5,7 @@ import {
     RESEARCHER, DIRECTOR, getAnswerForArchetype 
 } from './utils/archetypeTestUtils'
 
-describe('Scoring Utils', () => {
+describe('Score Utils', () => {
     describe('calculateScores', () => {
         it('should calculate scores correctly for complete responses', () => {
             const responses = [

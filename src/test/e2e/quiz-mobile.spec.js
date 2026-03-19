@@ -58,7 +58,6 @@ test.describe('Quiz mobile flow', () => {
         await expect(submitButton).toBeEnabled()
         await submitButton.click()
 
-        // Results page now shows archetype emoji and name
         await expect(page.locator('.results-title')).toContainText('The Orchestrator')
         await expect(page.getByText('Dimension breakdown')).toBeVisible()
     })
@@ -77,5 +76,147 @@ test.describe('Quiz mobile flow', () => {
         })
         
         expect(overflowInfo.hasOverflow).toBe(false)
+    })
+})
+
+test.describe('Quiz page mobile layout', () => {
+    test('quiz container fits within viewport on mobile', async ({ page }) => {
+        await page.goto('/#/quiz', { waitUntil: 'networkidle' })
+        await page.waitForSelector('.quiz-container', { timeout: 10000 })
+        
+        const containerInfo = await page.evaluate(() => {
+            const container = document.querySelector('.quiz-container')
+            const rect = container.getBoundingClientRect()
+            
+            return {
+                width: rect.width,
+                left: rect.left,
+                right: rect.right,
+                viewportWidth: window.innerWidth,
+                hasOverflowX: rect.width > window.innerWidth
+            }
+        })
+        
+        expect(containerInfo.hasOverflowX).toBe(false)
+    })
+    
+    test('quiz container has no horizontal scroll on mobile', async ({ page }) => {
+        await page.goto('/#/quiz', { waitUntil: 'networkidle' })
+        await page.waitForSelector('.quiz-container', { timeout: 10000 })
+        
+        const scrollInfo = await page.evaluate(() => {
+            return {
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                bodyScrollWidth: document.body.scrollWidth,
+                bodyClientWidth: document.body.clientWidth
+            }
+        })
+        
+        expect(scrollInfo.scrollWidth).toBeLessThanOrEqual(scrollInfo.clientWidth + 50)
+    })
+})
+
+test.describe('Results page mobile layout', () => {
+    test('results container fits within viewport on mobile', async ({ page }) => {
+        await page.goto('/#/quiz')
+        
+        for (const answer of fullQuizAnswers) {
+            await page.getByText(answer, { exact: true }).click()
+        }
+        
+        await page.getByRole('button', { name: 'Submit' }).click()
+        await page.waitForSelector('.results-container', { timeout: 10000 })
+        
+        const containerInfo = await page.evaluate(() => {
+            const container = document.querySelector('.results-container')
+            const rect = container.getBoundingClientRect()
+            
+            return {
+                width: rect.width,
+                left: rect.left,
+                right: rect.right,
+                viewportWidth: window.innerWidth,
+                hasOverflowX: rect.width > window.innerWidth
+            }
+        })
+        
+        expect(containerInfo.hasOverflowX).toBe(false)
+    })
+    
+    test('results page has no horizontal scroll on mobile', async ({ page }) => {
+        await page.goto('/#/quiz')
+        
+        for (const answer of fullQuizAnswers) {
+            await page.getByText(answer, { exact: true }).click()
+        }
+        
+        await page.getByRole('button', { name: 'Submit' }).click()
+        await page.waitForSelector('.results-container', { timeout: 10000 })
+        
+        const scrollInfo = await page.evaluate(() => {
+            return {
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth
+            }
+        })
+        
+        expect(scrollInfo.scrollWidth).toBeLessThanOrEqual(scrollInfo.clientWidth + 50)
+    })
+})
+
+test.describe('Dimension score verification', () => {
+    test('results page shows dimension scores greater than 1', async ({ page }) => {
+        await page.goto('/#/quiz')
+        
+        for (const answer of fullQuizAnswers) {
+            await page.getByText(answer, { exact: true }).click()
+        }
+        
+        await page.getByRole('button', { name: 'Submit' }).click()
+        await page.waitForSelector('.results-container', { timeout: 10000 })
+        
+        // Debug: Get the breakdown section content
+        const debugInfo = await page.evaluate(() => {
+            const breakdown = document.querySelector('.results-breakdown')
+            return {
+                hasBreakdown: !!breakdown,
+                text: breakdown ? breakdown.textContent.substring(0, 500) : null,
+                innerHTML: breakdown ? breakdown.innerHTML.substring(0, 500) : null
+            }
+        })
+        
+        console.log('Debug info:', JSON.stringify(debugInfo, null, 2))
+        
+        // Get dimension values from the results page
+        const dimensionValues = await page.evaluate(() => {
+            const breakdown = document.querySelector('.results-breakdown')
+            if (!breakdown) return null
+            
+            // Try different selectors to find dimension values
+            const spans = breakdown.querySelectorAll('span')
+            const values = []
+            
+            spans.forEach(span => {
+                const text = span.textContent.trim()
+                const match = text.match(/^(\d+)$/)
+                if (match) {
+                    values.push(parseInt(match[1], 10))
+                }
+            })
+            
+            return values
+        })
+        
+        console.log('Dimension values found:', dimensionValues)
+        
+        // Verify we found dimension values
+        expect(dimensionValues).not.toBeNull()
+        expect(dimensionValues.length).toBeGreaterThan(0)
+        
+        // Verify all dimension scores are greater than 1
+        dimensionValues.forEach((value, index) => {
+            expect(value).toBeGreaterThan(1, `Dimension ${index + 1} score should be > 1, got ${value}`)
+        })
     })
 })

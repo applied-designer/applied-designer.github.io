@@ -53,6 +53,7 @@ body {
   padding: 0;
   background-color: var(--color-light-gray);
   font-family: var(--font-serif);
+  overflow-x: hidden;
 }
 
 nav {
@@ -136,11 +137,14 @@ canvas {
 .quiz-container {
   background-color: var(--color-light-gray);
   min-height: 100vh;
-  padding: 4rem;
+  padding: 2rem;
   color: var(--color-black);
   font-family: var(--font-serif);
   width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .quiz-title {
@@ -250,13 +254,13 @@ canvas {
   background-color: var(--color-purple);
 }
 
-@media (width >= 768px) {
+@media screen and (min-width: 768px) {
   .sd-container-modern .sd-question {
     flex: 1 1 calc(50% - 0.75rem);
   }
 }
 
-@media (width >= 1200px) {
+@media screen and (min-width: 1200px) {
   .sd-container-modern .sd-question {
     flex: 1 1 calc(33.333% - 1rem);
   }
@@ -461,15 +465,21 @@ canvas {
 .results-container {
   background-color:  var(--color-dark-gray);
   min-height: 100vh;
-  margin: 2rem; /* match desktop nav margin */
+  margin: 2rem auto;
   padding: 2rem;
   font-family: var(--font-serif);
   width: 100%;
+  max-width: 760px;
   overflow-x: hidden;
   border-radius: 1rem;
   color: var(--color-white);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+}
+
+.results-container > h1 {
+  text-align: center;
 }
 
 .results-caption {
@@ -777,8 +787,9 @@ canvas {
 
   .quiz-container,
   .results-container {
-    margin: 4rem 2rem;
+    margin: 4rem auto;
     padding: 1rem;
+    max-width: 100%;
   }
 
   .results-overview {

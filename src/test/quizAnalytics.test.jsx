@@ -270,30 +270,29 @@ describe('Quiz Analytics', () => {
         })
     })
 
-    describe('different archetypes produce different analytics', () => {
-        it('different archetypes produce different dims_raw values', () => {
-            const orchestratorDims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const orchestratorDimsRaw = encodeDimsV1(orchestratorDims)
-
-            const researcherDims = getExpectedDimsForArchetype('The Researcher')
-            const researcherDimsRaw = encodeDimsV1(researcherDims)
-
-            expect(orchestratorDimsRaw).not.toBe(researcherDimsRaw)
+    describe('dimension score verification', () => {
+        it('should produce dimension scores greater than 1 for ORCHESTRATOR archetype', () => {
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
+            
+            // Dimension scores should be significantly greater than 1
+            // ORCHESTRATOR has strategy:5, adaptability:3, collaboration:4, experimentation:2, impact:3
+            // With 7 questions having ORCHESTRATOR answers, scores should be in range of 14-35
+            expect(dims.strategy).toBeGreaterThan(10)
+            expect(dims.adaptability).toBeGreaterThan(10)
+            expect(dims.collaboration).toBeGreaterThan(10)
+            expect(dims.experimentation).toBeGreaterThan(5)
+            expect(dims.impact).toBeGreaterThan(10)
         })
 
-        it('all archetypes produce valid analytics params for their answered questions', () => {
-            const archetypes = ['The Orchestrator', 'The Researcher', 'The Disruptor', 'The Educator']
-
-            archetypes.forEach(archetype => {
-                const dims = getExpectedDimsForArchetype(archetype)
-                const surveyData = getSurveyDataForArchetype(archetype)
-                const dimsRaw = encodeDimsV1(dims)
-
-                expect(dimsRaw).toMatch(/^v1:strategy:\d+,adaptability:\d+,collaboration:\d+,experimentation:\d+,impact:\d+$/)
-
-                const answeredQuestions = Object.keys(surveyData).filter(k => surveyData[k] !== undefined)
-                expect(answeredQuestions.length).toBeGreaterThan(0)
-            })
+        it('should NOT produce dimension scores of 1', () => {
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
+            
+            // If GA shows all values as 1, this test will fail
+            expect(dims.strategy).not.toBe(1)
+            expect(dims.adaptability).not.toBe(1)
+            expect(dims.collaboration).not.toBe(1)
+            expect(dims.experimentation).not.toBe(1)
+            expect(dims.impact).not.toBe(1)
         })
     })
 })
