@@ -73,6 +73,10 @@ const _adjacency = [
     [1, 2, 6, 8, 9] // Face 11
 ]
 
+function idxToBg(faceIndex) {
+    return brandColors[faceIndex % brandColors.length];
+}
+
 function Dodecahedron({ onFaceClick }) {
     const meshRef = useRef()
     const edgesRef = useRef()
@@ -115,7 +119,7 @@ function Dodecahedron({ onFaceClick }) {
         
         setFaceState(() => {
             const newFaceState = new Array(12).fill('white')
-            newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length]
+            newFaceState[faceIndex] = idxToBg(faceIndex);
             return newFaceState
         })
         
@@ -159,13 +163,15 @@ export default function MainApp() {
 
             if (document.getElementById('designer').style.display == 'flex') {
                 document.getElementById('designer').style.display = 'none'
-                return setFaceState(() => {
-                    newFaceState[faceIndex] = 'white'
-                })
+                // TODO: how do I set this value to white so the fill goes invisible only on this face?
+                // return setFaceState(() => {
+                //     console.log('hmmm', faceIndex, faceState)
+                //     faceState[faceIndex] = 'white'
+                // })
             }
 
             document.getElementById('designer').style.display = 'flex'
-            const bg = brandColors[faceIndex % brandColors.length]
+            const bg = idxToBg(faceIndex)
             document.getElementById('designer').style.backgroundColor = bg
             document.getElementById('designer').style.color = bgToFg(bg)
             // TODO: now match type color
