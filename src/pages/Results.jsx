@@ -1,24 +1,19 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import { archetypeData } from '../data/archetypeData'
-import RadarChart from '../components/RadarChart'
-import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
-import { exportToPNG } from '../utils/pngExport'
-import { DIM_COLORS, DIM_LABELS } from '../data/colors'
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { archetypeData } from '../data/archetypeData';
+import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils';
+import { exportToPNG } from '../utils/pngExport';
+import { DIM_COLORS, DIM_LABELS } from '../data/colors';
 
 // Source - https://stackoverflow.com/a/5650012
 // Posted by Alnitak, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-03-16, License - CC BY-SA 3.0
 
-function mapRange(value, low1, high1, low2, high2) {
+const _mapRange = (value, low1, high1, low2, high2) => {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
-}
+};
 
 function ResultsChart({values}) {
-    function cleanValue(val) {
-        return mapRange(val, 0, 60, 12, 60);
-    }
-
     return(
         <div className="results-chart">
             {/*TODO: some unique keys error here*/}
@@ -40,46 +35,47 @@ function ResultsChart({values}) {
  * Redirects to /quiz if query param is missing or invalid.
  */
 export default function ResultsPage() {
-    const location = useLocation()
-    const navigate = useNavigate()
-    const [copyText, setCopyText] = useState("Copy Link")
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [copyText, setCopyText] = useState("Copy Link");
 
     // Expect ?dims=base64string
-    const params = new URLSearchParams(location.search)
-    const dimsB64 = params.get('dims')
-    const dims = dimsB64 ? decodeDims(dimsB64) : null
+    const params = new URLSearchParams(location.search);
+    const dimsB64 = params.get('dims');
+    const dims = dimsB64 ? decodeDims(dimsB64) : null;
 
     // Redirect to quiz if missing/invalid
     if (!dims) {
-        navigate('/quiz', { replace: true })
-        return null
+        navigate('/quiz', { replace: true });
+        return null;
     }
 
     // Match user dimensions to closest archetypes using cosine similarity
-    const { primary, secondary } = getClosestArchetypes(dims)
-    const primaryData = archetypeData[primary] || {}
-    const secondaryData = archetypeData[secondary] || {}
-    const radarValues = dimsToArray(dims)
+    const { primary, secondary } = getClosestArchetypes(dims);
+    const primaryData = archetypeData[primary] || {};
+    const secondaryData = archetypeData[secondary] || {};
+    const radarValues = dimsToArray(dims);
 
     // Share/Export handlers
     const handleCopyLink = () => {
-        const url = window.location.href
+        const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            setCopyText("Link Copied!")
-            setTimeout(() => setCopyText("Copy Link"), 2000)
-        })
-    }
+            setCopyText("Link Copied!");
+            setTimeout(() => setCopyText("Copy Link"), 2000);
+        });
+    };
 
-    const handleDownloadPNG = async () => {
-        await exportToPNG(radarValues, primaryData)
-    }
+    const _handleDownloadPNG = async () => {
+        await exportToPNG(radarValues, primaryData);
+    };
   
     return (
         <div className="results-container">
-            <h1>Your Results</h1>
-            <br />
-            <br />
             <div className="results-overview">
+                <h1>Your Results</h1>
+                <br />
+                <br />
+            
                 <p className="results-caption">
                     You are the...
                 </p>
@@ -119,16 +115,16 @@ export default function ResultsPage() {
                 {/*TODO: float 2 cols desktop -> 1 col mobile */}
                 <div>
                     <div>
-                        <h2>{primary} (Primary Archetype)</h2>
-                        <p className="results-note">
+                        <h2 className="results-subtitle">{primary} (Primary Archetype)</h2>
+                        <p className="results-note center">
                             {primaryData.description}
                         </p>
                     </div>
                     <br />
                     {secondaryData && (
                         <div>
-                            <h2>{secondary} (Secondary Archetype)</h2>
-                            <p className="results-note">
+                            <h2 className="results-subtitle">{secondary} (Secondary Archetype)</h2>
+                            <p className="results-note center">
                                 {secondaryData.description}
                             </p>
                         </div>
@@ -149,7 +145,7 @@ export default function ResultsPage() {
             <div className="results-actions">
                 <button 
                     className="results-button"
-                    onClick={() => navigate('/#/quiz')}
+                    onClick={() => navigate('/quiz')}
                 >
                     Retake Quiz
                 </button>
@@ -168,5 +164,5 @@ export default function ResultsPage() {
                 </button>*/}
             </div>
         </div>
-    )
+    );
 }

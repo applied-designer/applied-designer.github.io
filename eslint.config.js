@@ -6,7 +6,6 @@ export default [
     plugins: {
       react,
     },
-    ignores: ['src/test/**', 'src/tests/**'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -17,9 +16,18 @@ export default [
       },
     },
     rules: {
-      'indent': ['error', 4],
+      'indent': ['error', 4, {
+        SwitchCase: 1
+      }],
       'react/jsx-indent': ['error', 4],
       'react/jsx-indent-props': ['error', 4],
+      'no-unused-vars': ['error', {
+        varsIgnorePattern: '^_',
+        argsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_'
+      }],
+      'semi': ['error', 'always'],
     },
     settings: {
       react: {

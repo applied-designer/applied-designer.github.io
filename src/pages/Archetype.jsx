@@ -1,7 +1,7 @@
-import { useParams, useNavigate } from 'react-router-dom'
-import { archetypeData } from '../data/archetypeData'
-import RadarChart from '../components/RadarChart'
-import { dimsToArray } from '../data/quizUtils'
+import { useParams, useNavigate } from 'react-router-dom';
+import { archetypeData } from '../data/archetypeData';
+import RadarChart from '../components/RadarChart';
+import { dimsToArray } from '../data/quizUtils';
 
 /**
  * ArchetypeDetail: Display full details for a single archetype
@@ -17,13 +17,13 @@ import { dimsToArray } from '../data/quizUtils'
  * - Navigation back to results or home
  */
 export default function ArchetypeDetail() {
-    const { name } = useParams()
-    const navigate = useNavigate()
+    const { name } = useParams();
+    const navigate = useNavigate();
 
     // Find archetype by name (case-insensitive)
     const archetypeName = Object.keys(archetypeData).find(
         (key) => key.toLowerCase().replace(/\s+/g, '-') === name?.toLowerCase()
-    )
+    );
 
     if (!archetypeName) {
         return (
@@ -36,11 +36,11 @@ export default function ArchetypeDetail() {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 
-    const data = archetypeData[archetypeName]
-    const radarValues = dimsToArray(data.dimensions)
+    const data = archetypeData[archetypeName];
+    const radarValues = dimsToArray(data.dimensions);
 
     return (
         <div className="archetype-detail-container">
@@ -117,5 +117,5 @@ export default function ArchetypeDetail() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

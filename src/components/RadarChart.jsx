@@ -1,5 +1,4 @@
-import React from 'react'
-import { DIM_COLORS, DIM_LABELS } from '../data/colors'
+import { DIM_COLORS, DIM_LABELS } from '../data/colors';
 
 /**
  * RadarChart for 5 dimensions as a regular pentagon, point up.
@@ -12,28 +11,28 @@ import { DIM_COLORS, DIM_LABELS } from '../data/colors'
  */
 export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_COLORS, size = 280 }) {
     // Normalize values from 0-5 to 0-1
-    const normalized = values.map(v => Math.min(v / 5, 1))
+    const normalized = values.map(v => Math.min(v / 5, 1));
   
     // Pentagon geometry
-    const cx = size / 2, cy = size / 2, r = size * 0.38
+    const cx = size / 2, cy = size / 2, r = size * 0.38;
   
     // Angle for each point (pointing up)
-    const angle = (i) => (-Math.PI / 2) + (i * 2 * Math.PI / 5)
+    const angle = (i) => (-Math.PI / 2) + (i * 2 * Math.PI / 5);
   
     // Outer pentagon points
     const points = Array.from({ length: 5 }, (_, i) => [
         cx + r * Math.cos(angle(i)),
         cy + r * Math.sin(angle(i))
-    ])
+    ]);
   
     // Value polygon points (scaled by normalized values)
     const valuePoints = normalized.map((v, i) => {
-        const vr = r * v
-        return [cx + vr * Math.cos(angle(i)), cy + vr * Math.sin(angle(i))]
-    })
+        const vr = r * v;
+        return [cx + vr * Math.cos(angle(i)), cy + vr * Math.sin(angle(i))];
+    });
   
     // SVG path for a polygon
-    const path = (pts) => pts.map(([x, y]) => `${x},${y}`).join(' ')
+    const path = (pts) => pts.map(([x, y]) => `${x},${y}`).join(' ');
 
     return (
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block', margin: '0 auto' }}>
@@ -64,9 +63,9 @@ export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_C
 
             {/* Draw proportional sector fills for each dimension */}
             {valuePoints.map((valuePt, i) => {
-                const nextIdx = (i + 1) % 5
-                const nextValuePt = valuePoints[nextIdx]
-                const nextOuter = points[nextIdx]
+                const nextIdx = (i + 1) % 5;
+                const nextValuePt = valuePoints[nextIdx];
+                const nextOuter = points[nextIdx];
         
                 // Sector polygon: center → current value point → next outer point → next value point → center
                 const sectorPath = [
@@ -74,7 +73,7 @@ export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_C
                     valuePt,
                     nextOuter,
                     nextValuePt
-                ]
+                ];
         
                 return (
                     <polygon
@@ -85,7 +84,7 @@ export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_C
                         stroke={colors[i]}
                         strokeWidth={0.5}
                     />
-                )
+                );
             })}
 
             {/* Draw outer pentagon outline */}
@@ -116,10 +115,10 @@ export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_C
             ))}
 
             {/* Draw labels positioned outward */}
-            {points.map(([x, y], i) => {
-                const labelDistance = r * 1.3
-                const labelX = cx + labelDistance * Math.cos(angle(i))
-                const labelY = cy + labelDistance * Math.sin(angle(i))
+            {points.map(([, ], i) => {
+                const labelDistance = r * 1.3;
+                const labelX = cx + labelDistance * Math.cos(angle(i));
+                const labelY = cy + labelDistance * Math.sin(angle(i));
         
                 return (
                     <text
@@ -135,8 +134,8 @@ export default function RadarChart({ values, labels = DIM_LABELS, colors = DIM_C
                     >
                         {labels[i]}
                     </text>
-                )
+                );
             })}
         </svg>
-    )
+    );
 }

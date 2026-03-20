@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import ResultsPage from '../pages/Results'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { render, screen, waitFor, act } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import ResultsPage from '../pages/Results';
 
-const validDims = 'djE6c3RyYXRlZ3k6NDUsYWRhcHRhYmlsaXR5OjM1LGNvbGxhYm9yYXRpb246NTAsZXhwZXJpbWVudGF0aW9uOjI1LGltcGFjdDo0MA'
+const validDims = 'djE6c3RyYXRlZ3k6NDUsYWRhcHRhYmlsaXR5OjM1LGNvbGxhYm9yYXRpb246NTAsZXhwZXJpbWVudGF0aW9uOjI1LGltcGFjdDo0MA';
 
 const renderResultsWithDims = (dims = validDims) => {
     return render(
@@ -12,108 +12,108 @@ const renderResultsWithDims = (dims = validDims) => {
                 <Route path="/results" element={<ResultsPage />} />
             </Routes>
         </MemoryRouter>
-    )
-}
+    );
+};
 
 describe('Copy Link Behavior', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        vi.clearAllMocks();
         Object.defineProperty(window, 'location', {
             value: {
                 href: `http://localhost:3000/#/results?dims=${validDims}`
             },
             writable: true
-        })
-    })
+        });
+    });
 
     afterEach(() => {
         Object.defineProperty(window, 'location', {
             value: { href: 'http://localhost:3000/' },
             writable: true
-        })
-    })
+        });
+    });
 
     it('shows "Copy Link" text on initial render', async () => {
-        renderResultsWithDims()
+        renderResultsWithDims();
         
         await waitFor(() => {
-            const copyButton = screen.getByText('Copy Link')
-            expect(copyButton).toBeTruthy()
-        }, { timeout: 3000 })
-    })
+            const copyButton = screen.getByText('Copy Link');
+            expect(copyButton).toBeTruthy();
+        }, { timeout: 3000 });
+    });
 
     it('has Copy Link button with results-button class', async () => {
-        renderResultsWithDims()
+        renderResultsWithDims();
         
         await waitFor(() => {
-            const copyButton = screen.getByText('Copy Link')
-            expect(copyButton.classList.contains('results-button')).toBe(true)
-        }, { timeout: 3000 })
-    })
+            const copyButton = screen.getByText('Copy Link');
+            expect(copyButton.classList.contains('results-button')).toBe(true);
+        }, { timeout: 3000 });
+    });
 
     it('clicking button calls navigator.clipboard.writeText', async () => {
-        renderResultsWithDims()
+        renderResultsWithDims();
         
         await waitFor(() => {
-            const copyButton = screen.getByText('Copy Link')
-            expect(copyButton).toBeTruthy()
-        }, { timeout: 3000 })
+            const copyButton = screen.getByText('Copy Link');
+            expect(copyButton).toBeTruthy();
+        }, { timeout: 3000 });
 
-        const copyButton = screen.getByText('Copy Link')
+        const copyButton = screen.getByText('Copy Link');
         
         await act(async () => {
-            copyButton.click()
-        })
+            copyButton.click();
+        });
 
-        expect(navigator.clipboard.writeText).toHaveBeenCalled()
-    })
+        expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    });
 
     it('clicking button changes text to "Link Copied!"', async () => {
-        renderResultsWithDims()
+        renderResultsWithDims();
         
         await waitFor(() => {
-            const copyButton = screen.getByText('Copy Link')
-            expect(copyButton).toBeTruthy()
-        }, { timeout: 3000 })
+            const copyButton = screen.getByText('Copy Link');
+            expect(copyButton).toBeTruthy();
+        }, { timeout: 3000 });
 
-        const copyButton = screen.getByText('Copy Link')
+        const copyButton = screen.getByText('Copy Link');
         
         await act(async () => {
-            copyButton.click()
-        })
+            copyButton.click();
+        });
 
         await waitFor(() => {
-            const copiedButton = screen.getByText('Link Copied!')
-            expect(copiedButton).toBeTruthy()
-        }, { timeout: 1000 })
-    })
+            const copiedButton = screen.getByText('Link Copied!');
+            expect(copiedButton).toBeTruthy();
+        }, { timeout: 1000 });
+    });
 
     it('button is a clickable button element', async () => {
-        renderResultsWithDims()
+        renderResultsWithDims();
         
         await waitFor(() => {
-            const buttons = document.querySelectorAll('button')
-            const copyButton = Array.from(buttons).find(b => b.textContent === 'Copy Link')
-            expect(copyButton).toBeTruthy()
-        }, { timeout: 3000 })
-    })
+            const buttons = document.querySelectorAll('button');
+            const copyButton = Array.from(buttons).find(b => b.textContent === 'Copy Link');
+            expect(copyButton).toBeTruthy();
+        }, { timeout: 3000 });
+    });
 
     it('copies a URL containing dims parameter', async () => {
-        renderResultsWithDims()
+        renderResultsWithDims();
         
         await waitFor(() => {
-            const copyButton = screen.getByText('Copy Link')
-            expect(copyButton).toBeTruthy()
-        }, { timeout: 3000 })
+            const copyButton = screen.getByText('Copy Link');
+            expect(copyButton).toBeTruthy();
+        }, { timeout: 3000 });
 
-        const copyButton = screen.getByText('Copy Link')
+        const copyButton = screen.getByText('Copy Link');
         
         await act(async () => {
-            copyButton.click()
-        })
+            copyButton.click();
+        });
 
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
             expect.stringContaining('dims=')
-        )
-    })
-})
+        );
+    });
+});

@@ -66327,6 +66327,9 @@ const DIM_COLORS_HEX = [
   "#FAA41A",
   "#893A69"
 ];
+function bgToFg(bg) {
+  return ["#D0E7BF", "#FAA41A"].includes(bg) ? "#000000" : "#ffffff";
+}
 const DIM_COLORS = [
   "var(--color-blue)",
   "var(--color-brown)",
@@ -66386,77 +66389,90 @@ const bios = [
   "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.",
   "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
 ];
-class Dodecahedron extends React.Component {
-  constructor(props) {
-    super(props);
-    let dodecScale = 1.5;
-    if (window.outerWidth > 860) {
-      dodecScale = 1.75;
+function idxToBg(faceIndex) {
+  return brandColors[faceIndex % brandColors.length];
+}
+function Dodecahedron({ faceState, onFaceClick }) {
+  const meshRef = reactExports.useRef();
+  const edgesRef = reactExports.useRef();
+  const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4;
+  const geometry2 = new DodecahedronGeometry(dodecScale, 0);
+  if (geometry2.groups.length === 0) {
+    geometry2.clearGroups();
+    for (let i = 0; i < 12; i++) {
+      geometry2.addGroup(i * 9, 9, i);
     }
-    this.geometry = new DodecahedronGeometry(dodecScale, 0);
-    if (this.geometry.groups.length === 0) {
-      this.geometry.clearGroups();
-      for (let i = 0; i < 12; i++) {
-        this.geometry.addGroup(i * 9, 9, i);
-      }
+  }
+  const edgesGeometry = new EdgesGeometry(geometry2);
+  const wireframeMaterial = new LineBasicMaterial({ color: "white", linewidth: 50 });
+  const yRotFactor = 0.5;
+  const xRotFactor = yRotFactor / 2;
+  useFrame((state2) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = state2.clock.elapsedTime * xRotFactor;
+      meshRef.current.rotation.y = state2.clock.elapsedTime * yRotFactor;
     }
-    this.edgesGeometry = new EdgesGeometry(this.geometry);
-    this.state = {
-      faceState: new Array(12).fill("white")
-    };
-    this.handleClick = this.handleClick.bind(this);
-  }
-  // Helper to build an array of 12 materials based on our state.
-  getMaterials() {
-    return this.state.faceState.map((color2) => {
-      const isClicked = color2 !== "white";
-      return new MeshBasicMaterial({
-        color: color2,
-        side: DoubleSide,
-        opacity: isClicked ? 0.5 : 0,
-        transparent: !isClicked
-      });
-    });
-  }
-  handleClick(event) {
+    if (edgesRef.current) {
+      edgesRef.current.rotation.x = state2.clock.elapsedTime * xRotFactor;
+      edgesRef.current.rotation.y = state2.clock.elapsedTime * yRotFactor;
+    }
+  });
+  const handleClick = (event) => {
     const intersect2 = event.intersections[0];
     if (!intersect2) return;
     const triangleIndex = intersect2.faceIndex;
     const faceIndex = Math.floor(triangleIndex / 3);
-    this.setState((prevState) => {
-      const newFaceState = new Array(12).fill("white");
-      newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length];
-      return { faceState: newFaceState };
-    });
-    if (this.props.onFaceClick) {
-      this.props.onFaceClick(faceIndex);
+    if (onFaceClick) {
+      onFaceClick(faceIndex);
     }
-  }
-  render() {
-    const materials = this.getMaterials();
-    const wireframeMaterial = new LineBasicMaterial({ color: "white", linewidth: 50 });
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("group", { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "mesh",
-        {
-          geometry: this.geometry,
-          material: materials,
-          onClick: this.handleClick,
-          raycast: Mesh.prototype.raycast
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("lineSegments", { geometry: this.edgesGeometry, material: wireframeMaterial })
-    ] });
-  }
+  };
+  const materials = faceState.map((color2) => {
+    const isClicked = color2 !== "white";
+    return new MeshBasicMaterial({
+      color: color2,
+      side: DoubleSide,
+      opacity: isClicked ? 0.5 : 0,
+      transparent: !isClicked
+    });
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("group", { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "mesh",
+      {
+        ref: meshRef,
+        geometry: geometry2,
+        material: materials,
+        onClick: handleClick,
+        raycast: Mesh.prototype.raycast
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("lineSegments", { ref: edgesRef, geometry: edgesGeometry, material: wireframeMaterial })
+  ] });
 }
 function MainApp() {
+  const defaultState = new Array(12).fill("white");
+  const [faceState, setFaceState] = React.useState(defaultState);
+  const [selectedFace, setSelectedFace] = React.useState(null);
   const handleFaceClick = (faceIndex) => {
-    let msg = "";
-    msg += designers[faceIndex] + ": " || "";
-    if (msg.length === 0) {
+    if (selectedFace === faceIndex) {
+      setFaceState((prev) => {
+        const newState = [...prev];
+        newState[faceIndex] = "white";
+        return newState;
+      });
+      setSelectedFace(null);
       document.getElementById("designer").style.display = "none";
     } else {
+      setFaceState(() => {
+        const newState = defaultState;
+        newState[faceIndex] = idxToBg(faceIndex);
+        return newState;
+      });
+      setSelectedFace(faceIndex);
       document.getElementById("designer").style.display = "flex";
+      const bg = idxToBg(faceIndex);
+      document.getElementById("designer").style.backgroundColor = bg;
+      document.getElementById("designer").style.color = bgToFg(bg);
       let name = designers[faceIndex];
       if (name === "Eike Konig") {
         name = "Eike König";
@@ -66478,7 +66494,7 @@ function MainApp() {
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, style: { width: "100vw", height: "100vh", "marginTop": window.outerWidth < 860 ? "-16rem" : "inherit" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("color", { attach: "background", args: ["#969696"] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { onFaceClick: handleFaceClick }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { faceState, onFaceClick: handleFaceClick }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(OrbitControls2, {})
     ] })
   ] });
@@ -136581,26 +136597,33 @@ function calculateScores(responses) {
 const ARCHETYPES = Object.keys(archetypeData);
 const DIM_KEYS = ARCHETYPES.length > 0 ? Object.keys(archetypeData[ARCHETYPES[0]].dimensions) : [];
 function encodeDimsV1(dims) {
-  const raw = DIM_KEYS.map((k2) => `${k2}:${dims[k2] ?? 0}`).join(",");
-  const versioned = `v1:${raw}`;
-  return btoa(versioned);
+  return "v1:" + DIM_KEYS.map((k2) => `${k2}:${dims[k2] ?? 0}`).join(",");
 }
 function decodeDims(b64) {
+  let result = null;
   try {
     const decoded = atob(b64);
-    if (!decoded.startsWith("v1:")) return null;
-    const raw = decoded.slice(3);
-    const dims = Object.fromEntries(
-      raw.split(",").map((pair) => {
-        const [k2, v] = pair.split(":");
-        return [k2, parseFloat(v)];
-      })
-    );
-    if (!DIM_KEYS.every((k2) => typeof dims[k2] === "number" && !isNaN(dims[k2]))) return null;
-    return dims;
+    const version2 = decoded.match(/v(\d):/);
+    switch (parseInt(version2?.[1], 10)) {
+      case 1: {
+        const raw = decoded.slice(3);
+        const dims = Object.fromEntries(
+          raw.split(",").map((pair) => {
+            const [k2, v] = pair.split(":");
+            return [k2, parseFloat(v)];
+          })
+        );
+        if (DIM_KEYS.every((k2) => typeof dims[k2] === "number" && !isNaN(dims[k2]))) {
+          result = dims;
+        }
+        break;
+      }
+      default:
+        break;
+    }
   } catch {
-    return null;
   }
+  return result;
 }
 function dimsToArray(dims) {
   return DIM_KEYS.map((k2) => dims[k2]);
@@ -136691,7 +136714,7 @@ function QuizPage() {
         setTimeout(() => applyPanelStyle(options2.question.name), 0);
       }
     });
-    surveyModel.onCurrentPageChanged.add((sender, options2) => {
+    surveyModel.onCurrentPageChanged.add((sender, _options) => {
       const allAnswered = checkCompletion(sender.data);
       setIsComplete(allAnswered);
     });
@@ -136705,10 +136728,19 @@ function QuizPage() {
       options2.htmlElement.style.color = colors.fg;
       options2.htmlElement.style.setProperty("--panel-fg", colors.fg);
       options2.htmlElement.classList.add("quiz-panel", panelClass);
+      const parentEl = options2.htmlElement.closest(".sd-row__question, .sd-question");
+      if (parentEl && parentEl !== options2.htmlElement) {
+        parentEl.classList.add("quiz-panel", panelClass);
+      }
     });
     const initiallyComplete = checkCompletion(surveyModel.data);
     setIsComplete(initiallyComplete);
     setSurvey(surveyModel);
+    setTimeout(() => {
+      quizQuestions.forEach((q) => {
+        applyPanelStyle(q.id);
+      });
+    }, 100);
   }, []);
   const handleSubmit = () => {
     if (!survey || !isComplete) return;
@@ -136720,7 +136752,18 @@ function QuizPage() {
     DIM_KEYS.forEach((k2) => {
       if (!(k2 in dims)) dims[k2] = 0;
     });
-    const dimsB64 = encodeDimsV1(dims);
+    const dimsRaw = encodeDimsV1(dims);
+    const dimsB64 = btoa(dimsRaw);
+    window.gtag?.("event", "quiz_complete", {
+      dims_raw: dimsRaw,
+      version: 1,
+      strategy: dims.strategy,
+      adaptability: dims.adaptability,
+      collaboration: dims.collaboration,
+      experimentation: dims.experimentation,
+      impact: dims.impact,
+      question_answers: JSON.stringify(survey.data)
+    });
     navigate(`/results?dims=${encodeURIComponent(dimsB64)}`);
   };
   if (!survey) {
@@ -216212,10 +216255,10 @@ function ResultsPage() {
     });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-container", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Your Results" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-overview", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Your Results" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "You are the..." }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "results-title", children: [
         primaryData.emoji,
@@ -216241,19 +216284,19 @@ function ResultsPage() {
       ] })) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
             primary,
             " (Primary Archetype)"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: primaryData.description })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note center", children: primaryData.description })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
         secondaryData && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
             secondary,
             " (Secondary Archetype)"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: secondaryData.description })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note center", children: secondaryData.description })
         ] })
       ] })
     ] }),
@@ -216262,7 +216305,7 @@ function ResultsPage() {
         "button",
         {
           className: "results-button",
-          onClick: () => navigate("/#/quiz"),
+          onClick: () => navigate("/quiz"),
           children: "Retake Quiz"
         }
       ),
@@ -216288,5 +216331,10 @@ function App() {
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
-document.body.addEventListener("click", function(evt) {
+const mobileHeader = document.getElementsByClassName("menu")[0];
+const nav = document.getElementsByTagName("nav")[0];
+mobileHeader.addEventListener("click", function(evt) {
+  if (evt.target === this || evt.target.tagName !== "A") {
+    nav.style.display = nav.style.display === "none" ? "flex" : "none";
+  }
 });

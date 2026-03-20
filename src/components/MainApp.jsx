@@ -1,13 +1,13 @@
-import React, {useState} from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import * as THREE from 'three'
-import { DIM_COLORS_HEX } from '../data/colors'
+import React, { useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
+import { DIM_COLORS_HEX, bgToFg } from '../data/colors';
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
 
 // Global array of 12 desired colors (for when a face is clicked)
-const brandColors = DIM_COLORS_HEX
+const brandColors = DIM_COLORS_HEX;
 
 // TODO: clean up lots of duplicated data here
 
@@ -24,7 +24,7 @@ const archetypes = [
     'The Idealist',
     'The Improviser',
     'The Educator'
-]
+];
 
 const designers = [
     'Irma Boom',
@@ -39,7 +39,7 @@ const designers = [
     'Eike Konig', // TODO: figure out the o-umlaut
     'Julian Glander',
     'Silas Munro'
-]
+];
 
 const bios = [
     'Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.',
@@ -54,11 +54,11 @@ const bios = [
     'Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence.',
     'A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.',
     'A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream.'
-]
+];
 
 // Hard-coded adjacency list for a dodecahedron's 12 faces.
 // Each face (index 0 to 11) is adjacent to the following 5 faces.
-const adjacency = [
+const _adjacency = [
     [1, 4, 5, 8, 10], // Face 0 adjacent to faces 1,4,5,8,10
     [0, 2, 6, 8, 11], // Face 1 adjacent to faces 0,2,6,8,11
     [1, 3, 7, 9, 11], // Face 2
@@ -71,134 +71,117 @@ const adjacency = [
     [2, 3, 7, 10, 11], // Face 9
     [0, 3, 4, 5, 9], // Face 10
     [1, 2, 6, 8, 9] // Face 11
-]
+];
 
-class Dodecahedron extends React.Component {
-    constructor(props) {
-        super(props)
-        // Create and store the dodecahedron geometry (radius 1, detail 0).
-        // This geometry automatically triangulates each pentagon into 3 triangles.
-        // 
+// TODO: something is wrong here, Silas should be purple but he's not
+function idxToBg(faceIndex) {
+    return brandColors[faceIndex % brandColors.length];
+}
+
+function Dodecahedron({ faceState, onFaceClick }) {
+    const meshRef = useRef();
+    const edgesRef = useRef();
+    
+    const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4;
+    const geometry = new THREE.DodecahedronGeometry(dodecScale, 0);
+    
+    if (geometry.groups.length === 0) {
+        geometry.clearGroups();
+        for (let i = 0; i < 12; i++) {
+            geometry.addGroup(i * 9, 9, i);
+        }
+    }
+    
+    const edgesGeometry = new THREE.EdgesGeometry(geometry);
+    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 });
+    
+    // NOTE: there are half the speed from Processing
+    const yRotFactor = 0.5;
+    const xRotFactor = yRotFactor / 2;
+    
+    useFrame((state) => {
+        if (meshRef.current) {
+            meshRef.current.rotation.x = state.clock.elapsedTime * xRotFactor;
+            meshRef.current.rotation.y = state.clock.elapsedTime * yRotFactor;
+        }
+        if (edgesRef.current) {
+            edgesRef.current.rotation.x = state.clock.elapsedTime * xRotFactor;
+            edgesRef.current.rotation.y = state.clock.elapsedTime * yRotFactor;
+        }
+    });
+    
+    const handleClick = (event) => {
+        const intersect = event.intersections[0];
+        if (!intersect) return;
+        const triangleIndex = intersect.faceIndex;
+        const faceIndex = Math.floor(triangleIndex / 3);
         
-        // TODO: handle window resize
-        let dodecScale = 1.5;
-        if (window.outerWidth > 860) {
-            dodecScale = 1.75;
+        if (onFaceClick) {
+            onFaceClick(faceIndex);
         }
-
-        this.geometry = new THREE.DodecahedronGeometry(dodecScale, 0)
-        // Ensure there are groups for multi-material usage.
-        if (this.geometry.groups.length === 0) {
-            this.geometry.clearGroups()
-            // Each pentagon face: 3 triangles, each with 3 indices = 9 indices per face.
-            for (let i = 0; i < 12; i++) {
-                this.geometry.addGroup(i * 9, 9, i)
-            }
-        }
-        // Create and store the wireframe geometry.
-        this.edgesGeometry = new THREE.EdgesGeometry(this.geometry)
-        // We'll store the per‑face colors in state.
-        // Initially, every face is "white" (invisible, since opacity is 0).
-        this.state = {
-            faceState: new Array(12).fill('white')
-        }
-        // Bind event handler.
-        this.handleClick = this.handleClick.bind(this)
-    }
-
-    // Helper to build an array of 12 materials based on our state.
-    getMaterials() {
-        return this.state.faceState.map((color) => {
-            // If the color is still white, we use opacity 0 so the face is transparent.
-            // Otherwise, we use opacity 0.5 to show the chosen color.
-            const isClicked = color !== 'white'
-            return new THREE.MeshBasicMaterial({
-                color: color,
-                side: THREE.DoubleSide,
-                opacity: isClicked ? 0.5 : 0.0,
-                transparent: !isClicked
-            })
-        })
-    }
-
-    handleClick(event) {
-    // The raycaster returns an intersection with a triangle.
-    // Each pentagon face is composed of 3 triangles, so we compute:
-    //    faceIndex = Math.floor(triangleIndex / 3)
-        const intersect = event.intersections[0]
-        if (!intersect) return
-        const triangleIndex = intersect.faceIndex // This is a triangle index (0 to 35)
-        const faceIndex = Math.floor(triangleIndex / 3) // Maps to a face index (0 to 11)
-
-        // TODO: need a simpler adjacency detection algorithm... colors should be determined ONCE, not on each click
-
-        // // Gather currently assigned colors from adjacent faces.
-        // const neighborColors = new Set()
-        // adjacency[faceIndex].forEach((nei) => {
-        //   const assigned = this.state.faceState[nei]
-        //   if (assigned !== 'white') {
-        //     neighborColors.add(assigned)
-        //   }
-        // })
-
-        // // Determine which brand colors are available (i.e., not used by neighbors).
-        // const availableColors = brandColors.filter((c) => !neighborColors.has(c))
-        // // Choose a color. If availableColors is non-empty, take the first available.
-        // // Otherwise, if all are used, default to a color based on faceIndex index.
-        // const chosenColor = availableColors.length > 0 ? availableColors[0] : brandColors[faceIndex % brandColors.length]
-
-        // Update the state for that face so its color changes.
-        // We update the particular face with its desired color from our global brandColors array.
-        this.setState((prevState) => {
-            const newFaceState = new Array(12).fill('white')
-            // newFaceState[faceIndex] = chosenColor //brandColors[faceIndex % brandColors.length]
-            newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length]
-            return { faceState: newFaceState }
-        })
-        // Also call parent's callback if provided.
-        if (this.props.onFaceClick) {
-            this.props.onFaceClick(faceIndex)
-        }
-    }
-
-    render() {
-    // Build materials array on each render so that they reflect state changes.
-        const materials = this.getMaterials()
-        // Create a wireframe material.
-        const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 })
-        return (
-            <group>
-                <mesh
-                    geometry={this.geometry}
-                    material={materials} // Use our per-face materials
-                    onClick={this.handleClick}
-                    raycast={THREE.Mesh.prototype.raycast} // Use default raycasting
-                />
-                <lineSegments geometry={this.edgesGeometry} material={wireframeMaterial} />
-            </group>
-        )
-    }
+    };
+    
+    const materials = faceState.map((color) => {
+        const isClicked = color !== 'white';
+        return new THREE.MeshBasicMaterial({
+            color: color,
+            side: THREE.DoubleSide,
+            opacity: isClicked ? 0.5 : 0.0,
+            transparent: !isClicked
+        });
+    });
+    
+    return (
+        <group>
+            <mesh
+                ref={meshRef}
+                geometry={geometry}
+                material={materials}
+                onClick={handleClick}
+                raycast={THREE.Mesh.prototype.raycast}
+            />
+            <lineSegments ref={edgesRef} geometry={edgesGeometry} material={wireframeMaterial} />
+        </group>
+    );
 }
 
 export default function MainApp() {
+    const defaultState = new Array(12).fill('white');
+    const [faceState, setFaceState] = React.useState(defaultState);
+    const [selectedFace, setSelectedFace] = React.useState(null);
+    
     const handleFaceClick = (faceIndex) => {
-        // TODO: if faceIndex is already selected, toggle it
-        let msg = ''
-        msg += designers[faceIndex] + ': ' || ''
-        if (msg.length === 0) {
-            document.getElementById('designer').style.display = 'none'
+        if (selectedFace === faceIndex) {
+            setFaceState(prev => {
+                const newState = [...prev];
+                newState[faceIndex] = 'white';
+                return newState;
+            });
+            setSelectedFace(null);
+            document.getElementById('designer').style.display = 'none';
         } else {
-            document.getElementById('designer').style.display = 'flex'
-            let name = designers[faceIndex]
+            setFaceState(() => {
+                const newState = defaultState;
+                newState[faceIndex] = idxToBg(faceIndex);
+                return newState;
+            });
+            setSelectedFace(faceIndex);
+
+            // TODO: make this a react component so its less hacky
+            document.getElementById('designer').style.display = 'flex';
+            const bg = idxToBg(faceIndex);
+            document.getElementById('designer').style.backgroundColor = bg;
+            document.getElementById('designer').style.color = bgToFg(bg);
+            let name = designers[faceIndex];
             if (name === 'Eike Konig') {
-                name = 'Eike König'
+                name = 'Eike König';
             }
-            document.getElementById('name').innerText = name
-            document.getElementById('archetype').innerText = archetypes[faceIndex]
-            document.getElementById('bio').innerText = bios[faceIndex]
-            document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`)
+            document.getElementById('name').innerText = name;
+            document.getElementById('archetype').innerText = archetypes[faceIndex];
+            document.getElementById('bio').innerText = bios[faceIndex];
+            document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`);
         }
-    }
+    };
 
     // TODO: swap IDs with classes, yeah yeah yeah its a mess
     return (
@@ -219,10 +202,10 @@ export default function MainApp() {
                 {/* <pointLight position={[10, 10, 10]} /> */}
                 {/*TODO: add subtle random rotation, especially once this works into mobile menu icon*/}
                 {/*TODO: can also play with color variations once ready, e.g. process book intro/outros */}
-                <Dodecahedron onFaceClick={handleFaceClick} />
+                <Dodecahedron faceState={faceState} onFaceClick={handleFaceClick} />
                 {/*<OrbitControls enableZoom={false} />*/}
                 <OrbitControls />
             </Canvas>
         </div>
-    )
+    );
 }

@@ -1,8 +1,8 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
-import MainApp from './components/MainApp'
-import QuizPage from './pages/Quiz'
-import ResultsPage from './pages/Results'
-import SampleResultsPage from './pages/SampleResults'
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import MainApp from './components/MainApp';
+import QuizPage from './pages/Quiz';
+import ResultsPage from './pages/Results';
+import SampleResultsPage from './pages/SampleResults';
 
 function App() {
     return (
@@ -21,7 +21,7 @@ function App() {
                 <Route path="*" element={<MainApp />} />
             </Routes>
         </HashRouter>
-    )
+    );
 }
 
-export default App
+export default App;
