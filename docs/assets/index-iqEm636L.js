@@ -216331,8 +216331,6 @@ function App() {
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
-document.body.addEventListener("click", function(_evt) {
-});
 const mobileHeader = document.getElementsByClassName("menu")[0];
 const nav = document.getElementsByTagName("nav")[0];
 mobileHeader.addEventListener("click", function(evt) {
