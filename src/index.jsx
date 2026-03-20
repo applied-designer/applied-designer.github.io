@@ -13,3 +13,14 @@ document.body.addEventListener('click', function (_evt) {
     //     alert('body clicked')
     //   }
 });
+
+const nav = document.getElementsByTagName("nav")[0];
+
+nav.addEventListener('click', function (_evt) {
+    if (nav.style.display) {
+      nav.style.display = 'unset'
+      console.log('hi')
+    } else {
+      nav.style.display = '';
+    }
+});
