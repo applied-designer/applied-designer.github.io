@@ -216333,3 +216333,10 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
 document.body.addEventListener("click", function(_evt) {
 });
+const mobileHeader = document.getElementsByClassName("menu")[0];
+const nav = document.getElementsByTagName("nav")[0];
+mobileHeader.addEventListener("click", function(evt) {
+  if (evt.target === this || evt.target.tagName !== "A") {
+    nav.style.display = nav.style.display === "none" ? "flex" : "none";
+  }
+});

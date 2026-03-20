@@ -60,6 +60,14 @@ header {
     z-index: 999;
 }
 
+nav {
+  align-items: baseline;
+}
+
+.logo {
+  max-width: 80%;
+}
+
 nav, footer, .menu {
   flex-flow: row nowrap;
   display: flex;
@@ -780,10 +788,16 @@ canvas {
   nav {
     flex-direction: column;
     font-size: 1.5rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    margin: 2rem 0;
+    padding: 3rem 1rem;
     text-align: center;
     display: none;
+    gap: 1rem;
+    background-color: var(--color-dark-gray);
+  }
+
+  nav a {
+    color: var(--color-white);
   }
 
   .menu {
