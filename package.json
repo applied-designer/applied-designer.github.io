@@ -43,7 +43,7 @@
         "test:e2e": "playwright test",
         "lint": "eslint src --ext .js,.jsx",
         "lint:css": "stylelint \"src/**/*.css\" || true",
-        "lint:fix": "eslint src --fix --ext .js,.jsx && stylelint --fix \"src/**/*.css\""
+        "fix": "eslint src --fix --ext .js,.jsx && stylelint --fix \"src/**/*.css\""
     },
     "browserslist": [
         ">0.2%",

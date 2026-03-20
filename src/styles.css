@@ -168,6 +168,8 @@ canvas {
   line-height: 1.4;
 }
 
+/* SurveyJS Custom Theme */
+
 .survey-wrapper {
   width: 100%;
   max-width: none;
@@ -181,6 +183,15 @@ canvas {
   --sjs-font-questiontitle-size: 1.8rem !important;
   --sjs-question-title-margin-bottom: 0.5rem;
   --sjs-radioitem-size: 12px;
+}
+
+
+.sd-container-modern {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 }
 
 .survey-wrapper .sd-root-modern,
@@ -197,14 +208,7 @@ canvas {
   padding-bottom: 0 !important;
 }
 
-/* SurveyJS Custom Theme */
-.sd-container-modern {
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
+
 
 .sd-container-modern .sd-question {
   margin-bottom: 0;
@@ -565,7 +569,7 @@ canvas {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-top: 3rem;
+  margin: 3rem 1rem 1rem;
 }
 
 .results-button {
@@ -803,10 +807,6 @@ canvas {
 
   .results-breakdown {
     margin-bottom: 1.5rem;
-  }
-
-  .results-actions {
-    margin: 1rem;
   }
 
   .quiz-title {
