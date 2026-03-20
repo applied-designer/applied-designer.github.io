@@ -71,10 +71,10 @@ export default function ResultsPage() {
   
     return (
         <div className="results-container">
-        <div className="results-overview">
-            <h1>Your Results</h1>
-            <br />
-            <br />
+            <div className="results-overview">
+                <h1>Your Results</h1>
+                <br />
+                <br />
             
                 <p className="results-caption">
                     You are the...
@@ -145,7 +145,7 @@ export default function ResultsPage() {
             <div className="results-actions">
                 <button 
                     className="results-button"
-                    onClick={() => navigate('/#/quiz')}
+                    onClick={() => navigate('/quiz')}
                 >
                     Retake Quiz
                 </button>
