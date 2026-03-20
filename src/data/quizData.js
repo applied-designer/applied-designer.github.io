@@ -131,4 +131,4 @@ export const quizQuestions = [
             { text: 'Belongs everywhere', archetype: 'The Connector' }
         ]
     }
-]
+];

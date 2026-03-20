@@ -5,11 +5,11 @@ export const DIM_COLORS_HEX = [
     '#D0E7BF',
     '#FAA41A',
     '#893A69'
-]
+];
 
 // TODO: use this in more places
 export function bgToFg(bg) {
-    return ['#D0E7BF', '#FAA41A'].includes(bg) ? '#000000' : '#ffffff'
+    return ['#D0E7BF', '#FAA41A'].includes(bg) ? '#000000' : '#ffffff';
 }
 
 // CSS variable versions for DOM styling
@@ -19,9 +19,9 @@ export const DIM_COLORS = [
     'var(--color-green)',
     'var(--color-yellow)',
     'var(--color-purple)'
-]
+];
 
-export const DIM_LABELS = ['Systems', 'People', 'Ideas', 'Scale', 'Action']
+export const DIM_LABELS = ['Systems', 'People', 'Ideas', 'Scale', 'Action'];
 
 export const PANEL_COLORS = {
     'quiz-panel-blue': { bg: 'var(--color-blue)', fg: 'var(--color-white)' },
@@ -29,7 +29,7 @@ export const PANEL_COLORS = {
     'quiz-panel-green': { bg: 'var(--color-green)', fg: 'var(--color-black)' },
     'quiz-panel-yellow': { bg: 'var(--color-yellow)', fg: 'var(--color-black)' },
     'quiz-panel-purple': { bg: 'var(--color-purple)', fg: 'var(--color-white)' }
-}
+};
 
 // Panel colors as hex (for inline styles)
 export const PANEL_COLORS_HEX = {
@@ -38,4 +38,4 @@ export const PANEL_COLORS_HEX = {
     'quiz-panel-green': { bg: '#D0E7BF', fg: '#000000' },
     'quiz-panel-yellow': { bg: '#FAA41A', fg: '#000000' },
     'quiz-panel-purple': { bg: '#893A69', fg: '#ffffff' }
-}
+};

@@ -1,4 +1,4 @@
-import { archetypeData } from './archetypeData'
+import { archetypeData } from './archetypeData';
 
 /**
  * quizUtils.js
@@ -13,8 +13,8 @@ import { archetypeData } from './archetypeData'
 
 // Canonical dimension keys derived from archetypeData
 // Strategy, Adaptability, Collaboration, Experimentation, Impact
-const ARCHETYPES = Object.keys(archetypeData)
-export const DIM_KEYS = ARCHETYPES.length > 0 ? Object.keys(archetypeData[ARCHETYPES[0]].dimensions) : []
+const ARCHETYPES = Object.keys(archetypeData);
+export const DIM_KEYS = ARCHETYPES.length > 0 ? Object.keys(archetypeData[ARCHETYPES[0]].dimensions) : [];
 
 /**
  * Build the raw (non-base64) dims string for analytics.
@@ -23,7 +23,7 @@ export const DIM_KEYS = ARCHETYPES.length > 0 ? Object.keys(archetypeData[ARCHET
  * @returns {string} raw encoded string (e.g. "v1:strategy:5,...")
  */
 export function encodeDimsV1(dims) {
-    return 'v1:' + DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',')
+    return 'v1:' + DIM_KEYS.map(k => `${k}:${dims[k] ?? 0}`).join(',');
 }
 
 /**
@@ -32,34 +32,34 @@ export function encodeDimsV1(dims) {
  * @returns {Object|null} dims object or null if invalid
  */
 export function decodeDims(b64) {
-    let result = null
+    let result = null;
 
     try {
-        const decoded = atob(b64)
-        const version = decoded.match(/v(\d):/)
+        const decoded = atob(b64);
+        const version = decoded.match(/v(\d):/);
 
         switch (parseInt(version?.[1], 10)) {
             case 1: {
-                const raw = decoded.slice(3)
+                const raw = decoded.slice(3);
                 const dims = Object.fromEntries(
                     raw.split(',').map(pair => {
-                        const [k, v] = pair.split(':')
-                        return [k, parseFloat(v)]
+                        const [k, v] = pair.split(':');
+                        return [k, parseFloat(v)];
                     })
-                )
+                );
                 if (DIM_KEYS.every(k => typeof dims[k] === 'number' && !isNaN(dims[k]))) {
-                    result = dims
+                    result = dims;
                 }
-                break
+                break;
             }
             default:
-                break
+                break;
         }
     } catch {
         // noop
     }
     
-    return result
+    return result;
 }
 
 /**
@@ -68,7 +68,7 @@ export function decodeDims(b64) {
  * @returns {number[]} array in DIM_KEYS order
  */
 export function dimsToArray(dims) {
-    return DIM_KEYS.map(k => dims[k])
+    return DIM_KEYS.map(k => dims[k]);
 }
 
 /**
@@ -79,24 +79,24 @@ export function dimsToArray(dims) {
  * @returns {number} cosine similarity (0 to 1)
  */
 function cosineSimilarity(userDims, archetypeDims) {
-    const keys = Object.keys(userDims)
-    let dotProduct = 0
-    let userMagnitude = 0
-    let archetypeMagnitude = 0
+    const keys = Object.keys(userDims);
+    let dotProduct = 0;
+    let userMagnitude = 0;
+    let archetypeMagnitude = 0;
 
     keys.forEach(k => {
-        const u = userDims[k] || 0
-        const a = archetypeDims[k] || 0
-        dotProduct += u * a
-        userMagnitude += u * u
-        archetypeMagnitude += a * a
-    })
+        const u = userDims[k] || 0;
+        const a = archetypeDims[k] || 0;
+        dotProduct += u * a;
+        userMagnitude += u * u;
+        archetypeMagnitude += a * a;
+    });
 
-    userMagnitude = Math.sqrt(userMagnitude)
-    archetypeMagnitude = Math.sqrt(archetypeMagnitude)
+    userMagnitude = Math.sqrt(userMagnitude);
+    archetypeMagnitude = Math.sqrt(archetypeMagnitude);
 
-    if (userMagnitude === 0 || archetypeMagnitude === 0) return 0
-    return dotProduct / (userMagnitude * archetypeMagnitude)
+    if (userMagnitude === 0 || archetypeMagnitude === 0) return 0;
+    return dotProduct / (userMagnitude * archetypeMagnitude);
 }
 
 /**
@@ -109,13 +109,13 @@ export function getClosestArchetypes(userDims) {
     const similarities = ARCHETYPES.map(archetypeName => ({
         name: archetypeName,
         similarity: cosineSimilarity(userDims, archetypeData[archetypeName].dimensions)
-    }))
+    }));
 
     // Sort by similarity (descending)
-    similarities.sort((a, b) => b.similarity - a.similarity)
+    similarities.sort((a, b) => b.similarity - a.similarity);
 
     return {
         primary: similarities[0]?.name || null,
         secondary: similarities[1]?.name || null
-    }
+    };
 }

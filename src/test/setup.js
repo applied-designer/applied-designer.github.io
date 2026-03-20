@@ -5,7 +5,7 @@ vi.mock('p5', () => {
             constructor() {}
             setup() {}
             draw() {}
-            createCanvas() { return { drawingContext: {} } }
+            createCanvas() { return { drawingContext: {} }; }
             background() {}
             fill() {}
             noFill() {}
@@ -24,16 +24,16 @@ vi.mock('p5', () => {
             triangle() {}
             saveCanvas() {}
             remove() {}
-            color() { return {} }
-            get COLOR() { return { CENTER: 'center' } }
-            get TOP() { return 'top' }
-            get BOTTOM() { return 'bottom' }
-            get BOLD() { return 'bold' }
-            get NORMAL() { return 'normal' }
-            get CLOSE() { return 'close' }
+            color() { return {}; }
+            get COLOR() { return { CENTER: 'center' }; }
+            get TOP() { return 'top'; }
+            get BOTTOM() { return 'bottom'; }
+            get BOLD() { return 'bold'; }
+            get NORMAL() { return 'normal'; }
+            get CLOSE() { return 'close'; }
         }
-    }
-})
+    };
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -48,24 +48,24 @@ Object.defineProperty(window, 'matchMedia', {
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
     })),
-})
+});
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
-    observe = vi.fn()
-    unobserve = vi.fn()
-    disconnect = vi.fn()
-}
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+};
 
 // Mock clipboard API
 const clipboard = {
     writeText: vi.fn().mockResolvedValue(undefined),
     readText: vi.fn().mockResolvedValue('')
-}
+};
 Object.defineProperty(navigator, 'clipboard', {
     value: clipboard,
     writable: true
-})
+});
 
 // Mock WebGL context for Three.js
-global.HTMLCanvasElement.prototype.getContext = vi.fn()
+global.HTMLCanvasElement.prototype.getContext = vi.fn();

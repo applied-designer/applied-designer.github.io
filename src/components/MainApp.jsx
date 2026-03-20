@@ -1,13 +1,13 @@
-import React, { useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import * as THREE from 'three'
-import { DIM_COLORS_HEX, bgToFg } from '../data/colors'
+import React, { useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
+import { DIM_COLORS_HEX, bgToFg } from '../data/colors';
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
 
 // Global array of 12 desired colors (for when a face is clicked)
-const brandColors = DIM_COLORS_HEX
+const brandColors = DIM_COLORS_HEX;
 
 // TODO: clean up lots of duplicated data here
 
@@ -24,7 +24,7 @@ const archetypes = [
     'The Idealist',
     'The Improviser',
     'The Educator'
-]
+];
 
 const designers = [
     'Irma Boom',
@@ -39,7 +39,7 @@ const designers = [
     'Eike Konig', // TODO: figure out the o-umlaut
     'Julian Glander',
     'Silas Munro'
-]
+];
 
 const bios = [
     'Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.',
@@ -54,7 +54,7 @@ const bios = [
     'Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence.',
     'A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.',
     'A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream.'
-]
+];
 
 // Hard-coded adjacency list for a dodecahedron's 12 faces.
 // Each face (index 0 to 11) is adjacent to the following 5 faces.
@@ -71,7 +71,7 @@ const _adjacency = [
     [2, 3, 7, 10, 11], // Face 9
     [0, 3, 4, 5, 9], // Face 10
     [1, 2, 6, 8, 9] // Face 11
-]
+];
 
 // TODO: something is wrong here, Silas should be purple but he's not
 function idxToBg(faceIndex) {
@@ -79,57 +79,57 @@ function idxToBg(faceIndex) {
 }
 
 function Dodecahedron({ faceState, onFaceClick }) {
-    const meshRef = useRef()
-    const edgesRef = useRef()
+    const meshRef = useRef();
+    const edgesRef = useRef();
     
-    const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4
-    const geometry = new THREE.DodecahedronGeometry(dodecScale, 0)
+    const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4;
+    const geometry = new THREE.DodecahedronGeometry(dodecScale, 0);
     
     if (geometry.groups.length === 0) {
-        geometry.clearGroups()
+        geometry.clearGroups();
         for (let i = 0; i < 12; i++) {
-            geometry.addGroup(i * 9, 9, i)
+            geometry.addGroup(i * 9, 9, i);
         }
     }
     
-    const edgesGeometry = new THREE.EdgesGeometry(geometry)
-    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 })
+    const edgesGeometry = new THREE.EdgesGeometry(geometry);
+    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 });
     
     // NOTE: there are half the speed from Processing
-    const yRotFactor = 0.5
+    const yRotFactor = 0.5;
     const xRotFactor = yRotFactor / 2;
     
     useFrame((state) => {
         if (meshRef.current) {
-            meshRef.current.rotation.x = state.clock.elapsedTime * xRotFactor
-            meshRef.current.rotation.y = state.clock.elapsedTime * yRotFactor
+            meshRef.current.rotation.x = state.clock.elapsedTime * xRotFactor;
+            meshRef.current.rotation.y = state.clock.elapsedTime * yRotFactor;
         }
         if (edgesRef.current) {
-            edgesRef.current.rotation.x = state.clock.elapsedTime * xRotFactor
-            edgesRef.current.rotation.y = state.clock.elapsedTime * yRotFactor
+            edgesRef.current.rotation.x = state.clock.elapsedTime * xRotFactor;
+            edgesRef.current.rotation.y = state.clock.elapsedTime * yRotFactor;
         }
-    })
+    });
     
     const handleClick = (event) => {
-        const intersect = event.intersections[0]
-        if (!intersect) return
-        const triangleIndex = intersect.faceIndex
-        const faceIndex = Math.floor(triangleIndex / 3)
+        const intersect = event.intersections[0];
+        if (!intersect) return;
+        const triangleIndex = intersect.faceIndex;
+        const faceIndex = Math.floor(triangleIndex / 3);
         
         if (onFaceClick) {
-            onFaceClick(faceIndex)
+            onFaceClick(faceIndex);
         }
-    }
+    };
     
     const materials = faceState.map((color) => {
-        const isClicked = color !== 'white'
+        const isClicked = color !== 'white';
         return new THREE.MeshBasicMaterial({
             color: color,
             side: THREE.DoubleSide,
             opacity: isClicked ? 0.5 : 0.0,
             transparent: !isClicked
-        })
-    })
+        });
+    });
     
     return (
         <group>
@@ -142,46 +142,46 @@ function Dodecahedron({ faceState, onFaceClick }) {
             />
             <lineSegments ref={edgesRef} geometry={edgesGeometry} material={wireframeMaterial} />
         </group>
-    )
+    );
 }
 
 export default function MainApp() {
     const defaultState = new Array(12).fill('white');
-    const [faceState, setFaceState] = React.useState(defaultState)
-    const [selectedFace, setSelectedFace] = React.useState(null)
+    const [faceState, setFaceState] = React.useState(defaultState);
+    const [selectedFace, setSelectedFace] = React.useState(null);
     
     const handleFaceClick = (faceIndex) => {
         if (selectedFace === faceIndex) {
             setFaceState(prev => {
-                const newState = [...prev]
-                newState[faceIndex] = 'white'
-                return newState
-            })
-            setSelectedFace(null)
-            document.getElementById('designer').style.display = 'none'
+                const newState = [...prev];
+                newState[faceIndex] = 'white';
+                return newState;
+            });
+            setSelectedFace(null);
+            document.getElementById('designer').style.display = 'none';
         } else {
             setFaceState(() => {
-                const newState = defaultState
-                newState[faceIndex] = idxToBg(faceIndex)
-                return newState
-            })
-            setSelectedFace(faceIndex)
+                const newState = defaultState;
+                newState[faceIndex] = idxToBg(faceIndex);
+                return newState;
+            });
+            setSelectedFace(faceIndex);
 
             // TODO: make this a react component so its less hacky
-            document.getElementById('designer').style.display = 'flex'
-            const bg = idxToBg(faceIndex)
-            document.getElementById('designer').style.backgroundColor = bg
-            document.getElementById('designer').style.color = bgToFg(bg)
-            let name = designers[faceIndex]
+            document.getElementById('designer').style.display = 'flex';
+            const bg = idxToBg(faceIndex);
+            document.getElementById('designer').style.backgroundColor = bg;
+            document.getElementById('designer').style.color = bgToFg(bg);
+            let name = designers[faceIndex];
             if (name === 'Eike Konig') {
-                name = 'Eike König'
+                name = 'Eike König';
             }
-            document.getElementById('name').innerText = name
-            document.getElementById('archetype').innerText = archetypes[faceIndex]
-            document.getElementById('bio').innerText = bios[faceIndex]
-            document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`)
+            document.getElementById('name').innerText = name;
+            document.getElementById('archetype').innerText = archetypes[faceIndex];
+            document.getElementById('bio').innerText = bios[faceIndex];
+            document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`);
         }
-    }
+    };
 
     // TODO: swap IDs with classes, yeah yeah yeah its a mess
     return (
@@ -207,5 +207,5 @@ export default function MainApp() {
                 <OrbitControls />
             </Canvas>
         </div>
-    )
+    );
 }

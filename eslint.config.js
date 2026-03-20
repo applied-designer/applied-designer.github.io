@@ -27,6 +27,7 @@ export default [
         caughtErrorsIgnorePattern: '^_',
         destructuredArrayIgnorePattern: '^_'
       }],
+      'semi': ['error', 'always'],
     },
     settings: {
       react: {

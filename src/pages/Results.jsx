@@ -1,9 +1,9 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import { archetypeData } from '../data/archetypeData'
-import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils'
-import { exportToPNG } from '../utils/pngExport'
-import { DIM_COLORS, DIM_LABELS } from '../data/colors'
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { archetypeData } from '../data/archetypeData';
+import { decodeDims, dimsToArray, getClosestArchetypes, DIM_KEYS } from '../data/quizUtils';
+import { exportToPNG } from '../utils/pngExport';
+import { DIM_COLORS, DIM_LABELS } from '../data/colors';
 
 // Source - https://stackoverflow.com/a/5650012
 // Posted by Alnitak, modified by community. See post 'Timeline' for change history
@@ -11,7 +11,7 @@ import { DIM_COLORS, DIM_LABELS } from '../data/colors'
 
 const _mapRange = (value, low1, high1, low2, high2) => {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
-}
+};
 
 function ResultsChart({values}) {
     return(
@@ -35,39 +35,39 @@ function ResultsChart({values}) {
  * Redirects to /quiz if query param is missing or invalid.
  */
 export default function ResultsPage() {
-    const location = useLocation()
-    const navigate = useNavigate()
-    const [copyText, setCopyText] = useState("Copy Link")
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [copyText, setCopyText] = useState("Copy Link");
 
     // Expect ?dims=base64string
-    const params = new URLSearchParams(location.search)
-    const dimsB64 = params.get('dims')
-    const dims = dimsB64 ? decodeDims(dimsB64) : null
+    const params = new URLSearchParams(location.search);
+    const dimsB64 = params.get('dims');
+    const dims = dimsB64 ? decodeDims(dimsB64) : null;
 
     // Redirect to quiz if missing/invalid
     if (!dims) {
-        navigate('/quiz', { replace: true })
-        return null
+        navigate('/quiz', { replace: true });
+        return null;
     }
 
     // Match user dimensions to closest archetypes using cosine similarity
-    const { primary, secondary } = getClosestArchetypes(dims)
-    const primaryData = archetypeData[primary] || {}
-    const secondaryData = archetypeData[secondary] || {}
-    const radarValues = dimsToArray(dims)
+    const { primary, secondary } = getClosestArchetypes(dims);
+    const primaryData = archetypeData[primary] || {};
+    const secondaryData = archetypeData[secondary] || {};
+    const radarValues = dimsToArray(dims);
 
     // Share/Export handlers
     const handleCopyLink = () => {
-        const url = window.location.href
+        const url = window.location.href;
         navigator.clipboard.writeText(url).then(() => {
-            setCopyText("Link Copied!")
-            setTimeout(() => setCopyText("Copy Link"), 2000)
-        })
-    }
+            setCopyText("Link Copied!");
+            setTimeout(() => setCopyText("Copy Link"), 2000);
+        });
+    };
 
     const _handleDownloadPNG = async () => {
-        await exportToPNG(radarValues, primaryData)
-    }
+        await exportToPNG(radarValues, primaryData);
+    };
   
     return (
         <div className="results-container">
@@ -164,5 +164,5 @@ export default function ResultsPage() {
                 </button>*/}
             </div>
         </div>
-    )
+    );
 }

@@ -95,4 +95,4 @@ export const archetypeData = {
         designers: ['Silas Munro'],
         dimensions: { strategy: 4, adaptability: 2, collaboration: 5, experimentation: 2, impact: 5 }
     }
-}
+};

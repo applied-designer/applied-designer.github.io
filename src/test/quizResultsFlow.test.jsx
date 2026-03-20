@@ -1,81 +1,81 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils'
-import { calculateScores } from '../data/scoringUtils'
-import { quizQuestions } from '../data/quizData'
-import { getAnswerForArchetype, ORCHESTRATOR, DISRUPTOR } from './utils/archetypeTestUtils'
-import ResultsPage from '../pages/Results'
-import QuizPage from '../pages/Quiz'
+import { describe, it, expect } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils';
+import { calculateScores } from '../data/scoringUtils';
+import { quizQuestions } from '../data/quizData';
+import { getAnswerForArchetype, ORCHESTRATOR, DISRUPTOR } from './utils/archetypeTestUtils';
+import ResultsPage from '../pages/Results';
+import QuizPage from '../pages/Quiz';
 
 const createResponsesForArchetype = (archetype) => {
     return quizQuestions.map(q => ({
         questionId: q.id,
         answer: getAnswerForArchetype(q.id, archetype)
-    }))
-}
+    }));
+};
 
 const getExpectedDimsForArchetype = (archetype) => {
-    const responses = createResponsesForArchetype(archetype)
-    const scores = calculateScores(responses)
+    const responses = createResponsesForArchetype(archetype);
+    const scores = calculateScores(responses);
     const dims = Object.fromEntries(
         (scores.dimensionScores || []).map(([k, v]) => [k, v])
-    )
-    DIM_KEYS.forEach(k => { if (!(k in dims)) dims[k] = 0 })
-    return dims
-}
+    );
+    DIM_KEYS.forEach(k => { if (!(k in dims)) dims[k] = 0; });
+    return dims;
+};
 
 describe('Quiz to Results Flow', () => {
     describe('Orchestrator archetype flow', () => {
         it('Orchestrator answers produce valid dimension scores', () => {
-            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            expect(dims.strategy).toBeGreaterThan(0)
-            expect(dims.adaptability).toBeGreaterThan(0)
-            expect(dims.collaboration).toBeGreaterThan(0)
-            expect(dims.experimentation).toBeGreaterThan(0)
-            expect(dims.impact).toBeGreaterThan(0)
-        })
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR);
+            expect(dims.strategy).toBeGreaterThan(0);
+            expect(dims.adaptability).toBeGreaterThan(0);
+            expect(dims.collaboration).toBeGreaterThan(0);
+            expect(dims.experimentation).toBeGreaterThan(0);
+            expect(dims.impact).toBeGreaterThan(0);
+        });
 
         it('Orchestrator dimensions encode to v1 format', () => {
-            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const raw = encodeDimsV1(dims)
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR);
+            const raw = encodeDimsV1(dims);
             
-            expect(raw.startsWith('v1:')).toBe(true)
-            expect(raw).toContain('strategy:')
-            expect(raw).toContain('adaptability:')
-            expect(raw).toContain('collaboration:')
-            expect(raw).toContain('experimentation:')
-            expect(raw).toContain('impact:')
-        })
-    })
+            expect(raw.startsWith('v1:')).toBe(true);
+            expect(raw).toContain('strategy:');
+            expect(raw).toContain('adaptability:');
+            expect(raw).toContain('collaboration:');
+            expect(raw).toContain('experimentation:');
+            expect(raw).toContain('impact:');
+        });
+    });
 
     describe('Disruptor archetype flow', () => {
         it('Disruptor answers produce valid dimension scores', () => {
-            const dims = getExpectedDimsForArchetype(DISRUPTOR)
-            expect(dims.strategy).toBeGreaterThan(0)
-            expect(dims.adaptability).toBeGreaterThan(0)
-            expect(dims.collaboration).toBeGreaterThan(0)
-            expect(dims.experimentation).toBeGreaterThan(0)
-            expect(dims.impact).toBeGreaterThan(0)
-        })
+            const dims = getExpectedDimsForArchetype(DISRUPTOR);
+            expect(dims.strategy).toBeGreaterThan(0);
+            expect(dims.adaptability).toBeGreaterThan(0);
+            expect(dims.collaboration).toBeGreaterThan(0);
+            expect(dims.experimentation).toBeGreaterThan(0);
+            expect(dims.impact).toBeGreaterThan(0);
+        });
 
         it('Disruptor dimensions encode to v1 format', () => {
-            const dims = getExpectedDimsForArchetype(DISRUPTOR)
-            const raw = encodeDimsV1(dims)
+            const dims = getExpectedDimsForArchetype(DISRUPTOR);
+            const raw = encodeDimsV1(dims);
             
-            expect(raw.startsWith('v1:')).toBe(true)
-            expect(raw).toContain('strategy:')
-            expect(raw).toContain('adaptability:')
-            expect(raw).toContain('collaboration:')
-            expect(raw).toContain('experimentation:')
-            expect(raw).toContain('impact:')
-        })
-    })
+            expect(raw.startsWith('v1:')).toBe(true);
+            expect(raw).toContain('strategy:');
+            expect(raw).toContain('adaptability:');
+            expect(raw).toContain('collaboration:');
+            expect(raw).toContain('experimentation:');
+            expect(raw).toContain('impact:');
+        });
+    });
 
     describe('Full quiz flow with results page', () => {
         it('renders results page with encoded Orchestrator dims', async () => {
-            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsB64 = btoa(encodeDimsV1(dims))
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR);
+            const dimsB64 = btoa(encodeDimsV1(dims));
 
             render(
                 <MemoryRouter initialEntries={[`/results?dims=${dimsB64}`]}>
@@ -83,21 +83,21 @@ describe('Quiz to Results Flow', () => {
                         <Route path="/results" element={<ResultsPage />} />
                     </Routes>
                 </MemoryRouter>
-            )
+            );
 
             await waitFor(() => {
-                const resultsContainer = document.querySelector('.results-container')
-                expect(resultsContainer).toBeTruthy()
-            }, { timeout: 3000 })
+                const resultsContainer = document.querySelector('.results-container');
+                expect(resultsContainer).toBeTruthy();
+            }, { timeout: 3000 });
 
             await waitFor(() => {
-                expect(screen.getByText('Your Results')).toBeTruthy()
-            }, { timeout: 3000 })
-        })
+                expect(screen.getByText('Your Results')).toBeTruthy();
+            }, { timeout: 3000 });
+        });
 
         it('renders results page with encoded Disruptor dims', async () => {
-            const dims = getExpectedDimsForArchetype(DISRUPTOR)
-            const dimsB64 = btoa(encodeDimsV1(dims))
+            const dims = getExpectedDimsForArchetype(DISRUPTOR);
+            const dimsB64 = btoa(encodeDimsV1(dims));
 
             render(
                 <MemoryRouter initialEntries={[`/results?dims=${dimsB64}`]}>
@@ -105,21 +105,21 @@ describe('Quiz to Results Flow', () => {
                         <Route path="/results" element={<ResultsPage />} />
                     </Routes>
                 </MemoryRouter>
-            )
+            );
 
             await waitFor(() => {
-                const resultsContainer = document.querySelector('.results-container')
-                expect(resultsContainer).toBeTruthy()
-            }, { timeout: 3000 })
+                const resultsContainer = document.querySelector('.results-container');
+                expect(resultsContainer).toBeTruthy();
+            }, { timeout: 3000 });
 
             await waitFor(() => {
-                expect(screen.getByText('Your Results')).toBeTruthy()
-            }, { timeout: 3000 })
-        })
+                expect(screen.getByText('Your Results')).toBeTruthy();
+            }, { timeout: 3000 });
+        });
 
         it('results page displays archetype results heading', async () => {
-            const dims = getExpectedDimsForArchetype(ORCHESTRATOR)
-            const dimsB64 = btoa(encodeDimsV1(dims))
+            const dims = getExpectedDimsForArchetype(ORCHESTRATOR);
+            const dimsB64 = btoa(encodeDimsV1(dims));
 
             render(
                 <MemoryRouter initialEntries={[`/results?dims=${dimsB64}`]}>
@@ -127,13 +127,13 @@ describe('Quiz to Results Flow', () => {
                         <Route path="/results" element={<ResultsPage />} />
                     </Routes>
                 </MemoryRouter>
-            )
+            );
 
             await waitFor(() => {
-                expect(screen.getByText('You are the...')).toBeTruthy()
-            }, { timeout: 3000 })
-        })
-    })
+                expect(screen.getByText('You are the...')).toBeTruthy();
+            }, { timeout: 3000 });
+        });
+    });
 
     describe('Partial quiz completion', () => {
         it('submit button is disabled when no questions are answered', async () => {
@@ -143,40 +143,40 @@ describe('Quiz to Results Flow', () => {
                         <Route path="/quiz" element={<QuizPage />} />
                     </Routes>
                 </MemoryRouter>
-            )
+            );
 
             await waitFor(() => {
-                const submitButton = document.querySelector('.submit-button')
-                expect(submitButton).toBeTruthy()
-            }, { timeout: 3000 })
+                const submitButton = document.querySelector('.submit-button');
+                expect(submitButton).toBeTruthy();
+            }, { timeout: 3000 });
 
             await waitFor(() => {
-                const submitButton = document.querySelector('.submit-button')
-                expect(submitButton.classList.contains('disabled')).toBe(true)
-            }, { timeout: 3000 })
-        })
+                const submitButton = document.querySelector('.submit-button');
+                expect(submitButton.classList.contains('disabled')).toBe(true);
+            }, { timeout: 3000 });
+        });
 
         it('calculates partial dimension scores', () => {
-            const partialResponses = createResponsesForArchetype(ORCHESTRATOR).slice(0, 6)
-            const scores = calculateScores(partialResponses)
+            const partialResponses = createResponsesForArchetype(ORCHESTRATOR).slice(0, 6);
+            const scores = calculateScores(partialResponses);
             
-            expect(scores.primary.score).toBeLessThan(12)
-            expect(scores.primary.archetype).toBeTruthy()
-        })
+            expect(scores.primary.score).toBeLessThan(12);
+            expect(scores.primary.archetype).toBeTruthy();
+        });
 
         it('no questions answered returns zero scores', () => {
-            const scores = calculateScores([])
-            expect(scores.primary.score).toBe(0)
-        })
+            const scores = calculateScores([]);
+            expect(scores.primary.score).toBe(0);
+        });
 
         it('partial responses still produce valid dimension totals', () => {
-            const partialResponses = createResponsesForArchetype(ORCHESTRATOR).slice(0, 6)
-            const scores = calculateScores(partialResponses)
+            const partialResponses = createResponsesForArchetype(ORCHESTRATOR).slice(0, 6);
+            const scores = calculateScores(partialResponses);
             
             scores.dimensionScores.forEach(([_key, value]) => {
-                expect(value).toBeGreaterThan(0)
-                expect(value).toBeLessThanOrEqual(30)
-            })
-        })
-    })
-})
+                expect(value).toBeGreaterThan(0);
+                expect(value).toBeLessThanOrEqual(30);
+            });
+        });
+    });
+});
