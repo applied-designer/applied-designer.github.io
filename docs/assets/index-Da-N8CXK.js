@@ -66386,68 +66386,66 @@ const bios = [
   "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.",
   "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
 ];
-class Dodecahedron extends React.Component {
-  constructor(props) {
-    super(props);
-    let dodecScale = 1.5;
-    if (window.outerWidth > 860) {
-      dodecScale = 1.75;
+function Dodecahedron({ onFaceClick }) {
+  const meshRef = reactExports.useRef();
+  const edgesRef = reactExports.useRef();
+  const dodecScale = window.outerWidth > 860 ? 1.75 : 1.5;
+  const geometry2 = new DodecahedronGeometry(dodecScale, 0);
+  if (geometry2.groups.length === 0) {
+    geometry2.clearGroups();
+    for (let i = 0; i < 12; i++) {
+      geometry2.addGroup(i * 9, 9, i);
     }
-    this.geometry = new DodecahedronGeometry(dodecScale, 0);
-    if (this.geometry.groups.length === 0) {
-      this.geometry.clearGroups();
-      for (let i = 0; i < 12; i++) {
-        this.geometry.addGroup(i * 9, 9, i);
-      }
+  }
+  const edgesGeometry = new EdgesGeometry(geometry2);
+  const wireframeMaterial = new LineBasicMaterial({ color: "white", linewidth: 50 });
+  const [faceState, setFaceState] = React.useState(new Array(12).fill("white"));
+  useFrame((state2) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = state2.clock.elapsedTime * 0.5;
+      meshRef.current.rotation.y = state2.clock.elapsedTime * 1;
     }
-    this.edgesGeometry = new EdgesGeometry(this.geometry);
-    this.state = {
-      faceState: new Array(12).fill("white")
-    };
-    this.handleClick = this.handleClick.bind(this);
-  }
-  // Helper to build an array of 12 materials based on our state.
-  getMaterials() {
-    return this.state.faceState.map((color2) => {
-      const isClicked = color2 !== "white";
-      return new MeshBasicMaterial({
-        color: color2,
-        side: DoubleSide,
-        opacity: isClicked ? 0.5 : 0,
-        transparent: !isClicked
-      });
-    });
-  }
-  handleClick(event) {
+    if (edgesRef.current) {
+      edgesRef.current.rotation.x = state2.clock.elapsedTime * 0.5;
+      edgesRef.current.rotation.y = state2.clock.elapsedTime * 1;
+    }
+  });
+  const handleClick = (event) => {
     const intersect2 = event.intersections[0];
     if (!intersect2) return;
     const triangleIndex = intersect2.faceIndex;
     const faceIndex = Math.floor(triangleIndex / 3);
-    this.setState((_prevState) => {
+    setFaceState(() => {
       const newFaceState = new Array(12).fill("white");
       newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length];
-      return { faceState: newFaceState };
+      return newFaceState;
     });
-    if (this.props.onFaceClick) {
-      this.props.onFaceClick(faceIndex);
+    if (onFaceClick) {
+      onFaceClick(faceIndex);
     }
-  }
-  render() {
-    const materials = this.getMaterials();
-    const wireframeMaterial = new LineBasicMaterial({ color: "white", linewidth: 50 });
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("group", { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "mesh",
-        {
-          geometry: this.geometry,
-          material: materials,
-          onClick: this.handleClick,
-          raycast: Mesh.prototype.raycast
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("lineSegments", { geometry: this.edgesGeometry, material: wireframeMaterial })
-    ] });
-  }
+  };
+  const materials = faceState.map((color2) => {
+    const isClicked = color2 !== "white";
+    return new MeshBasicMaterial({
+      color: color2,
+      side: DoubleSide,
+      opacity: isClicked ? 0.5 : 0,
+      transparent: !isClicked
+    });
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("group", { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "mesh",
+      {
+        ref: meshRef,
+        geometry: geometry2,
+        material: materials,
+        onClick: handleClick,
+        raycast: Mesh.prototype.raycast
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("lineSegments", { ref: edgesRef, geometry: edgesGeometry, material: wireframeMaterial })
+  ] });
 }
 function MainApp() {
   const handleFaceClick = (faceIndex) => {
@@ -216289,7 +216287,7 @@ function ResultsPage() {
         "button",
         {
           className: "results-button",
-          onClick: () => navigate("/#/quiz"),
+          onClick: () => navigate("/quiz"),
           children: "Retake Quiz"
         }
       ),

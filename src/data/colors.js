@@ -7,6 +7,11 @@ export const DIM_COLORS_HEX = [
     '#893A69'
 ]
 
+// TODO: use this in more places
+export function bgToFg(bg) {
+    return ['#D0E7BF', '#FAA41A'].includes(bg) ? '#000000' : '#ffffff'
+}
+
 // CSS variable versions for DOM styling
 export const DIM_COLORS = [
     'var(--color-blue)',

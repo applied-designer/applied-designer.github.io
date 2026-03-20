@@ -96,6 +96,8 @@ nav a:hover, footer *:hover {
   position: relative;
   z-index: 999;
   transition: all 0.3s ease;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
 }
 
 /* The bouncing causes some stretching */
@@ -110,6 +112,7 @@ canvas {
 }
 
 #headshot {
+  border-radius: 0.5rem;
 }
 
 #archetype {

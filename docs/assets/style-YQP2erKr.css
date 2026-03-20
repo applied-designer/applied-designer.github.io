@@ -55,7 +55,7 @@ body {
   font-family: var(--font-serif);
 }
 
-nav {
+nav, footer {
   flex-flow: row nowrap;
   display: flex;
   justify-content: space-between;
@@ -67,12 +67,17 @@ nav {
   font-size: 1.125rem;
 }
 
+footer p {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
 a {
   color: var(--color-black);
   text-decoration: none;
 }
 
-nav a:hover {
+nav a:hover, footer *:hover {
   color: var(--color-blue);
   transition: all 0.3s ease;
 }

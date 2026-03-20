@@ -1,8 +1,8 @@
-import React from 'react'
-import { Canvas } from '@react-three/fiber'
+import React, { useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
-import { DIM_COLORS_HEX } from '../data/colors'
+import { DIM_COLORS_HEX, bgToFg } from '../data/colors'
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
 
@@ -73,111 +73,79 @@ const _adjacency = [
     [1, 2, 6, 8, 9] // Face 11
 ]
 
-class Dodecahedron extends React.Component {
-    constructor(props) {
-        super(props)
-        // Create and store the dodecahedron geometry (radius 1, detail 0).
-        // This geometry automatically triangulates each pentagon into 3 triangles.
-        // 
-        
-        // TODO: handle window resize
-        let dodecScale = 1.5;
-        if (window.outerWidth > 860) {
-            dodecScale = 1.75;
+function Dodecahedron({ onFaceClick }) {
+    const meshRef = useRef()
+    const edgesRef = useRef()
+    
+    const dodecScale = window.outerWidth > 860 ? 1.75 : 1.5
+    const geometry = new THREE.DodecahedronGeometry(dodecScale, 0)
+    
+    if (geometry.groups.length === 0) {
+        geometry.clearGroups()
+        for (let i = 0; i < 12; i++) {
+            geometry.addGroup(i * 9, 9, i)
         }
-
-        this.geometry = new THREE.DodecahedronGeometry(dodecScale, 0)
-        // Ensure there are groups for multi-material usage.
-        if (this.geometry.groups.length === 0) {
-            this.geometry.clearGroups()
-            // Each pentagon face: 3 triangles, each with 3 indices = 9 indices per face.
-            for (let i = 0; i < 12; i++) {
-                this.geometry.addGroup(i * 9, 9, i)
-            }
-        }
-        // Create and store the wireframe geometry.
-        this.edgesGeometry = new THREE.EdgesGeometry(this.geometry)
-        // We'll store the per‑face colors in state.
-        // Initially, every face is "white" (invisible, since opacity is 0).
-        this.state = {
-            faceState: new Array(12).fill('white')
-        }
-        // Bind event handler.
-        this.handleClick = this.handleClick.bind(this)
     }
+    
+    const edgesGeometry = new THREE.EdgesGeometry(geometry)
+    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 })
+    
+    const [faceState, setFaceState] = React.useState(new Array(12).fill('white'))
+    
+    const yRotFactor = 0.5;
+    const xRotFactor = yRotFactor;
+    
 
-    // Helper to build an array of 12 materials based on our state.
-    getMaterials() {
-        return this.state.faceState.map((color) => {
-            // If the color is still white, we use opacity 0 so the face is transparent.
-            // Otherwise, we use opacity 0.5 to show the chosen color.
-            const isClicked = color !== 'white'
-            return new THREE.MeshBasicMaterial({
-                color: color,
-                side: THREE.DoubleSide,
-                opacity: isClicked ? 0.5 : 0.0,
-                transparent: !isClicked
-            })
-        })
-    }
-
-    handleClick(event) {
-    // The raycaster returns an intersection with a triangle.
-    // Each pentagon face is composed of 3 triangles, so we compute:
-    //    faceIndex = Math.floor(triangleIndex / 3)
+    useFrame((state) => {
+        if (meshRef.current) {
+            meshRef.current.rotation.x = state.clock.elapsedTime * xRotFactor
+            meshRef.current.rotation.y = state.clock.elapsedTime * yRotFactor
+        }
+        if (edgesRef.current) {
+            edgesRef.current.rotation.x = state.clock.elapsedTime * xRotFactor
+            edgesRef.current.rotation.y = state.clock.elapsedTime * yRotFactor
+        }
+    })
+    
+    const handleClick = (event) => {
         const intersect = event.intersections[0]
         if (!intersect) return
-        const triangleIndex = intersect.faceIndex // This is a triangle index (0 to 35)
-        const faceIndex = Math.floor(triangleIndex / 3) // Maps to a face index (0 to 11)
-
-        // TODO: need a simpler adjacency detection algorithm... colors should be determined ONCE, not on each click
-
-        // // Gather currently assigned colors from adjacent faces.
-        // const neighborColors = new Set()
-        // adjacency[faceIndex].forEach((nei) => {
-        //   const assigned = this.state.faceState[nei]
-        //   if (assigned !== 'white') {
-        //     neighborColors.add(assigned)
-        //   }
-        // })
-
-        // // Determine which brand colors are available (i.e., not used by neighbors).
-        // const availableColors = brandColors.filter((c) => !neighborColors.has(c))
-        // // Choose a color. If availableColors is non-empty, take the first available.
-        // // Otherwise, if all are used, default to a color based on faceIndex index.
-        // const chosenColor = availableColors.length > 0 ? availableColors[0] : brandColors[faceIndex % brandColors.length]
-
-        // Update the state for that face so its color changes.
-        // We update the particular face with its desired color from our global brandColors array.
-        this.setState((_prevState) => {
+        const triangleIndex = intersect.faceIndex
+        const faceIndex = Math.floor(triangleIndex / 3)
+        
+        setFaceState(() => {
             const newFaceState = new Array(12).fill('white')
-            // newFaceState[faceIndex] = chosenColor //brandColors[faceIndex % brandColors.length]
             newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length]
-            return { faceState: newFaceState }
+            return newFaceState
         })
-        // Also call parent's callback if provided.
-        if (this.props.onFaceClick) {
-            this.props.onFaceClick(faceIndex)
+        
+        if (onFaceClick) {
+            onFaceClick(faceIndex)
         }
     }
-
-    render() {
-    // Build materials array on each render so that they reflect state changes.
-        const materials = this.getMaterials()
-        // Create a wireframe material.
-        const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 })
-        return (
-            <group>
-                <mesh
-                    geometry={this.geometry}
-                    material={materials} // Use our per-face materials
-                    onClick={this.handleClick}
-                    raycast={THREE.Mesh.prototype.raycast} // Use default raycasting
-                />
-                <lineSegments geometry={this.edgesGeometry} material={wireframeMaterial} />
-            </group>
-        )
-    }
+    
+    const materials = faceState.map((color) => {
+        const isClicked = color !== 'white'
+        return new THREE.MeshBasicMaterial({
+            color: color,
+            side: THREE.DoubleSide,
+            opacity: isClicked ? 0.5 : 0.0,
+            transparent: !isClicked
+        })
+    })
+    
+    return (
+        <group>
+            <mesh
+                ref={meshRef}
+                geometry={geometry}
+                material={materials}
+                onClick={handleClick}
+                raycast={THREE.Mesh.prototype.raycast}
+            />
+            <lineSegments ref={edgesRef} geometry={edgesGeometry} material={wireframeMaterial} />
+        </group>
+    )
 }
 
 export default function MainApp() {
@@ -188,7 +156,19 @@ export default function MainApp() {
         if (msg.length === 0) {
             document.getElementById('designer').style.display = 'none'
         } else {
+
+            if (document.getElementById('designer').style.display == 'flex') {
+                document.getElementById('designer').style.display = 'none'
+                return setFaceState(() => {
+                    newFaceState[faceIndex] = 'white'
+                })
+            }
+
             document.getElementById('designer').style.display = 'flex'
+            const bg = brandColors[faceIndex % brandColors.length]
+            document.getElementById('designer').style.backgroundColor = bg
+            document.getElementById('designer').style.color = bgToFg(bg)
+            // TODO: now match type color
             let name = designers[faceIndex]
             if (name === 'Eike Konig') {
                 name = 'Eike König'
