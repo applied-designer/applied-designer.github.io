@@ -1,7 +1,5 @@
 Overall infra + tooling
 
-TODO: need to ensure URL is versioned...
-
 TEST URL: http://localhost:4173/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR5OjM5LGNvbGxhYm9yYXRpb246NDYsZXhwZXJpbWVudGF0aW9uOjMzLGltcGFjdDo0NA%3D%3D
 
 
@@ -16,9 +14,9 @@ TEST URL: http://localhost:4173/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR
 New features
 
 - [ ] about page
-- [ ] full copyright disclaimer, footer probably
+- [ ] full copyright disclaimer in footer
 - [ ] links to Whatsapp groups
-- [ ] Redesign the homepage, scale should be much better in general
+- [ ] Redesign the homepage, scale should be much better in general (see above)
 - [ ] Card design UI
 - [ ] Add pages for each archetype with: description, example designer, etc.
 

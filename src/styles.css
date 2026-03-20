@@ -287,9 +287,18 @@ canvas {
   letter-spacing: -0.2px !important;
 }
 
-.survey-wrapper .sd-question.quiz-panel .sd-question__description,
-.survey-wrapper .sd-question.quiz-panel .sd-description {
+.sd-container-modern .sd-question__description,
+.sd-container-modern .sd-description {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  line-height: 1;
   color: var(--panel-fg) !important;
+  opacity: 0.5;
+  font-weight: 500;
 }
 
 /* Ensure question count text matches panel fg color */
@@ -367,15 +376,17 @@ canvas {
   border: none;
 }
 
+.sd-radio--checked .sd-radio__decorator::after {
+  background-color: var(--color-dark-gray) !important;
+}
+
 .sd-radio--checked .sd-radio__control:focus + .sd-radio__decorator::after {
   /* background-color: var(--color-white) !important; */
   background-color: var(--color-dark-gray) !important;
   border: none;
 }
 
-.sd-radio--checked .sd-radio__decorator::after {
-  background-color: var(--color-dark-gray) !important;
-}
+
 
 .sd-item__control:focus + .sd-item__decorator {
   /* box-shadow: 0 0 0 2px var(--color-light-gray) !important; */
@@ -407,24 +418,16 @@ canvas {
   padding: 0;
 }
 
-.sd-container-modern .sd-question__description,
-.sd-container-modern .sd-description {
-  position: absolute;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  line-height: 1;
-  color: var(--panel-fg) !important;
-  opacity: 0.5;
-  font-weight: 500;
-}
 
 .sd-question.quiz-panel-blue .sd-question__description,
 .sd-question.quiz-panel-brown .sd-question__description,
 .sd-question.quiz-panel-purple .sd-question__description {
   color: rgb(255 255 255 / 60%) !important;
+}
+
+.survey-wrapper .sd-question.quiz-panel .sd-question__description,
+.survey-wrapper .sd-question.quiz-panel .sd-description {
+  color: var(--panel-fg) !important;
 }
 
 .sd-container-modern .sd-question__required-text,
@@ -436,7 +439,6 @@ canvas {
   margin: 2rem 0;
 }
 
-/* Submit Button */
 .submit-button {
   display: block;
   margin: 3rem auto;
@@ -451,6 +453,24 @@ canvas {
   transition: opacity 0.3s ease;
   font-family: var(--font-sans);
   min-height: 44px;
+}
+
+.results-button {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  font-family: var(--font-sans);
+  min-height: 44px;
+}
+
+.results-button:hover {
+  opacity: 0.8;
 }
 
 .submit-button:focus-visible,
@@ -570,24 +590,6 @@ canvas {
   gap: 1rem;
   justify-content: center;
   margin: 3rem 1rem 1rem;
-}
-
-.results-button {
-  background-color: var(--color-black);
-  color: var(--color-white);
-  border: none;
-  border-radius: 0.5rem;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.3s ease;
-  font-family: var(--font-sans);
-  min-height: 44px;
-}
-
-.results-button:hover {
-  opacity: 0.8;
 }
 
 /* Archetype Detail Page Styles */
