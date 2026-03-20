@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+</head>
+<body>
+    <p>Redirecting...</p>
+    <script>
+(function() {
+    var pathname = window.location.pathname.replace(/\/$/, '');
+    var search = window.location.search;
+    var cleanPath = pathname.replace(/^\//, '');
+    var knownRoutes = ['/', '/quiz', '/results'];
+    var isKnownRoute = knownRoutes.indexOf('/' + cleanPath) !== -1;
+    
+    if (cleanPath && isKnownRoute) {
+        window.location.replace('/#/' + cleanPath + search);
+    } else {
+        window.location.replace('/#/');
+    }
+})();
+    </script>
+</body>
+</html>
