@@ -73,15 +73,16 @@ const _adjacency = [
     [1, 2, 6, 8, 9] // Face 11
 ]
 
+// TODO: something is wrong here, Silas should be purple but he's not
 function idxToBg(faceIndex) {
     return brandColors[faceIndex % brandColors.length];
 }
 
-function Dodecahedron({ onFaceClick }) {
+function Dodecahedron({ faceState, onFaceClick }) {
     const meshRef = useRef()
     const edgesRef = useRef()
     
-    const dodecScale = window.outerWidth > 860 ? 1.75 : 1.5
+    const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4
     const geometry = new THREE.DodecahedronGeometry(dodecScale, 0)
     
     if (geometry.groups.length === 0) {
@@ -94,12 +95,10 @@ function Dodecahedron({ onFaceClick }) {
     const edgesGeometry = new THREE.EdgesGeometry(geometry)
     const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 })
     
-    const [faceState, setFaceState] = React.useState(new Array(12).fill('white'))
+    // NOTE: there are half the speed from Processing
+    const yRotFactor = 0.5
+    const xRotFactor = yRotFactor / 2;
     
-    const yRotFactor = 0.5;
-    const xRotFactor = yRotFactor;
-    
-
     useFrame((state) => {
         if (meshRef.current) {
             meshRef.current.rotation.x = state.clock.elapsedTime * xRotFactor
@@ -116,12 +115,6 @@ function Dodecahedron({ onFaceClick }) {
         if (!intersect) return
         const triangleIndex = intersect.faceIndex
         const faceIndex = Math.floor(triangleIndex / 3)
-        
-        setFaceState(() => {
-            const newFaceState = new Array(12).fill('white')
-            newFaceState[faceIndex] = idxToBg(faceIndex);
-            return newFaceState
-        })
         
         if (onFaceClick) {
             onFaceClick(faceIndex)
@@ -153,28 +146,32 @@ function Dodecahedron({ onFaceClick }) {
 }
 
 export default function MainApp() {
+    const defaultState = new Array(12).fill('white');
+    const [faceState, setFaceState] = React.useState(defaultState)
+    const [selectedFace, setSelectedFace] = React.useState(null)
+    
     const handleFaceClick = (faceIndex) => {
-        // TODO: if faceIndex is already selected, toggle it
-        let msg = ''
-        msg += designers[faceIndex] + ': ' || ''
-        if (msg.length === 0) {
+        if (selectedFace === faceIndex) {
+            setFaceState(prev => {
+                const newState = [...prev]
+                newState[faceIndex] = 'white'
+                return newState
+            })
+            setSelectedFace(null)
             document.getElementById('designer').style.display = 'none'
         } else {
+            setFaceState(() => {
+                const newState = defaultState
+                newState[faceIndex] = idxToBg(faceIndex)
+                return newState
+            })
+            setSelectedFace(faceIndex)
 
-            if (document.getElementById('designer').style.display == 'flex') {
-                document.getElementById('designer').style.display = 'none'
-                // TODO: how do I set this value to white so the fill goes invisible only on this face?
-                // return setFaceState(() => {
-                //     console.log('hmmm', faceIndex, faceState)
-                //     faceState[faceIndex] = 'white'
-                // })
-            }
-
+            // TODO: make this a react component so its less hacky
             document.getElementById('designer').style.display = 'flex'
             const bg = idxToBg(faceIndex)
             document.getElementById('designer').style.backgroundColor = bg
             document.getElementById('designer').style.color = bgToFg(bg)
-            // TODO: now match type color
             let name = designers[faceIndex]
             if (name === 'Eike Konig') {
                 name = 'Eike König'
@@ -205,7 +202,7 @@ export default function MainApp() {
                 {/* <pointLight position={[10, 10, 10]} /> */}
                 {/*TODO: add subtle random rotation, especially once this works into mobile menu icon*/}
                 {/*TODO: can also play with color variations once ready, e.g. process book intro/outros */}
-                <Dodecahedron onFaceClick={handleFaceClick} />
+                <Dodecahedron faceState={faceState} onFaceClick={handleFaceClick} />
                 {/*<OrbitControls enableZoom={false} />*/}
                 <OrbitControls />
             </Canvas>

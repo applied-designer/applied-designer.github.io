@@ -66327,6 +66327,9 @@ const DIM_COLORS_HEX = [
   "#FAA41A",
   "#893A69"
 ];
+function bgToFg(bg) {
+  return ["#D0E7BF", "#FAA41A"].includes(bg) ? "#000000" : "#ffffff";
+}
 const DIM_COLORS = [
   "var(--color-blue)",
   "var(--color-brown)",
@@ -66386,10 +66389,13 @@ const bios = [
   "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.",
   "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
 ];
-function Dodecahedron({ onFaceClick }) {
+function idxToBg(faceIndex) {
+  return brandColors[faceIndex % brandColors.length];
+}
+function Dodecahedron({ faceState, onFaceClick }) {
   const meshRef = reactExports.useRef();
   const edgesRef = reactExports.useRef();
-  const dodecScale = window.outerWidth > 860 ? 1.75 : 1.5;
+  const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4;
   const geometry2 = new DodecahedronGeometry(dodecScale, 0);
   if (geometry2.groups.length === 0) {
     geometry2.clearGroups();
@@ -66399,15 +66405,16 @@ function Dodecahedron({ onFaceClick }) {
   }
   const edgesGeometry = new EdgesGeometry(geometry2);
   const wireframeMaterial = new LineBasicMaterial({ color: "white", linewidth: 50 });
-  const [faceState, setFaceState] = React.useState(new Array(12).fill("white"));
+  const yRotFactor = 0.5;
+  const xRotFactor = yRotFactor / 2;
   useFrame((state2) => {
     if (meshRef.current) {
-      meshRef.current.rotation.x = state2.clock.elapsedTime * 0.5;
-      meshRef.current.rotation.y = state2.clock.elapsedTime * 1;
+      meshRef.current.rotation.x = state2.clock.elapsedTime * xRotFactor;
+      meshRef.current.rotation.y = state2.clock.elapsedTime * yRotFactor;
     }
     if (edgesRef.current) {
-      edgesRef.current.rotation.x = state2.clock.elapsedTime * 0.5;
-      edgesRef.current.rotation.y = state2.clock.elapsedTime * 1;
+      edgesRef.current.rotation.x = state2.clock.elapsedTime * xRotFactor;
+      edgesRef.current.rotation.y = state2.clock.elapsedTime * yRotFactor;
     }
   });
   const handleClick = (event) => {
@@ -66415,11 +66422,6 @@ function Dodecahedron({ onFaceClick }) {
     if (!intersect2) return;
     const triangleIndex = intersect2.faceIndex;
     const faceIndex = Math.floor(triangleIndex / 3);
-    setFaceState(() => {
-      const newFaceState = new Array(12).fill("white");
-      newFaceState[faceIndex] = brandColors[faceIndex % brandColors.length];
-      return newFaceState;
-    });
     if (onFaceClick) {
       onFaceClick(faceIndex);
     }
@@ -66448,13 +66450,29 @@ function Dodecahedron({ onFaceClick }) {
   ] });
 }
 function MainApp() {
+  const defaultState = new Array(12).fill("white");
+  const [faceState, setFaceState] = React.useState(defaultState);
+  const [selectedFace, setSelectedFace] = React.useState(null);
   const handleFaceClick = (faceIndex) => {
-    let msg = "";
-    msg += designers[faceIndex] + ": " || "";
-    if (msg.length === 0) {
+    if (selectedFace === faceIndex) {
+      setFaceState((prev) => {
+        const newState = [...prev];
+        newState[faceIndex] = "white";
+        return newState;
+      });
+      setSelectedFace(null);
       document.getElementById("designer").style.display = "none";
     } else {
+      setFaceState(() => {
+        const newState = defaultState;
+        newState[faceIndex] = idxToBg(faceIndex);
+        return newState;
+      });
+      setSelectedFace(faceIndex);
       document.getElementById("designer").style.display = "flex";
+      const bg = idxToBg(faceIndex);
+      document.getElementById("designer").style.backgroundColor = bg;
+      document.getElementById("designer").style.color = bgToFg(bg);
       let name = designers[faceIndex];
       if (name === "Eike Konig") {
         name = "Eike König";
@@ -66476,7 +66494,7 @@ function MainApp() {
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, style: { width: "100vw", height: "100vh", "marginTop": window.outerWidth < 860 ? "-16rem" : "inherit" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("color", { attach: "background", args: ["#969696"] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { onFaceClick: handleFaceClick }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { faceState, onFaceClick: handleFaceClick }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(OrbitControls2, {})
     ] })
   ] });
