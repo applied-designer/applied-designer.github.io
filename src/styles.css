@@ -461,10 +461,11 @@ canvas {
 .results-container {
   background-color:  var(--color-dark-gray);
   min-height: 100vh;
-  margin: 2rem; /* match desktop nav margin */
   padding: 2rem;
   font-family: var(--font-serif);
-  width: 100%;
+  min-width: min(100%, 300px);
+  max-width: calc(80 * (var(--sjs-base-unit, var(--base-unit, 8px))));
+  margin: 4rem auto;
   overflow-x: hidden;
   border-radius: 1rem;
   color: var(--color-white);
@@ -730,6 +731,14 @@ canvas {
   opacity: 0.8;
 }
 
+.center {
+  text-align: center;
+}
+
+#root {
+  margin-bottom: 4rem;
+}
+
 /* Responsive Design */
 
 @media only screen and (width <= 860px) {
@@ -778,7 +787,7 @@ canvas {
   .quiz-container,
   .results-container {
     margin: 4rem 2rem;
-    padding: 1rem;
+    padding: 2rem;
   }
 
   .results-overview {
@@ -849,6 +858,10 @@ canvas {
 
   .results-subtitle {
     font-size: 1.2rem;
+  }
+
+  .results-note {
+    text-wrap-style: balance;
   }
 
   .results-actions {

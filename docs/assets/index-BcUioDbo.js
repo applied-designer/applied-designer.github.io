@@ -216239,10 +216239,10 @@ function ResultsPage() {
     });
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-container", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Your Results" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "results-overview", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "Your Results" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-caption", children: "You are the..." }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h1", { className: "results-title", children: [
         primaryData.emoji,
@@ -216268,19 +216268,19 @@ function ResultsPage() {
       ] })) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
             primary,
             " (Primary Archetype)"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: primaryData.description })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note center", children: primaryData.description })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
         secondaryData && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "results-subtitle", children: [
             secondary,
             " (Secondary Archetype)"
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note", children: secondaryData.description })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "results-note center", children: secondaryData.description })
         ] })
       ] })
     ] }),

@@ -71,10 +71,11 @@ export default function ResultsPage() {
   
     return (
         <div className="results-container">
+        <div className="results-overview">
             <h1>Your Results</h1>
             <br />
             <br />
-            <div className="results-overview">
+            
                 <p className="results-caption">
                     You are the...
                 </p>
@@ -114,16 +115,16 @@ export default function ResultsPage() {
                 {/*TODO: float 2 cols desktop -> 1 col mobile */}
                 <div>
                     <div>
-                        <h2>{primary} (Primary Archetype)</h2>
-                        <p className="results-note">
+                        <h2 className="results-subtitle">{primary} (Primary Archetype)</h2>
+                        <p className="results-note center">
                             {primaryData.description}
                         </p>
                     </div>
                     <br />
                     {secondaryData && (
                         <div>
-                            <h2>{secondary} (Secondary Archetype)</h2>
-                            <p className="results-note">
+                            <h2 className="results-subtitle">{secondary} (Secondary Archetype)</h2>
+                            <p className="results-note center">
                                 {secondaryData.description}
                             </p>
                         </div>
