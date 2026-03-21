@@ -5,7 +5,9 @@ import MainApp from './components/MainApp';
 import QuizPage from './pages/Quiz';
 import ResultsPage from './pages/Results';
 
-const SampleResultsPage = import.meta.env.DEV
+const IS_DEV = import.meta.env.DEV;
+
+const SampleResultsPage = IS_DEV
     ? lazy(() => import('./pages/SampleResults'))
     : null;
 
@@ -17,8 +19,7 @@ const routeComponents = {
 };
 
 function App() {
-    const routes = getRoutes(import.meta.env.DEV);
-    validateRoutes(routes);
+    const routes = validateRoutes();
     
     return (
         <HashRouter>
@@ -38,24 +39,26 @@ function App() {
 
 export default App;
 
-function validateRoutes(routes) {
-    if (!import.meta.env.DEV) return;
-    
-    const routeNames = new Set(routes.map(r => r.name));
-    
-    for (const name of Object.keys(routeComponents)) {
-        if (!routeNames.has(name)) {
-            throw new Error(
-                `routeComponents has "${name}" but no matching route in routes.js`
-            );
+function validateRoutes() {
+    const routes = getRoutes(IS_DEV);
+    if (IS_DEV) {        
+        const routeNames = new Set(routes.map(r => r.name));
+        
+        for (const name of Object.keys(routeComponents)) {
+            if (!routeNames.has(name)) {
+                throw new Error(
+                    `routeComponents has "${name}" but no matching route in routes.js`
+                );
+            }
+        }
+        
+        for (const route of routes) {
+            if (route.name && !routeComponents[route.name]) {
+                throw new Error(
+                    `Route "${route.name}" has no matching component in routeComponents`
+                );
+            }
         }
     }
-    
-    for (const route of routes) {
-        if (route.name && !routeComponents[route.name]) {
-            throw new Error(
-                `Route "${route.name}" has no matching component in routeComponents`
-            );
-        }
-    }
+    return routes;
 }

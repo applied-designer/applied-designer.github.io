@@ -216329,6 +216329,7 @@ function ResultsPage() {
     ] })
   ] });
 }
+const IS_DEV = false;
 const routeComponents = {
   home: MainApp,
   quiz: QuizPage,
@@ -216336,7 +216337,7 @@ const routeComponents = {
   ...{}
 };
 function App() {
-  const routes = getRoutes(false);
+  const routes = validateRoutes();
   return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.Suspense, { fallback: null, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     routes.map((route) => {
       const Component = routeComponents[route.name];
@@ -216345,6 +216346,10 @@ function App() {
     }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "*", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) })
   ] }) }) });
+}
+function validateRoutes() {
+  const routes = getRoutes(IS_DEV);
+  return routes;
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
