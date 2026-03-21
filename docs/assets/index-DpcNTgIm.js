@@ -14814,6 +14814,15 @@ function useViewTransitionState(to2, { relative } = {}) {
   return matchPath(path2.pathname, nextPath) != null || matchPath(path2.pathname, currentPath) != null;
 }
 var reactDomExports = requireReactDom();
+const allRoutes = [
+  { path: "/", name: "home" },
+  { path: "/quiz", name: "quiz" },
+  { path: "/results", name: "results" },
+  { path: "/sample-results", name: "sample-results", devOnly: true }
+];
+function getRoutes(isDev) {
+  return allRoutes.filter((r2) => !r2.devOnly || isDev);
+}
 const REVISION = "183";
 const MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
 const TOUCH = { ROTATE: 0, PAN: 1, DOLLY_PAN: 2, DOLLY_ROTATE: 3 };
@@ -216320,14 +216329,27 @@ function ResultsPage() {
     ] })
   ] });
 }
+const IS_DEV = false;
+const routeComponents = {
+  home: MainApp,
+  quiz: QuizPage,
+  results: ResultsPage,
+  ...{}
+};
 function App() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/quiz", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuizPage, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/results", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ResultsPage, {}) }),
-    false,
+  const routes = validateRoutes();
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.Suspense, { fallback: null, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+    routes.map((route) => {
+      const Component = routeComponents[route.name];
+      if (!Component) return null;
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: route.path, element: /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {}) }, route.path);
+    }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "*", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) })
-  ] }) });
+  ] }) }) });
+}
+function validateRoutes() {
+  const routes = getRoutes(IS_DEV);
+  return routes;
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));

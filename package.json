@@ -35,7 +35,7 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "vite build && node scripts/verify-clean-bundle.js",
         "start": "vite build && vite preview",
         "pretest": "bun run lint && bun run lint:css",
         "test": "vitest",

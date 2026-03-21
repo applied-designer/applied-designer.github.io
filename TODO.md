@@ -2,7 +2,8 @@ Overall infra + tooling
 
 TEST URL: http://localhost:4173/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR5OjM5LGNvbGxhYm9yYXRpb246NDYsZXhwZXJpbWVudGF0aW9uOjMzLGltcGFjdDo0NA%3D%3D
 
-
+- [ ] ad a min/max zoom size on the homepage
+- [ ] automate copyright date into compile
 - [ ] fix mobile menu ugliness
 - [ ] fix desktop header ugliness
 - [ ] restructure the homepage like this: https://godly.website/website/quentin-hocde-736
@@ -16,10 +17,10 @@ TEST URL: http://localhost:4173/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR
 New features
 
 - [ ] about page
-- [ ] full copyright disclaimer in footer
+- [ ] full copyright disclaimer in footer: Copyright &copy; 2024–2026 Shakeel Mohamed all rights reserved. No part of this thesis project may be reproduced or transmitted in any form by any electronic or mechanical means, which may include photocopying, recording, or any other information storage and retrieval system, or otherwise without written permission from the publisher.
 - [ ] links to Whatsapp groups
 - [ ] Redesign the homepage, scale should be much better in general (see above)
-- [ ] Card design UI
+- [ ] Quiz: Card stack UI with easing: https://codesandbox.io/p/sandbox/reacr-stacked-d37w8w?file=/src/components/card.jsx
 - [ ] Add pages for each archetype with: description, example designer, etc.
 
 
