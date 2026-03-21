@@ -2,7 +2,7 @@ Overall infra + tooling
 
 TEST URL: http://localhost:4173/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR5OjM5LGNvbGxhYm9yYXRpb246NDYsZXhwZXJpbWVudGF0aW9uOjMzLGltcGFjdDo0NA%3D%3D
 
-
+- [ ] ad a min/max zoom size on the homepage
 - [ ] automate copyright date into compile
 - [ ] fix mobile menu ugliness
 - [ ] fix desktop header ugliness
