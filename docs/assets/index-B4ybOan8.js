@@ -14820,7 +14820,7 @@ const allRoutes = [
   { path: "/results", name: "results" },
   { path: "/sample-results", name: "sample-results", devOnly: true }
 ];
-function getRoutes(isDev = false) {
+function getRoutes(isDev) {
   return allRoutes.filter((r2) => !r2.devOnly || isDev);
 }
 const REVISION = "183";
@@ -216329,28 +216329,22 @@ function ResultsPage() {
     ] })
   ] });
 }
-function SampleResultsPage() {
-  const navigate = useNavigate();
-  reactExports.useEffect(() => {
-    navigate("/results?dims=djE6c3RyYXRlZ3k6NDYsYWRhcHRhYmlsaXR5OjM5LGNvbGxhYm9yYXRpb246NDYsZXhwZXJpbWVudGF0aW9uOjMzLGltcGFjdDo0NA%3D%3D");
-  }, [navigate]);
-}
 const routeComponents = {
   home: MainApp,
   quiz: QuizPage,
   results: ResultsPage,
-  "sample-results": SampleResultsPage
+  ...{}
 };
 function App() {
-  const routes = getRoutes();
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+  const routes = getRoutes(false);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(HashRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.Suspense, { fallback: null, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     routes.map((route) => {
       const Component = routeComponents[route.name];
       if (!Component) return null;
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: route.path, element: /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {}) }, route.path);
     }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "*", element: /* @__PURE__ */ jsxRuntimeExports.jsx(MainApp, {}) })
-  ] }) });
+  ] }) }) });
 }
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));

@@ -14,7 +14,7 @@ export default function generate404Plugin() {
             let template = fs.readFileSync(templatePath, 'utf-8');
             
             const { getRoutes } = await import('./src/routes.js');
-            const routes = getRoutes();
+            const routes = getRoutes(false);
             const routeList = routes.map(r => `'${r.path}'`);
             
             template = template.replace('{{ROUTES}}', `[${routeList.join(', ')}]`);

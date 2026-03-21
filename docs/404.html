@@ -6,21 +6,23 @@
     <title>Redirecting...</title>
 </head>
 <body>
-    <p>Redirecting...</p>
+    <noscript>
+        <p>You need to enable JavaScript to run this app.</p>
+    </noscript>
     <script>
-(function() {
-    var pathname = window.location.pathname.replace(/\/$/, '');
-    var search = window.location.search;
-    var cleanPath = pathname.replace(/^\//, '');
-    var knownRoutes = ['/', '/quiz', '/results'];
-    var isKnownRoute = knownRoutes.indexOf('/' + cleanPath) !== -1;
-    
-    if (cleanPath && isKnownRoute) {
-        window.location.replace('/#/' + cleanPath + search);
-    } else {
-        window.location.replace('/#/');
-    }
-})();
+        (function() {
+            var pathname = window.location.pathname.replace(/\/$/, '');
+            var search = window.location.search;
+            var cleanPath = pathname.replace(/^\//, '');
+            var knownRoutes = ['/', '/quiz', '/results'];
+            var isKnownRoute = knownRoutes.indexOf('/' + cleanPath) !== -1;
+            
+            if (cleanPath && isKnownRoute) {
+                window.location.replace('/#/' + cleanPath + search);
+            } else {
+                window.location.replace('/#/');
+            }
+        })();
     </script>
 </body>
 </html>

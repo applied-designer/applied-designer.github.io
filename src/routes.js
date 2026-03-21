@@ -5,6 +5,6 @@ const allRoutes = [
     { path: '/sample-results', name: 'sample-results', devOnly: true },
 ];
 
-export function getRoutes(isDev = import.meta.env?.DEV ?? false) {
+export function getRoutes(isDev) {
     return allRoutes.filter(r => !r.devOnly || isDev);
 }
