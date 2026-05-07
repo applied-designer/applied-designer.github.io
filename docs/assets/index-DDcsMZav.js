@@ -66409,7 +66409,6 @@ const PANEL_COLORS_HEX = {
   "quiz-panel-yellow": { bg: "#FAA41A", fg: "#000000" },
   "quiz-panel-purple": { bg: "#893A69", fg: "#ffffff" }
 };
-const brandColors = DIM_COLORS_HEX;
 const archetypes = [
   "The Multidisciplinary",
   "The Researcher",
@@ -66424,21 +66423,22 @@ const archetypes = [
   "The Improviser",
   "The Educator"
 ];
-const designers = [
-  "Irma Boom",
-  "Ruben Pater",
-  "Zak Kyes",
-  "Tom Hingston",
-  "Min Lew",
-  "Dori Tunstall",
-  "Martine Syms",
-  "Samuel Ross",
-  "Juliette Cezzar",
-  "Eike Konig",
+const designers = {
+  "Irma Boom": DIM_COLORS_HEX[0],
+  "Ruben Pater": DIM_COLORS_HEX[1],
+  "Zak Kyes": DIM_COLORS_HEX[2],
+  "Tom Hingston": DIM_COLORS_HEX[3],
+  "Min Lew": DIM_COLORS_HEX[4],
+  "Dori Tunstall": DIM_COLORS_HEX[0],
+  "Martine Syms": DIM_COLORS_HEX[1],
+  "Samuel Ross": DIM_COLORS_HEX[2],
+  "Juliette Cezzar": DIM_COLORS_HEX[1],
+  "Eike Konig": DIM_COLORS_HEX[3],
   // TODO: figure out the o-umlaut
-  "Julian Glander",
-  "Silas Munro"
-];
+  "Julian Glander": DIM_COLORS_HEX[0],
+  "Silas Munro": DIM_COLORS_HEX[4]
+};
+const designerNames = Object.keys(designers);
 const bios = [
   "Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.",
   "A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism.",
@@ -66453,9 +66453,6 @@ const bios = [
   "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.",
   "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
 ];
-function idxToBg(faceIndex) {
-  return brandColors[faceIndex % brandColors.length];
-}
 function Dodecahedron({ faceState, onFaceClick }) {
   const meshRef = reactExports.useRef();
   const edgesRef = reactExports.useRef();
@@ -66529,22 +66526,22 @@ function MainApp() {
     } else {
       setFaceState(() => {
         const newState = defaultState;
-        newState[faceIndex] = idxToBg(faceIndex);
+        newState[faceIndex] = designers[designerNames[faceIndex]];
         return newState;
       });
       setSelectedFace(faceIndex);
       document.getElementById("designer").style.display = "flex";
-      const bg = idxToBg(faceIndex);
+      const bg = designers[designerNames[faceIndex]];
       document.getElementById("designer").style.backgroundColor = bg;
       document.getElementById("designer").style.color = bgToFg(bg);
-      let name = designers[faceIndex];
+      let name = designerNames[faceIndex];
       if (name === "Eike Konig") {
         name = "Eike König";
       }
       document.getElementById("name").innerText = name;
       document.getElementById("archetype").innerText = archetypes[faceIndex];
       document.getElementById("bio").innerText = bios[faceIndex];
-      document.getElementById("headshot").setAttribute("src", `/headshots/${designers[faceIndex]}.png`);
+      document.getElementById("headshot").setAttribute("src", `/headshots/${designerNames[faceIndex]}.png`);
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "inside", children: [

@@ -2,12 +2,9 @@ import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { DIM_COLORS_HEX, bgToFg } from '../data/colors';
+import { bgToFg, DIM_COLORS_HEX } from '../data/colors';
 
 // TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
-
-// Global array of 12 desired colors (for when a face is clicked)
-const brandColors = DIM_COLORS_HEX;
 
 // TODO: clean up lots of duplicated data here
 
@@ -26,20 +23,22 @@ const archetypes = [
     'The Educator'
 ];
 
-const designers = [
-    'Irma Boom',
-    'Ruben Pater',
-    'Zak Kyes',
-    'Tom Hingston',
-    'Min Lew',
-    'Dori Tunstall',
-    'Martine Syms',
-    'Samuel Ross',
-    'Juliette Cezzar',
-    'Eike Konig', // TODO: figure out the o-umlaut
-    'Julian Glander',
-    'Silas Munro'
-];
+const designers = {
+    'Irma Boom': DIM_COLORS_HEX[0],
+    'Ruben Pater': DIM_COLORS_HEX[1],
+    'Zak Kyes': DIM_COLORS_HEX[2],
+    'Tom Hingston': DIM_COLORS_HEX[3],
+    'Min Lew': DIM_COLORS_HEX[4],
+    'Dori Tunstall': DIM_COLORS_HEX[0],
+    'Martine Syms': DIM_COLORS_HEX[1],
+    'Samuel Ross': DIM_COLORS_HEX[2],
+    'Juliette Cezzar': DIM_COLORS_HEX[1],
+    'Eike Konig': DIM_COLORS_HEX[3], // TODO: figure out the o-umlaut
+    'Julian Glander': DIM_COLORS_HEX[0],
+    'Silas Munro': DIM_COLORS_HEX[4],
+};
+
+const designerNames = Object.keys(designers);
 
 const bios = [
     'Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.',
@@ -72,11 +71,6 @@ const _adjacency = [
     [0, 3, 4, 5, 9], // Face 10
     [1, 2, 6, 8, 9] // Face 11
 ];
-
-// TODO: something is wrong here, Silas should be purple but he's not
-function idxToBg(faceIndex) {
-    return brandColors[faceIndex % brandColors.length];
-}
 
 function Dodecahedron({ faceState, onFaceClick }) {
     const meshRef = useRef();
@@ -162,24 +156,24 @@ export default function MainApp() {
         } else {
             setFaceState(() => {
                 const newState = defaultState;
-                newState[faceIndex] = idxToBg(faceIndex);
+                newState[faceIndex] = designers[designerNames[faceIndex]];
                 return newState;
             });
             setSelectedFace(faceIndex);
 
             // TODO: make this a react component so its less hacky
             document.getElementById('designer').style.display = 'flex';
-            const bg = idxToBg(faceIndex);
+            const bg = designers[designerNames[faceIndex]];
             document.getElementById('designer').style.backgroundColor = bg;
             document.getElementById('designer').style.color = bgToFg(bg);
-            let name = designers[faceIndex];
+            let name = designerNames[faceIndex];
             if (name === 'Eike Konig') {
                 name = 'Eike König';
             }
             document.getElementById('name').innerText = name;
             document.getElementById('archetype').innerText = archetypes[faceIndex];
             document.getElementById('bio').innerText = bios[faceIndex];
-            document.getElementById('headshot').setAttribute('src', `/headshots/${designers[faceIndex]}.png`);
+            document.getElementById('headshot').setAttribute('src', `/headshots/${designerNames[faceIndex]}.png`);
         }
     };
 
