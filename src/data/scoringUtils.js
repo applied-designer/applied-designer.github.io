@@ -1,5 +1,5 @@
 import { archetypeData } from './archetypeData';
-import { quizQuestions } from './quizData';
+import { quizQuestions } from './quizData_v2';
 
 const ARCHETYPE_ORDER = Object.keys(archetypeData);
 const DIMENSION_KEYS = Object.keys(archetypeData[ARCHETYPE_ORDER[0]].dimensions);

@@ -26,13 +26,13 @@ compress:
 	gzip -f ../src/test/fixtures/quiz_answer_combinations.csv
 	@echo "✅ Compression complete: ../src/test/fixtures/quiz_answer_combinations.csv.gz"
 
-score: score-quiz-combinations
-	@echo "🚀 Scoring all combinations..."
-	./score-quiz-combinations
+score: score-quiz-combinations_v2
+	@echo "🚀 Scoring all combinations (v2)..."
+	./score-quiz-combinations_v2
 
-score-quiz-combinations: score-quiz-combinations.cpp
-	@echo "🔨 Compiling score-quiz-combinations.cpp..."
-	$(CXX) $(CXXFLAGS) score-quiz-combinations.cpp -o score-quiz-combinations -lz
+score-quiz-combinations_v2: score-quiz-combinations_v2.cpp
+	@echo "🔨 Compiling score-quiz-combinations_v2.cpp..."
+	$(CXX) $(CXXFLAGS) score-quiz-combinations_v2.cpp -o score-quiz-combinations_v2 -lz
 
 analyze: analyze-archetype-distribution
 	@echo "🚀 Analyzing archetype distribution..."

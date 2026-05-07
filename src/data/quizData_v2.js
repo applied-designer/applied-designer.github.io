@@ -16,17 +16,17 @@ export const quizQuestions = [
         choices: [
             { text: 'Bridging gaps between people or roles', archetype: 'The Connector' },
             { text: 'Taking the lead and shaping the process', archetype: 'The Director' },
-            { text: 'Filling in wherever I’m needed', archetype: 'The Improviser' },
+            { text: 'Filling in wherever I\'m needed', archetype: 'The Improviser' },
             { text: 'Supporting others as they grow', archetype: 'The Educator' },
-            { text: 'Keeping things small and focused', archetype: 'The Generalist' }
+            { text: 'Building tools that help the team', archetype: 'The Multidisciplinary' }
         ]
     },
     {
         id: 'Q3',
-        text: 'What’s your creative strength?',
+        text: 'What\'s your creative strength?',
         choices: [
             { text: 'Connecting unexpected ideas', archetype: 'The Multidisciplinary' },
-            { text: 'Making sense of messy information', archetype: 'The Orchestrator' },
+            { text: 'Imagining better futures', archetype: 'The Idealist' },
             { text: 'Asking bold questions', archetype: 'The Disruptor' },
             { text: 'Turning plans into action', archetype: 'The Advocate' },
             { text: 'Explaining ideas clearly', archetype: 'The Educator' }
@@ -38,14 +38,14 @@ export const quizQuestions = [
         choices: [
             { text: 'Scaling an idea across different contexts', archetype: 'The Orchestrator' },
             { text: 'Working without a clear path', archetype: 'The Improviser' },
-            { text: 'Digging into deeper meaning', archetype: 'The Researcher' },
+            { text: 'Bridging disciplines and communities', archetype: 'The Connector' },
             { text: 'Changing how people think or act', archetype: 'The Advocate' },
             { text: 'Reinventing how things are done', archetype: 'The Disruptor' }
         ]
     },
     {
         id: 'Q5',
-        text: 'When I’m stuck, I…',
+        text: "When I'm stuck, I...",
         choices: [
             { text: 'Jump into making something', archetype: 'The Experimentalist' },
             { text: 'Look back at my research', archetype: 'The Researcher' },
@@ -67,12 +67,12 @@ export const quizQuestions = [
     },
     {
         id: 'Q7',
-        text: 'In an ideal world, my work would…',
+        text: 'In an ideal world, my work would...',
         choices: [
             { text: 'Teach or inspire someone else', archetype: 'The Educator' },
             { text: 'Spark new possibilities', archetype: 'The Experimentalist' },
             { text: 'Shift a system or community', archetype: 'The Advocate' },
-            { text: 'Work across different platforms', archetype: 'The Orchestrator' },
+            { text: 'Imagine better futures', archetype: 'The Idealist' },
             { text: 'Stay fluid and adaptable', archetype: 'The Generalist' }
         ]
     },
@@ -80,7 +80,7 @@ export const quizQuestions = [
         id: 'Q8',
         text: 'What do I value most when designing?',
         choices: [
-            { text: 'Structure and cohesion', archetype: 'The Orchestrator' },
+            { text: 'Systems that scale and adapt', archetype: 'The Orchestrator' },
             { text: 'Context and clarity', archetype: 'The Researcher' },
             { text: 'Play and experimentation', archetype: 'The Experimentalist' },
             { text: 'Connection and collaboration', archetype: 'The Connector' },
@@ -89,7 +89,7 @@ export const quizQuestions = [
     },
     {
         id: 'Q9',
-        text: 'My dream project would be…',
+        text: 'My dream project would be...',
         choices: [
             { text: 'Designing a system or workflow', archetype: 'The Orchestrator' },
             { text: 'A speculative exhibition or provocation', archetype: 'The Experimentalist' },
@@ -117,14 +117,14 @@ export const quizQuestions = [
             { text: 'Insight that clarifies meaning', archetype: 'The Educator' },
             { text: 'Fast reactions that shift the work', archetype: 'The Improviser' },
             { text: 'Honest conversations', archetype: 'The Director' },
-            { text: 'Seeing it work in the real world', archetype: 'The Advocate' }
+            { text: 'Makes the world better', archetype: 'The Idealist' }
         ]
     },
     {
         id: 'Q12',
-        text: 'I wish more people understood that design…',
+        text: 'I wish more people understood that design...',
         choices: [
-            { text: 'Visuals can be strategic', archetype: 'The Orchestrator' },
+            { text: 'Visuals can be strategic', archetype: 'The Director' },
             { text: 'Can change how things work', archetype: 'The Advocate' },
             { text: 'Is a way of thinking', archetype: 'The Multidisciplinary' },
             { text: 'Thrives in complexity', archetype: 'The Researcher' },

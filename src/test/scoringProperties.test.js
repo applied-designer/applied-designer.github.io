@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateScores } from '../data/scoringUtils';
-import { quizQuestions } from '../data/quizData';
+import { quizQuestions } from '../data/quizData_v2';
 import { archetypeData } from '../data/archetypeData';
 
 function createSeededRandom(seed) {

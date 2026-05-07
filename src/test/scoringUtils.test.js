@@ -20,13 +20,13 @@ describe('Score Utils', () => {
                 { questionId: 'Q9', answer: getAnswerForArchetype('Q9', ORCHESTRATOR) },
                 { questionId: 'Q10', answer: getAnswerForArchetype('Q10', RESEARCHER) },
                 { questionId: 'Q11', answer: getAnswerForArchetype('Q11', RESEARCHER) },
-                { questionId: 'Q12', answer: getAnswerForArchetype('Q12', ORCHESTRATOR) }
+                { questionId: 'Q12', answer: getAnswerForArchetype('Q12', DIRECTOR) }
             ];
-      
+       
             const result = calculateScores(responses);
-      
+       
             expect(result.primary.archetype).toBe(ORCHESTRATOR);
-            expect(result.primary.score).toBe(5);
+            expect(result.primary.score).toBe(4);
             expect(result.secondary.archetype).toBe(RESEARCHER);
             expect(result.secondary.score).toBe(2);
             expect(result.tieBreakMethod).toBe('dominant-dimension-rank');

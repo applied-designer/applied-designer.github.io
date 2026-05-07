@@ -39,19 +39,40 @@ export default function ResultsPage() {
     const navigate = useNavigate();
     const [copyText, setCopyText] = useState("Copy Link");
 
-    // Expect ?dims=base64string
+    // Parse v1/v2: ?v=<version>&dims=<base64>&p=<primary>&s=<secondary>
     const params = new URLSearchParams(location.search);
+    const version = params.get('v');
     const dimsB64 = params.get('dims');
     const dims = dimsB64 ? decodeDims(dimsB64) : null;
 
-    // Redirect to quiz if missing/invalid
+    // Invalid/missing dims → quiz
     if (!dims) {
         navigate('/quiz', { replace: true });
         return null;
     }
 
-    // Match user dimensions to closest archetypes using cosine similarity
-    const { primary, secondary } = getClosestArchetypes(dims);
+    // Only v2 supported. Missing v = v1 mode.
+    if (version !== null && version !== '2') {
+        navigate('/quiz', { replace: true });
+        return null;
+    }
+
+    // v2 with vote-based archetypes
+    let primary, secondary;
+    if (version === '2') {
+        const votePrimary = params.get('p');
+        const voteSecondary = params.get('s');
+        if (votePrimary && archetypeData[votePrimary]) {
+            primary = votePrimary;
+            secondary = voteSecondary && archetypeData[voteSecondary] ? voteSecondary : null;
+        } else {
+            // Fallback: cosine similarity
+            ({ primary, secondary } = getClosestArchetypes(dims));
+        }
+    } else {
+        // v1: cosine similarity
+        ({ primary, secondary } = getClosestArchetypes(dims));
+    }
     const primaryData = archetypeData[primary] || {};
     const secondaryData = archetypeData[secondary] || {};
     const radarValues = dimsToArray(dims);

@@ -11249,7 +11249,7 @@ function requireReactDomClient_production() {
     r: requestFormReset,
     D: prefetchDNS,
     C: preconnect,
-    L: preload,
+    L: preload2,
     m: preloadModule,
     X: preinitScript,
     S: preinitStyle,
@@ -11281,7 +11281,7 @@ function requireReactDomClient_production() {
     previousDispatcher.C(href, crossOrigin);
     preconnectAs("preconnect", href, crossOrigin);
   }
-  function preload(href, as, options3) {
+  function preload2(href, as, options3) {
     previousDispatcher.L(href, as, options3);
     var ownerDocument = globalDocument;
     if (ownerDocument && href && as) {
@@ -12482,6 +12482,61 @@ function requireClient() {
 }
 var clientExports = requireClient();
 const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
+const scriptRel = "modulepreload";
+const assetsURL = function(dep) {
+  return "/" + dep;
+};
+const seen = {};
+const __vitePreload = function preload(baseModule, deps, importerUrl) {
+  let promise = Promise.resolve();
+  if (deps && deps.length > 0) {
+    let allSettled2 = function(promises$2) {
+      return Promise.all(promises$2.map((p2) => Promise.resolve(p2).then((value$1) => ({
+        status: "fulfilled",
+        value: value$1
+      }), (reason) => ({
+        status: "rejected",
+        reason
+      }))));
+    };
+    var allSettled = allSettled2;
+    document.getElementsByTagName("link");
+    const cspNonceMeta = document.querySelector("meta[property=csp-nonce]");
+    const cspNonce = cspNonceMeta?.nonce || cspNonceMeta?.getAttribute("nonce");
+    promise = allSettled2(deps.map((dep) => {
+      dep = assetsURL(dep);
+      if (dep in seen) return;
+      seen[dep] = true;
+      const isCss = dep.endsWith(".css");
+      const cssSelector = isCss ? '[rel="stylesheet"]' : "";
+      if (document.querySelector(`link[href="${dep}"]${cssSelector}`)) return;
+      const link = document.createElement("link");
+      link.rel = isCss ? "stylesheet" : scriptRel;
+      if (!isCss) link.as = "script";
+      link.crossOrigin = "";
+      link.href = dep;
+      if (cspNonce) link.setAttribute("nonce", cspNonce);
+      document.head.appendChild(link);
+      if (isCss) return new Promise((res, rej) => {
+        link.addEventListener("load", res);
+        link.addEventListener("error", () => rej(/* @__PURE__ */ new Error(`Unable to preload CSS for ${dep}`)));
+      });
+    }));
+  }
+  function handlePreloadError(err$2) {
+    const e$12 = new Event("vite:preloadError", { cancelable: true });
+    e$12.payload = err$2;
+    window.dispatchEvent(e$12);
+    if (!e$12.defaultPrevented) throw err$2;
+  }
+  return promise.then((res) => {
+    for (const item of res || []) {
+      if (item.status !== "rejected") continue;
+      handlePreloadError(item.reason);
+    }
+    return baseModule().catch(handlePreloadError);
+  });
+};
 var reactExports = requireReact();
 const React = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
 var PopStateEventType = "popstate";
@@ -136276,140 +136331,6 @@ ReactElementFactory.Instance.registerElement(LocalizableString.editableRenderer,
   return reactExports.createElement(SurveyLocStringEditor, props);
 });
 checkLibraryVersion(`${"2.5.15"}`, "survey-react-ui");
-const quizQuestions = [
-  {
-    id: "Q1",
-    text: "What excites you most when starting a new project?",
-    choices: [
-      { text: "Finding patterns and designing a system", archetype: "The Orchestrator" },
-      { text: "Researching the context", archetype: "The Researcher" },
-      { text: "Trying a lot of different ideas", archetype: "The Experimentalist" },
-      { text: "Getting the team to work toward the same vision", archetype: "The Director" },
-      { text: "Discovery along the way", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q2",
-    text: "How do you approach working with others?",
-    choices: [
-      { text: "Bridging gaps between people or roles", archetype: "The Connector" },
-      { text: "Taking the lead and shaping the process", archetype: "The Director" },
-      { text: "Filling in wherever I’m needed", archetype: "The Improviser" },
-      { text: "Supporting others as they grow", archetype: "The Educator" },
-      { text: "Keeping things small and focused", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q3",
-    text: "What’s your creative strength?",
-    choices: [
-      { text: "Connecting unexpected ideas", archetype: "The Multidisciplinary" },
-      { text: "Making sense of messy information", archetype: "The Orchestrator" },
-      { text: "Asking bold questions", archetype: "The Disruptor" },
-      { text: "Turning plans into action", archetype: "The Advocate" },
-      { text: "Explaining ideas clearly", archetype: "The Educator" }
-    ]
-  },
-  {
-    id: "Q4",
-    text: "What kind of challenge energizes you?",
-    choices: [
-      { text: "Scaling an idea across different contexts", archetype: "The Orchestrator" },
-      { text: "Working without a clear path", archetype: "The Improviser" },
-      { text: "Digging into deeper meaning", archetype: "The Researcher" },
-      { text: "Changing how people think or act", archetype: "The Advocate" },
-      { text: "Reinventing how things are done", archetype: "The Disruptor" }
-    ]
-  },
-  {
-    id: "Q5",
-    text: "When I’m stuck, I…",
-    choices: [
-      { text: "Jump into making something", archetype: "The Experimentalist" },
-      { text: "Look back at my research", archetype: "The Researcher" },
-      { text: "Zoom out and reframe the problem", archetype: "The Generalist" },
-      { text: "Talk it through with someone", archetype: "The Connector" },
-      { text: "Try something totally unexpected", archetype: "The Disruptor" }
-    ]
-  },
-  {
-    id: "Q6",
-    text: "How would I describe my creative path so far?",
-    choices: [
-      { text: "Nonlinear and cross-disciplinary", archetype: "The Multidisciplinary" },
-      { text: "Driven by purpose or values", archetype: "The Idealist" },
-      { text: "Full of pivots and changes", archetype: "The Improviser" },
-      { text: "Focused on shaping ideas with others", archetype: "The Director" },
-      { text: "Still in motion — and open", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q7",
-    text: "In an ideal world, my work would…",
-    choices: [
-      { text: "Teach or inspire someone else", archetype: "The Educator" },
-      { text: "Spark new possibilities", archetype: "The Experimentalist" },
-      { text: "Shift a system or community", archetype: "The Advocate" },
-      { text: "Work across different platforms", archetype: "The Orchestrator" },
-      { text: "Stay fluid and adaptable", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q8",
-    text: "What do I value most when designing?",
-    choices: [
-      { text: "Structure and cohesion", archetype: "The Orchestrator" },
-      { text: "Context and clarity", archetype: "The Researcher" },
-      { text: "Play and experimentation", archetype: "The Experimentalist" },
-      { text: "Connection and collaboration", archetype: "The Connector" },
-      { text: "Speed and flow", archetype: "The Improviser" }
-    ]
-  },
-  {
-    id: "Q9",
-    text: "My dream project would be…",
-    choices: [
-      { text: "Designing a system or workflow", archetype: "The Orchestrator" },
-      { text: "A speculative exhibition or provocation", archetype: "The Experimentalist" },
-      { text: "A mentorship or learning experience", archetype: "The Educator" },
-      { text: "A tool that reshapes how we work", archetype: "The Disruptor" },
-      { text: "Something that spans industries", archetype: "The Multidisciplinary" }
-    ]
-  },
-  {
-    id: "Q10",
-    text: "I relate to design tools as…",
-    choices: [
-      { text: "Extensions of my thinking", archetype: "The Researcher" },
-      { text: "Things to question or remix", archetype: "The Disruptor" },
-      { text: "Flexible and ever-changing", archetype: "The Generalist" },
-      { text: "Something I share or teach", archetype: "The Educator" },
-      { text: "A way to visualize deeper ideas", archetype: "The Idealist" }
-    ]
-  },
-  {
-    id: "Q11",
-    text: "The kind of feedback that fuels me is…",
-    choices: [
-      { text: "Open-ended questions", archetype: "The Researcher" },
-      { text: "Insight that clarifies meaning", archetype: "The Educator" },
-      { text: "Fast reactions that shift the work", archetype: "The Improviser" },
-      { text: "Honest conversations", archetype: "The Director" },
-      { text: "Seeing it work in the real world", archetype: "The Advocate" }
-    ]
-  },
-  {
-    id: "Q12",
-    text: "I wish more people understood that design…",
-    choices: [
-      { text: "Visuals can be strategic", archetype: "The Orchestrator" },
-      { text: "Can change how things work", archetype: "The Advocate" },
-      { text: "Is a way of thinking", archetype: "The Multidisciplinary" },
-      { text: "Thrives in complexity", archetype: "The Researcher" },
-      { text: "Belongs everywhere", archetype: "The Connector" }
-    ]
-  }
-];
 const archetypeData = {
   "The Orchestrator": {
     emoji: "🧠",
@@ -136508,6 +136429,144 @@ const archetypeData = {
     dimensions: { strategy: 4, adaptability: 2, collaboration: 5, experimentation: 2, impact: 5 }
   }
 };
+const quizQuestions = [
+  {
+    id: "Q1",
+    text: "What excites you most when starting a new project?",
+    choices: [
+      { text: "Finding patterns and designing a system", archetype: "The Orchestrator" },
+      { text: "Researching the context", archetype: "The Researcher" },
+      { text: "Trying a lot of different ideas", archetype: "The Experimentalist" },
+      { text: "Getting the team to work toward the same vision", archetype: "The Director" },
+      { text: "Discovery along the way", archetype: "The Generalist" }
+    ]
+  },
+  {
+    id: "Q2",
+    text: "How do you approach working with others?",
+    choices: [
+      { text: "Bridging gaps between people or roles", archetype: "The Connector" },
+      { text: "Taking the lead and shaping the process", archetype: "The Director" },
+      { text: "Filling in wherever I'm needed", archetype: "The Improviser" },
+      { text: "Supporting others as they grow", archetype: "The Educator" },
+      { text: "Building tools that help the team", archetype: "The Multidisciplinary" }
+    ]
+  },
+  {
+    id: "Q3",
+    text: "What's your creative strength?",
+    choices: [
+      { text: "Connecting unexpected ideas", archetype: "The Multidisciplinary" },
+      { text: "Imagining better futures", archetype: "The Idealist" },
+      { text: "Asking bold questions", archetype: "The Disruptor" },
+      { text: "Turning plans into action", archetype: "The Advocate" },
+      { text: "Explaining ideas clearly", archetype: "The Educator" }
+    ]
+  },
+  {
+    id: "Q4",
+    text: "What kind of challenge energizes you?",
+    choices: [
+      { text: "Scaling an idea across different contexts", archetype: "The Orchestrator" },
+      { text: "Working without a clear path", archetype: "The Improviser" },
+      { text: "Bridging disciplines and communities", archetype: "The Connector" },
+      { text: "Changing how people think or act", archetype: "The Advocate" },
+      { text: "Reinventing how things are done", archetype: "The Disruptor" }
+    ]
+  },
+  {
+    id: "Q5",
+    text: "When I'm stuck, I...",
+    choices: [
+      { text: "Jump into making something", archetype: "The Experimentalist" },
+      { text: "Look back at my research", archetype: "The Researcher" },
+      { text: "Zoom out and reframe the problem", archetype: "The Generalist" },
+      { text: "Talk it through with someone", archetype: "The Connector" },
+      { text: "Try something totally unexpected", archetype: "The Disruptor" }
+    ]
+  },
+  {
+    id: "Q6",
+    text: "How would I describe my creative path so far?",
+    choices: [
+      { text: "Nonlinear and cross-disciplinary", archetype: "The Multidisciplinary" },
+      { text: "Driven by purpose or values", archetype: "The Idealist" },
+      { text: "Full of pivots and changes", archetype: "The Improviser" },
+      { text: "Focused on shaping ideas with others", archetype: "The Director" },
+      { text: "Still in motion — and open", archetype: "The Generalist" }
+    ]
+  },
+  {
+    id: "Q7",
+    text: "In an ideal world, my work would...",
+    choices: [
+      { text: "Teach or inspire someone else", archetype: "The Educator" },
+      { text: "Spark new possibilities", archetype: "The Experimentalist" },
+      { text: "Shift a system or community", archetype: "The Advocate" },
+      { text: "Imagine better futures", archetype: "The Idealist" },
+      { text: "Stay fluid and adaptable", archetype: "The Generalist" }
+    ]
+  },
+  {
+    id: "Q8",
+    text: "What do I value most when designing?",
+    choices: [
+      { text: "Systems that scale and adapt", archetype: "The Orchestrator" },
+      { text: "Context and clarity", archetype: "The Researcher" },
+      { text: "Play and experimentation", archetype: "The Experimentalist" },
+      { text: "Connection and collaboration", archetype: "The Connector" },
+      { text: "Speed and flow", archetype: "The Improviser" }
+    ]
+  },
+  {
+    id: "Q9",
+    text: "My dream project would be...",
+    choices: [
+      { text: "Designing a system or workflow", archetype: "The Orchestrator" },
+      { text: "A speculative exhibition or provocation", archetype: "The Experimentalist" },
+      { text: "A mentorship or learning experience", archetype: "The Educator" },
+      { text: "A tool that reshapes how we work", archetype: "The Disruptor" },
+      { text: "Something that spans industries", archetype: "The Multidisciplinary" }
+    ]
+  },
+  {
+    id: "Q10",
+    text: "I relate to design tools as…",
+    choices: [
+      { text: "Extensions of my thinking", archetype: "The Researcher" },
+      { text: "Things to question or remix", archetype: "The Disruptor" },
+      { text: "Flexible and ever-changing", archetype: "The Generalist" },
+      { text: "Something I share or teach", archetype: "The Educator" },
+      { text: "A way to visualize deeper ideas", archetype: "The Idealist" }
+    ]
+  },
+  {
+    id: "Q11",
+    text: "The kind of feedback that fuels me is…",
+    choices: [
+      { text: "Open-ended questions", archetype: "The Researcher" },
+      { text: "Insight that clarifies meaning", archetype: "The Educator" },
+      { text: "Fast reactions that shift the work", archetype: "The Improviser" },
+      { text: "Honest conversations", archetype: "The Director" },
+      { text: "Makes the world better", archetype: "The Idealist" }
+    ]
+  },
+  {
+    id: "Q12",
+    text: "I wish more people understood that design...",
+    choices: [
+      { text: "Visuals can be strategic", archetype: "The Director" },
+      { text: "Can change how things work", archetype: "The Advocate" },
+      { text: "Is a way of thinking", archetype: "The Multidisciplinary" },
+      { text: "Thrives in complexity", archetype: "The Researcher" },
+      { text: "Belongs everywhere", archetype: "The Connector" }
+    ]
+  }
+];
+const quizData_v2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  quizQuestions
+}, Symbol.toStringTag, { value: "Module" }));
 const ARCHETYPE_ORDER = Object.keys(archetypeData);
 const DIMENSION_KEYS = Object.keys(archetypeData[ARCHETYPE_ORDER[0]].dimensions);
 function createEmptyScores() {
@@ -136668,88 +136727,98 @@ function getClosestArchetypes(userDims) {
 function QuizPage() {
   const [survey, setSurvey] = reactExports.useState(null);
   const [isComplete, setIsComplete] = reactExports.useState(false);
+  const [quizQuestions2, setQuizQuestions] = reactExports.useState([]);
   const navigate = useNavigate();
-  const checkCompletion = (surveyData) => {
-    const answeredCount = Object.keys(surveyData || {}).filter(
-      (key) => surveyData[key] !== void 0 && surveyData[key] !== null
-    ).length;
-    const allAnswered = answeredCount === quizQuestions.length;
-    console.log("Completion check:", answeredCount, "of", quizQuestions.length, "=>", allAnswered);
-    return allAnswered;
-  };
   reactExports.useEffect(() => {
-    const panelClassOrder = [
-      "quiz-panel-blue",
-      "quiz-panel-brown",
-      "quiz-panel-green",
-      "quiz-panel-yellow",
-      "quiz-panel-purple"
-    ];
-    const surveyModel = new SurveyModel({
-      questions: quizQuestions.map((q, index) => ({
-        type: "radiogroup",
-        name: q.id,
-        title: q.text,
-        description: `${index + 1} of ${quizQuestions.length}`,
-        choices: q.choices.map((c4) => c4.text),
-        isRequired: true,
-        showNoneItem: false
-      })),
-      showNavigationButtons: false,
-      showProgressBar: false,
-      completedHtml: "<div></div>"
-    });
-    const applyPanelStyle = (questionName) => {
-      const questionIndex = quizQuestions.findIndex((question) => question.id === questionName);
-      if (questionIndex === -1) return;
-      const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
-      const colors = PANEL_COLORS_HEX[panelClass];
-      if (!colors) return;
-      const questionElements = document.querySelectorAll(".sd-question");
-      questionElements.forEach((el) => {
-        const titleEl = el.querySelector(".sd-question__title");
-        if (titleEl && titleEl.textContent.includes(quizQuestions[questionIndex].text.substring(0, 20))) {
-          el.style.backgroundColor = colors.bg;
-          el.style.color = colors.fg;
-          el.style.setProperty("--panel-fg", colors.fg);
-          el.classList.add("quiz-panel", panelClass);
+    const checkCompletion = (surveyData, questions) => {
+      const answeredCount = Object.keys(surveyData || {}).filter(
+        (key) => surveyData[key] !== void 0 && surveyData[key] !== null
+      ).length;
+      const allAnswered = answeredCount === questions.length;
+      console.log("Completion check:", answeredCount, "of", questions.length, "=>", allAnswered);
+      return allAnswered;
+    };
+    const loadQuizData = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const useV1 = params.get("v") === "1";
+      const module = await (useV1 ? __vitePreload(() => import("./quizData_v1-Dn8aNCMe.js"), true ? [] : void 0) : __vitePreload(() => Promise.resolve().then(() => quizData_v2), true ? void 0 : void 0));
+      return module.quizQuestions;
+    };
+    loadQuizData().then((questions) => {
+      setQuizQuestions(questions);
+      const panelClassOrder = [
+        "quiz-panel-blue",
+        "quiz-panel-brown",
+        "quiz-panel-green",
+        "quiz-panel-yellow",
+        "quiz-panel-purple"
+      ];
+      const surveyModel = new SurveyModel({
+        questions: questions.map((q, index) => ({
+          type: "radiogroup",
+          name: q.id,
+          title: q.text,
+          description: `${index + 1} of ${questions.length}`,
+          choices: q.choices.map((c4) => c4.text),
+          isRequired: true,
+          showNoneItem: false
+        })),
+        showNavigationButtons: false,
+        showProgressBar: false,
+        completedHtml: "<div></div>"
+      });
+      const applyPanelStyle = (questionName) => {
+        const questionIndex = questions.findIndex((question) => question.id === questionName);
+        if (questionIndex === -1) return;
+        const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
+        const colors = PANEL_COLORS_HEX[panelClass];
+        if (!colors) return;
+        const questionElements = document.querySelectorAll(".sd-question");
+        questionElements.forEach((el) => {
+          const titleEl = el.querySelector(".sd-question__title");
+          if (titleEl && titleEl.textContent.includes(questions[questionIndex].text.substring(0, 20))) {
+            el.style.backgroundColor = colors.bg;
+            el.style.color = colors.fg;
+            el.style.setProperty("--panel-fg", colors.fg);
+            el.classList.add("quiz-panel", panelClass);
+          }
+        });
+      };
+      surveyModel.onValueChanged.add((sender, options2) => {
+        const allAnswered = checkCompletion(sender.data, questions);
+        setIsComplete(allAnswered);
+        if (options2.question) {
+          setTimeout(() => applyPanelStyle(options2.question.name), 0);
         }
       });
-    };
-    surveyModel.onValueChanged.add((sender, options2) => {
-      const allAnswered = checkCompletion(sender.data);
-      setIsComplete(allAnswered);
-      if (options2.question) {
-        setTimeout(() => applyPanelStyle(options2.question.name), 0);
-      }
-    });
-    surveyModel.onCurrentPageChanged.add((sender, _options) => {
-      const allAnswered = checkCompletion(sender.data);
-      setIsComplete(allAnswered);
-    });
-    surveyModel.onAfterRenderQuestion.add((sender, options2) => {
-      const questionIndex = quizQuestions.findIndex((question) => question.id === options2.question.name);
-      if (questionIndex === -1) return;
-      const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
-      const colors = PANEL_COLORS_HEX[panelClass];
-      if (!colors) return;
-      options2.htmlElement.style.backgroundColor = colors.bg;
-      options2.htmlElement.style.color = colors.fg;
-      options2.htmlElement.style.setProperty("--panel-fg", colors.fg);
-      options2.htmlElement.classList.add("quiz-panel", panelClass);
-      const parentEl = options2.htmlElement.closest(".sd-row__question, .sd-question");
-      if (parentEl && parentEl !== options2.htmlElement) {
-        parentEl.classList.add("quiz-panel", panelClass);
-      }
-    });
-    const initiallyComplete = checkCompletion(surveyModel.data);
-    setIsComplete(initiallyComplete);
-    setSurvey(surveyModel);
-    setTimeout(() => {
-      quizQuestions.forEach((q) => {
-        applyPanelStyle(q.id);
+      surveyModel.onCurrentPageChanged.add((sender, _options) => {
+        const allAnswered = checkCompletion(sender.data, questions);
+        setIsComplete(allAnswered);
       });
-    }, 100);
+      surveyModel.onAfterRenderQuestion.add((sender, options2) => {
+        const questionIndex = questions.findIndex((question) => question.id === options2.question.name);
+        if (questionIndex === -1) return;
+        const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
+        const colors = PANEL_COLORS_HEX[panelClass];
+        if (!colors) return;
+        options2.htmlElement.style.backgroundColor = colors.bg;
+        options2.htmlElement.style.color = colors.fg;
+        options2.htmlElement.style.setProperty("--panel-fg", colors.fg);
+        options2.htmlElement.classList.add("quiz-panel", panelClass);
+        const parentEl = options2.htmlElement.closest(".sd-row__question, .sd-question");
+        if (parentEl && parentEl !== options2.htmlElement) {
+          parentEl.classList.add("quiz-panel", panelClass);
+        }
+      });
+      const initiallyComplete = checkCompletion(surveyModel.data, questions);
+      setIsComplete(initiallyComplete);
+      setSurvey(surveyModel);
+      setTimeout(() => {
+        questions.forEach((q) => {
+          applyPanelStyle(q.id);
+        });
+      }, 100);
+    });
   }, []);
   const handleSubmit = () => {
     if (!survey || !isComplete) return;
@@ -136765,17 +136834,22 @@ function QuizPage() {
     const dimsB64 = btoa(dimsRaw);
     window.gtag?.("event", "quiz_complete", {
       dims_raw: dimsRaw,
-      version: 1,
+      version: 2,
       strategy: dims.strategy,
       adaptability: dims.adaptability,
       collaboration: dims.collaboration,
       experimentation: dims.experimentation,
       impact: dims.impact,
+      primary: scores.primary.archetype,
+      secondary: scores.secondary?.archetype,
       question_answers: JSON.stringify(survey.data)
     });
-    navigate(`/results?dims=${encodeURIComponent(dimsB64)}`);
+    const params = new URLSearchParams({ v: "2", dims: dimsB64 });
+    if (scores.primary?.archetype) params.set("p", scores.primary.archetype);
+    if (scores.secondary?.archetype) params.set("s", scores.secondary.archetype);
+    navigate(`/results?${params.toString()}`);
   };
-  if (!survey) {
+  if (!survey || quizQuestions2.length === 0) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "quiz-container", children: "Loading..." });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "quiz-container", children: [
@@ -182030,14 +182104,14 @@ function initializeContext(params) {
 function process$1(schema, ctx, _params = { path: [], schemaPath: [] }) {
   var _a2;
   const def = schema._zod.def;
-  const seen = ctx.seen.get(schema);
-  if (seen) {
-    seen.count++;
+  const seen2 = ctx.seen.get(schema);
+  if (seen2) {
+    seen2.count++;
     const isCycle = _params.schemaPath.includes(schema);
     if (isCycle) {
-      seen.cycle = _params.path;
+      seen2.cycle = _params.path;
     }
-    return seen.schema;
+    return seen2.schema;
   }
   const result = { schema: {}, count: 1, cycle: void 0, path: _params.path };
   ctx.seen.set(schema, result);
@@ -182120,12 +182194,12 @@ function extractDefs(ctx, schema) {
     if (entry[1].schema.$ref) {
       return;
     }
-    const seen = entry[1];
+    const seen2 = entry[1];
     const { ref: ref2, defId } = makeURI(entry);
-    seen.def = { ...seen.schema };
+    seen2.def = { ...seen2.schema };
     if (defId)
-      seen.defId = defId;
-    const schema2 = seen.schema;
+      seen2.defId = defId;
+    const schema2 = seen2.schema;
     for (const key in schema2) {
       delete schema2[key];
     }
@@ -182133,16 +182207,16 @@ function extractDefs(ctx, schema) {
   };
   if (ctx.cycles === "throw") {
     for (const entry of ctx.seen.entries()) {
-      const seen = entry[1];
-      if (seen.cycle) {
-        throw new Error(`Cycle detected: #/${seen.cycle?.join("/")}/<root>
+      const seen2 = entry[1];
+      if (seen2.cycle) {
+        throw new Error(`Cycle detected: #/${seen2.cycle?.join("/")}/<root>
 
 Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.`);
       }
     }
   }
   for (const entry of ctx.seen.entries()) {
-    const seen = entry[1];
+    const seen2 = entry[1];
     if (schema === entry[0]) {
       extractToDef(entry);
       continue;
@@ -182159,11 +182233,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       extractToDef(entry);
       continue;
     }
-    if (seen.cycle) {
+    if (seen2.cycle) {
       extractToDef(entry);
       continue;
     }
-    if (seen.count > 1) {
+    if (seen2.count > 1) {
       if (ctx.reused === "ref") {
         extractToDef(entry);
         continue;
@@ -182176,13 +182250,13 @@ function finalize(ctx, schema) {
   if (!root2)
     throw new Error("Unprocessed schema. This is a bug in Zod.");
   const flattenRef = (zodSchema) => {
-    const seen = ctx.seen.get(zodSchema);
-    if (seen.ref === null)
+    const seen2 = ctx.seen.get(zodSchema);
+    if (seen2.ref === null)
       return;
-    const schema2 = seen.def ?? seen.schema;
+    const schema2 = seen2.def ?? seen2.schema;
     const _cached = { ...schema2 };
-    const ref2 = seen.ref;
-    seen.ref = null;
+    const ref2 = seen2.ref;
+    seen2.ref = null;
     if (ref2) {
       flattenRef(ref2);
       const refSeen = ctx.seen.get(ref2);
@@ -182234,7 +182308,7 @@ function finalize(ctx, schema) {
     ctx.override({
       zodSchema,
       jsonSchema: schema2,
-      path: seen.path ?? []
+      path: seen2.path ?? []
     });
   };
   for (const entry of [...ctx.seen.entries()].reverse()) {
@@ -182258,9 +182332,9 @@ function finalize(ctx, schema) {
   Object.assign(result, root2.def ?? root2.schema);
   const defs = ctx.external?.defs ?? {};
   for (const entry of ctx.seen.entries()) {
-    const seen = entry[1];
-    if (seen.def && seen.defId) {
-      defs[seen.defId] = seen.def;
+    const seen2 = entry[1];
+    if (seen2.def && seen2.defId) {
+      defs[seen2.defId] = seen2.def;
     }
   }
   if (ctx.external) ;
@@ -182634,9 +182708,9 @@ const tupleProcessor = (schema, ctx, _json, params) => {
 const nullableProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   const inner = process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
+  const seen2 = ctx.seen.get(schema);
   if (ctx.target === "openapi-3.0") {
-    seen.ref = def.innerType;
+    seen2.ref = def.innerType;
     json.nullable = true;
   } else {
     json.anyOf = [inner, { type: "null" }];
@@ -182645,29 +182719,29 @@ const nullableProcessor = (schema, ctx, json, params) => {
 const nonoptionalProcessor = (schema, ctx, _json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
 };
 const defaultProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   json.default = JSON.parse(JSON.stringify(def.defaultValue));
 };
 const prefaultProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   if (ctx.io === "input")
     json._prefault = JSON.parse(JSON.stringify(def.defaultValue));
 };
 const catchProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   let catchValue;
   try {
     catchValue = def.catchValue(void 0);
@@ -182680,21 +182754,21 @@ const pipeProcessor = (schema, ctx, _json, params) => {
   const def = schema._zod.def;
   const innerType = ctx.io === "input" ? def.in._zod.def.type === "transform" ? def.out : def.in : def.out;
   process$1(innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = innerType;
 };
 const readonlyProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   json.readOnly = true;
 };
 const optionalProcessor = (schema, ctx, _json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
 };
 const ZodISODateTime = /* @__PURE__ */ $constructor("ZodISODateTime", (inst, def) => {
   $ZodISODateTime.init(inst, def);
@@ -206261,20 +206335,20 @@ class Font {
       newVertexIndex.push(vertexIndices[id]);
     }
     const newFaces = geom.faces.map((f) => f.map((i) => newVertexIndex[i]));
-    const seen = {};
+    const seen2 = {};
     for (const face of newFaces) {
       for (let off = 0; off < face.length; off++) {
         const a2 = face[off];
         const b2 = face[(off + 1) % face.length];
         const id = `${Math.min(a2, b2)}-${Math.max(a2, b2)}`;
-        if (!seen[id]) seen[id] = [];
-        seen[id].push([a2, b2]);
+        if (!seen2[id]) seen2[id] = [];
+        seen2[id].push([a2, b2]);
       }
     }
     const validEdges = [];
-    for (const key in seen) {
-      if (seen[key].length === 1) {
-        validEdges.push(seen[key][0]);
+    for (const key in seen2) {
+      if (seen2[key].length === 1) {
+        validEdges.push(seen2[key][0]);
       }
     }
     const extruded = this._pInst.buildGeometry(() => {
@@ -216246,13 +216320,30 @@ function ResultsPage() {
   const navigate = useNavigate();
   const [copyText, setCopyText] = reactExports.useState("Copy Link");
   const params = new URLSearchParams(location2.search);
+  const version2 = params.get("v");
   const dimsB64 = params.get("dims");
   const dims = dimsB64 ? decodeDims(dimsB64) : null;
   if (!dims) {
     navigate("/quiz", { replace: true });
     return null;
   }
-  const { primary, secondary } = getClosestArchetypes(dims);
+  if (version2 !== null && version2 !== "2") {
+    navigate("/quiz", { replace: true });
+    return null;
+  }
+  let primary, secondary;
+  if (version2 === "2") {
+    const votePrimary = params.get("p");
+    const voteSecondary = params.get("s");
+    if (votePrimary && archetypeData[votePrimary]) {
+      primary = votePrimary;
+      secondary = voteSecondary && archetypeData[voteSecondary] ? voteSecondary : null;
+    } else {
+      ({ primary, secondary } = getClosestArchetypes(dims));
+    }
+  } else {
+    ({ primary, secondary } = getClosestArchetypes(dims));
+  }
   const primaryData = archetypeData[primary] || {};
   const secondaryData = archetypeData[secondary] || {};
   const radarValues = dimsToArray(dims);
