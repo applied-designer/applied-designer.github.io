@@ -99,56 +99,65 @@ nav a:hover, footer *:hover {
   transition: all 0.3s ease;
 }
 
-#inside {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  transition: all 0.3s ease;
+.inside {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.canvas-wrap {
+  position: absolute;
+  inset: 0;
 }
 
 .mobile-only {
   display: none;
 }
 
-#designer {
-  margin-left: 4rem;
-  display: none;
-  position: relative;
+.designer {
+  position: absolute;
+  left: 2rem;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  height: fit-content;
+  width: 400px;
   z-index: 999;
-  transition: all 0.3s ease;
+  opacity: 0;
+  transition: opacity 0.25s ease;
   padding: 1.5rem;
   border-radius: 0.5rem;
+  overflow: hidden;
 }
 
-/* The bouncing causes some stretching */
-canvas {
-  transition: translatex 0.3s ease;
+.designer--visible {
+  opacity: 1;
 }
 
-#name {
+.name {
   font-weight: 700;
   margin: 0;
   padding-bottom: 0;
 }
 
-#headshot {
+.headshot {
   border-radius: 0.5rem;
 }
 
-#archetype {
+.archetype {
   margin-top: 0.25rem;
 }
 
 
-#bio {
+.bio {
   max-width: 33vw;
   text-wrap-style: balance;
 }
 
 .designer-info {
   text-align: left;
-  margin-left: 1rem;
+  margin-top: 0.25rem;
 }
 
 /* TODO: probably unused */
@@ -809,36 +818,23 @@ canvas {
   }
 
 
-  #inside {
-    flex-direction: column;
-    margin-top: 2rem;
-  }
-
-  #headshot {
+  .headshot {
     max-width: 128px;
     max-height: 128px;
   }
 
-  #designer {
-    top: 0;
+  .designer {
     flex-direction: column;
     gap: 0.5rem;
-    margin: 0;
+    width: 100%;
+    border-radius: 0;
   }
 
   .designer-info {
     margin: 0;
   }
 
-  #designer > div {
-    margin-top: 0;
-  }
-
-  #designer > div > h2 {
-    margin-top: 0;
-  }
-
-  #bio {
+  .bio {
     max-width: 75vw;
   }
 

@@ -66409,50 +66409,69 @@ const PANEL_COLORS_HEX = {
   "quiz-panel-yellow": { bg: "#FAA41A", fg: "#000000" },
   "quiz-panel-purple": { bg: "#893A69", fg: "#ffffff" }
 };
-const archetypes = [
-  "The Multidisciplinary",
-  "The Researcher",
-  "The Generalist",
-  "The Director",
-  "The Orchestrator",
-  "The Advocate",
-  "The Experimentalist",
-  "The Disruptor",
-  "The Connector",
-  "The Idealist",
-  "The Improviser",
-  "The Educator"
-];
 const designers = {
-  "Irma Boom": DIM_COLORS_HEX[0],
-  "Ruben Pater": DIM_COLORS_HEX[1],
-  "Zak Kyes": DIM_COLORS_HEX[2],
-  "Tom Hingston": DIM_COLORS_HEX[3],
-  "Min Lew": DIM_COLORS_HEX[4],
-  "Dori Tunstall": DIM_COLORS_HEX[0],
-  "Martine Syms": DIM_COLORS_HEX[1],
-  "Samuel Ross": DIM_COLORS_HEX[2],
-  "Juliette Cezzar": DIM_COLORS_HEX[1],
-  "Eike Konig": DIM_COLORS_HEX[3],
-  // TODO: figure out the o-umlaut
-  "Julian Glander": DIM_COLORS_HEX[0],
-  "Silas Munro": DIM_COLORS_HEX[4]
+  "Irma Boom": {
+    color: DIM_COLORS_HEX[0],
+    archetype: "The Multidisciplinary",
+    bio: "Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture."
+  },
+  "Ruben Pater": {
+    color: DIM_COLORS_HEX[1],
+    archetype: "The Researcher",
+    bio: "A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism."
+  },
+  "Zak Kyes": {
+    color: DIM_COLORS_HEX[2],
+    archetype: "The Generalist",
+    bio: "Balances roles as a graphic designer, curator, and publisher, showing how designers can move fluidly between disciplines while maintaining a strong conceptual voice."
+  },
+  "Tom Hingston": {
+    color: DIM_COLORS_HEX[3],
+    archetype: "The Director",
+    bio: "A creative director known for blending typography, motion, and music in visual storytelling, leading major branding and music industry projects."
+  },
+  "Min Lew": {
+    color: DIM_COLORS_HEX[4],
+    archetype: "The Orchestrator",
+    bio: "A Base Design partner who leads multidisciplinary teams across strategy, branding, and communication design, demonstrating a structured and intentional approach to building scalable design systems."
+  },
+  "Dori Tunstall": {
+    color: DIM_COLORS_HEX[0],
+    archetype: "The Advocate",
+    bio: "A design anthropologist and former OCAD University dean, Tunstall advocates for decolonizing design and fostering inclusivity in creative industries."
+  },
+  "Martine Syms": {
+    color: DIM_COLORS_HEX[1],
+    archetype: "The Experimentalist",
+    bio: "A designer and artist who explores the intersection of design, film, and technology, constantly pushing the boundaries of narrative and media."
+  },
+  "Samuel Ross": {
+    color: DIM_COLORS_HEX[2],
+    archetype: "The Disruptor",
+    bio: "Founder of A-COLD-WALL*, Ross blends industrial design, fashion, and graphic design to challenge conventions in both high fashion and streetwear."
+  },
+  "Juliette Cezzar": {
+    color: DIM_COLORS_HEX[1],
+    archetype: "The Connector",
+    bio: "An educator, writer, and designer who bridges academia and professional practice, making design knowledge more accessible and actionable."
+  },
+  "Eike Konig": {
+    color: DIM_COLORS_HEX[3],
+    archetype: "The Idealist",
+    bio: "Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence."
+  },
+  "Julian Glander": {
+    color: DIM_COLORS_HEX[0],
+    archetype: "The Improviser",
+    bio: "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media."
+  },
+  "Silas Munro": {
+    color: DIM_COLORS_HEX[4],
+    archetype: "The Educator",
+    bio: "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
+  }
 };
 const designerNames = Object.keys(designers);
-const bios = [
-  "Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.",
-  "A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism.",
-  "Balances roles as a graphic designer, curator, and publisher, showing how designers can move fluidly between disciplines while maintaining a strong conceptual voice.",
-  "A creative director known for blending typography, motion, and music in visual storytelling, leading major branding and music industry projects.",
-  "A Base Design partner who leads multidisciplinary teams across strategy, branding, and communication design, demonstrating a structured and intentional approach to building scalable design systems.",
-  "A design anthropologist and former OCAD University dean, Tunstall advocates for decolonizing design and fostering inclusivity in creative industries.",
-  "A designer and artist who explores the intersection of design, film, and technology, constantly pushing the boundaries of narrative and media.",
-  "Founder of A-COLD-WALL*, Ross blends industrial design, fashion, and graphic design to challenge conventions in both high fashion and streetwear.",
-  "An educator, writer, and designer who bridges academia and professional practice, making design knowledge more accessible and actionable.",
-  "Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence.",
-  "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.",
-  "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
-];
 function Dodecahedron({ faceState, onFaceClick }) {
   const meshRef = reactExports.useRef();
   const edgesRef = reactExports.useRef();
@@ -66510,10 +66529,30 @@ function Dodecahedron({ faceState, onFaceClick }) {
     /* @__PURE__ */ jsxRuntimeExports.jsx("lineSegments", { ref: edgesRef, geometry: edgesGeometry, material: wireframeMaterial })
   ] });
 }
+function DesignerPanel({ designer }) {
+  const lastDesigner = reactExports.useRef(null);
+  if (designer) lastDesigner.current = designer;
+  const d2 = designer ?? lastDesigner.current;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `designer${designer ? " designer--visible" : ""}`, style: { backgroundColor: d2?.bg, color: d2?.fg }, children: d2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "headshot", height: "192", width: "192", src: d2.headshotSrc }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "designer-info", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "name", children: d2.name }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "archetype", children: d2.archetype }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "bio", children: d2.bio })
+    ] })
+  ] }) });
+}
 function MainApp() {
   const defaultState = new Array(12).fill("white");
   const [faceState, setFaceState] = React.useState(defaultState);
+  reactExports.useEffect(() => {
+    designerNames.forEach((name) => {
+      const img = new Image();
+      img.src = `/headshots/${name}.png`;
+    });
+  }, []);
   const [selectedFace, setSelectedFace] = React.useState(null);
+  const [selectedDesigner, setSelectedDesigner] = React.useState(null);
   const handleFaceClick = (faceIndex) => {
     if (selectedFace === faceIndex) {
       setFaceState((prev) => {
@@ -66522,42 +66561,36 @@ function MainApp() {
         return newState;
       });
       setSelectedFace(null);
-      document.getElementById("designer").style.display = "none";
+      setSelectedDesigner(null);
     } else {
       setFaceState(() => {
         const newState = defaultState;
-        newState[faceIndex] = designers[designerNames[faceIndex]];
+        newState[faceIndex] = designers[designerNames[faceIndex]].color;
         return newState;
       });
       setSelectedFace(faceIndex);
-      document.getElementById("designer").style.display = "flex";
-      const bg = designers[designerNames[faceIndex]];
-      document.getElementById("designer").style.backgroundColor = bg;
-      document.getElementById("designer").style.color = bgToFg(bg);
       let name = designerNames[faceIndex];
       if (name === "Eike Konig") {
         name = "Eike König";
       }
-      document.getElementById("name").innerText = name;
-      document.getElementById("archetype").innerText = archetypes[faceIndex];
-      document.getElementById("bio").innerText = bios[faceIndex];
-      document.getElementById("headshot").setAttribute("src", `/headshots/${designerNames[faceIndex]}.png`);
+      const d2 = designers[designerNames[faceIndex]];
+      setSelectedDesigner({
+        name,
+        archetype: d2.archetype,
+        bio: d2.bio,
+        bg: d2.color,
+        fg: bgToFg(d2.color),
+        headshotSrc: `/headshots/${designerNames[faceIndex]}.png`
+      });
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "inside", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "designer", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { id: "headshot", height: "192", width: "192" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "designer-info", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { id: "name" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { id: "archetype" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { id: "bio" })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, style: { width: "100vw", height: "100vh", "marginTop": window.outerWidth < 860 ? "-16rem" : "inherit" }, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inside", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(DesignerPanel, { designer: selectedDesigner }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "canvas-wrap", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("color", { attach: "background", args: ["#969696"] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { faceState, onFaceClick: handleFaceClick }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(OrbitControls2, {})
-    ] })
+    ] }) })
   ] });
 }
 class DomWindowHelper {

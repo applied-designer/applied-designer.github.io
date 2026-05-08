@@ -154,15 +154,22 @@ function Dodecahedron({ faceState, onFaceClick }) {
 }
 
 function DesignerPanel({ designer }) {
-    if (!designer) return null;
+    const lastDesigner = useRef(null);
+    if (designer) lastDesigner.current = designer;
+    const d = designer ?? lastDesigner.current;
+
     return (
-        <div className="designer" style={{ backgroundColor: designer.bg, color: designer.fg }}>
-            <img className="headshot" height="192" width="192" src={designer.headshotSrc} />
-            <div className="designer-info">
-                <h2 className="name">{designer.name}</h2>
-                <p className="archetype">{designer.archetype}</p>
-                <p className="bio">{designer.bio}</p>
-            </div>
+        <div className={`designer${designer ? ' designer--visible' : ''}`} style={{ backgroundColor: d?.bg, color: d?.fg }}>
+            {d && (
+                <>
+                    <img className="headshot" height="192" width="192" src={d.headshotSrc} />
+                    <div className="designer-info">
+                        <h2 className="name">{d.name}</h2>
+                        <p className="archetype">{d.archetype}</p>
+                        <p className="bio">{d.bio}</p>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -216,18 +223,15 @@ export default function MainApp() {
     return (
         <div className="inside">
             <DesignerPanel designer={selectedDesigner} />
-            
-            {/*<Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh' }}>*/}
-            <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh', "marginTop": (window.outerWidth < 860 ? "-16rem" : "inherit") }}>
-                {/* Set a gray background */}
-                <color attach="background" args={['#969696']} />
-                {/* <pointLight position={[10, 10, 10]} /> */}
-                {/*TODO: add subtle random rotation, especially once this works into mobile menu icon*/}
-                {/*TODO: can also play with color variations once ready, e.g. process book intro/outros */}
-                <Dodecahedron faceState={faceState} onFaceClick={handleFaceClick} />
-                {/*<OrbitControls enableZoom={false} />*/}
-                <OrbitControls />
-            </Canvas>
+            <div className="canvas-wrap">
+                <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }}>
+                    <color attach="background" args={['#969696']} />
+                    {/*TODO: add subtle random rotation, especially once this works into mobile menu icon*/}
+                    {/*TODO: can also play with color variations once ready, e.g. process book intro/outros */}
+                    <Dodecahedron faceState={faceState} onFaceClick={handleFaceClick} />
+                    <OrbitControls />
+                </Canvas>
+            </div>
         </div>
     );
 }
