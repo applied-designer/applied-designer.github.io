@@ -66511,7 +66511,7 @@ function Dodecahedron({ faceState, onFaceClick }) {
     return new MeshBasicMaterial({
       color: color2,
       side: DoubleSide,
-      opacity: isClicked ? 0.5 : 0,
+      opacity: isClicked ? 1 : 0,
       transparent: !isClicked
     });
   });
@@ -66586,7 +66586,7 @@ function MainApp() {
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inside", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(DesignerPanel, { designer: selectedDesigner }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "canvas-wrap", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "canvas-wrap", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], flat: true, camera: { position: [0, 0, 5], fov: 75 }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("color", { attach: "background", args: ["#969696"] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { faceState, onFaceClick: handleFaceClick }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(OrbitControls2, {})

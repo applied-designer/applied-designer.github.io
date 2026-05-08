@@ -134,7 +134,7 @@ function Dodecahedron({ faceState, onFaceClick }) {
         return new THREE.MeshBasicMaterial({
             color: color,
             side: THREE.DoubleSide,
-            opacity: isClicked ? 0.5 : 0.0,
+            opacity: isClicked ? 1.0 : 0.0,
             transparent: !isClicked
         });
     });
@@ -224,7 +224,7 @@ export default function MainApp() {
         <div className="inside">
             <DesignerPanel designer={selectedDesigner} />
             <div className="canvas-wrap">
-                <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }}>
+                <Canvas dpr={[1, 2]} flat camera={{ position: [0, 0, 5], fov: 75 }}>
                     <color attach="background" args={['#969696']} />
                     {/*TODO: add subtle random rotation, especially once this works into mobile menu icon*/}
                     {/*TODO: can also play with color variations once ready, e.g. process book intro/outros */}
