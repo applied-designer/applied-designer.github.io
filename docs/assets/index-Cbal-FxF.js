@@ -67452,11 +67452,10 @@ function Dodecahedron({ faceState, onFaceClick }) {
   lineGeo.setPositions(edgeGeo.attributes.position.array);
   const lineMat = new LineMaterial({
     color: "white",
-    linewidth: 3,
+    linewidth: 2,
     resolution: [size.width, size.height],
     worldUnits: false
   });
-  lineMat.resolution.set(size.width, size.height);
   const lineSegs = new LineSegments2(lineGeo, lineMat);
   const yRotFactor = 0.5;
   const xRotFactor = yRotFactor / 2;
@@ -67506,7 +67505,7 @@ function DesignerPanel({ designer }) {
   const lastDesigner = reactExports.useRef(null);
   if (designer) lastDesigner.current = designer;
   const d2 = designer ?? lastDesigner.current;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `designer${designer ? " designer--visible" : ""}`, style: { backgroundColor: d2?.bg, color: d2?.fg }, children: d2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `designer${designer ? " designer-visible" : ""}`, style: { backgroundColor: d2?.bg, color: d2?.fg }, children: d2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "headshot", height: "192", width: "192", src: d2.headshotSrc }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "designer-info", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "name", children: d2.name }),
