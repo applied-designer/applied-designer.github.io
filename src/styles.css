@@ -99,7 +99,7 @@ nav a:hover, footer *:hover {
   transition: all 0.3s ease;
 }
 
-#inside {
+.inside {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -111,9 +111,8 @@ nav a:hover, footer *:hover {
   display: none;
 }
 
-#designer {
+.designer {
   margin-left: 4rem;
-  display: none;
   position: relative;
   z-index: 999;
   transition: all 0.3s ease;
@@ -126,29 +125,29 @@ canvas {
   transition: translatex 0.3s ease;
 }
 
-#name {
+.name {
   font-weight: 700;
   margin: 0;
   padding-bottom: 0;
 }
 
-#headshot {
+.headshot {
   border-radius: 0.5rem;
 }
 
-#archetype {
+.archetype {
   margin-top: 0.25rem;
 }
 
 
-#bio {
+.bio {
   max-width: 33vw;
   text-wrap-style: balance;
 }
 
 .designer-info {
   text-align: left;
-  margin-left: 1rem;
+  margin-top: 0.25rem;
 }
 
 /* TODO: probably unused */
@@ -809,17 +808,17 @@ canvas {
   }
 
 
-  #inside {
+  .inside {
     flex-direction: column;
     margin-top: 2rem;
   }
 
-  #headshot {
+  .headshot {
     max-width: 128px;
     max-height: 128px;
   }
 
-  #designer {
+  .designer {
     top: 0;
     flex-direction: column;
     gap: 0.5rem;
@@ -830,15 +829,15 @@ canvas {
     margin: 0;
   }
 
-  #designer > div {
+  .designer > div {
     margin-top: 0;
   }
 
-  #designer > div > h2 {
+  .designer > div > h2 {
     margin-top: 0;
   }
 
-  #bio {
+  .bio {
     max-width: 75vw;
   }
 

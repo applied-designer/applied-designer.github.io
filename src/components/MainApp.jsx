@@ -1,59 +1,73 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { bgToFg, DIM_COLORS_HEX } from '../data/colors';
 
-// TODO: need to preload all images: https://stackoverflow.com/questions/42615556/how-to-preload-images-in-react-js
-
-// TODO: clean up lots of duplicated data here
-
-const archetypes = [
-    'The Multidisciplinary',
-    'The Researcher',
-    'The Generalist',
-    'The Director',
-    'The Orchestrator',
-    'The Advocate',
-    'The Experimentalist',
-    'The Disruptor',
-    'The Connector',
-    'The Idealist',
-    'The Improviser',
-    'The Educator'
-];
-
 const designers = {
-    'Irma Boom': DIM_COLORS_HEX[0],
-    'Ruben Pater': DIM_COLORS_HEX[1],
-    'Zak Kyes': DIM_COLORS_HEX[2],
-    'Tom Hingston': DIM_COLORS_HEX[3],
-    'Min Lew': DIM_COLORS_HEX[4],
-    'Dori Tunstall': DIM_COLORS_HEX[0],
-    'Martine Syms': DIM_COLORS_HEX[1],
-    'Samuel Ross': DIM_COLORS_HEX[2],
-    'Juliette Cezzar': DIM_COLORS_HEX[1],
-    'Eike Konig': DIM_COLORS_HEX[3], // TODO: figure out the o-umlaut
-    'Julian Glander': DIM_COLORS_HEX[0],
-    'Silas Munro': DIM_COLORS_HEX[4],
+    'Irma Boom': {
+        color: DIM_COLORS_HEX[0],
+        archetype: 'The Multidisciplinary',
+        bio: 'Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.',
+    },
+    'Ruben Pater': {
+        color: DIM_COLORS_HEX[1],
+        archetype: 'The Researcher',
+        bio: 'A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism.',
+    },
+    'Zak Kyes': {
+        color: DIM_COLORS_HEX[2],
+        archetype: 'The Generalist',
+        bio: 'Balances roles as a graphic designer, curator, and publisher, showing how designers can move fluidly between disciplines while maintaining a strong conceptual voice.',
+    },
+    'Tom Hingston': {
+        color: DIM_COLORS_HEX[3],
+        archetype: 'The Director',
+        bio: 'A creative director known for blending typography, motion, and music in visual storytelling, leading major branding and music industry projects.',
+    },
+    'Min Lew': {
+        color: DIM_COLORS_HEX[4],
+        archetype: 'The Orchestrator',
+        bio: 'A Base Design partner who leads multidisciplinary teams across strategy, branding, and communication design, demonstrating a structured and intentional approach to building scalable design systems.',
+    },
+    'Dori Tunstall': {
+        color: DIM_COLORS_HEX[0],
+        archetype: 'The Advocate',
+        bio: 'A design anthropologist and former OCAD University dean, Tunstall advocates for decolonizing design and fostering inclusivity in creative industries.',
+    },
+    'Martine Syms': {
+        color: DIM_COLORS_HEX[1],
+        archetype: 'The Experimentalist',
+        bio: 'A designer and artist who explores the intersection of design, film, and technology, constantly pushing the boundaries of narrative and media.',
+    },
+    'Samuel Ross': {
+        color: DIM_COLORS_HEX[2],
+        archetype: 'The Disruptor',
+        bio: 'Founder of A-COLD-WALL*, Ross blends industrial design, fashion, and graphic design to challenge conventions in both high fashion and streetwear.',
+    },
+    'Juliette Cezzar': {
+        color: DIM_COLORS_HEX[1],
+        archetype: 'The Connector',
+        bio: 'An educator, writer, and designer who bridges academia and professional practice, making design knowledge more accessible and actionable.',
+    },
+    'Eike Konig': {
+        color: DIM_COLORS_HEX[3],
+        archetype: 'The Idealist',
+        bio: 'Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence.',
+    },
+    'Julian Glander': {
+        color: DIM_COLORS_HEX[0],
+        archetype: 'The Improviser',
+        bio: 'A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.',
+    },
+    'Silas Munro': {
+        color: DIM_COLORS_HEX[4],
+        archetype: 'The Educator',
+        bio: 'A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream.',
+    },
 };
 
 const designerNames = Object.keys(designers);
-
-const bios = [
-    'Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.',
-    'A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism.',
-    'Balances roles as a graphic designer, curator, and publisher, showing how designers can move fluidly between disciplines while maintaining a strong conceptual voice.',
-    'A creative director known for blending typography, motion, and music in visual storytelling, leading major branding and music industry projects.',
-    'A Base Design partner who leads multidisciplinary teams across strategy, branding, and communication design, demonstrating a structured and intentional approach to building scalable design systems.',
-    'A design anthropologist and former OCAD University dean, Tunstall advocates for decolonizing design and fostering inclusivity in creative industries.',
-    'A designer and artist who explores the intersection of design, film, and technology, constantly pushing the boundaries of narrative and media.',
-    'Founder of A-COLD-WALL*, Ross blends industrial design, fashion, and graphic design to challenge conventions in both high fashion and streetwear.',
-    'An educator, writer, and designer who bridges academia and professional practice, making design knowledge more accessible and actionable.',
-    'Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence.',
-    'A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.',
-    'A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream.'
-];
 
 // Hard-coded adjacency list for a dodecahedron's 12 faces.
 // Each face (index 0 to 11) is adjacent to the following 5 faces.
@@ -139,10 +153,32 @@ function Dodecahedron({ faceState, onFaceClick }) {
     );
 }
 
+function DesignerPanel({ designer }) {
+    if (!designer) return null;
+    return (
+        <div className="designer" style={{ backgroundColor: designer.bg, color: designer.fg }}>
+            <img className="headshot" height="192" width="192" src={designer.headshotSrc} />
+            <div className="designer-info">
+                <h2 className="name">{designer.name}</h2>
+                <p className="archetype">{designer.archetype}</p>
+                <p className="bio">{designer.bio}</p>
+            </div>
+        </div>
+    );
+}
+
 export default function MainApp() {
     const defaultState = new Array(12).fill('white');
     const [faceState, setFaceState] = React.useState(defaultState);
+
+    useEffect(() => {
+        designerNames.forEach(name => {
+            const img = new Image();
+            img.src = `/headshots/${name}.png`;
+        });
+    }, []);
     const [selectedFace, setSelectedFace] = React.useState(null);
+    const [selectedDesigner, setSelectedDesigner] = React.useState(null);
     
     const handleFaceClick = (faceIndex) => {
         if (selectedFace === faceIndex) {
@@ -152,42 +188,34 @@ export default function MainApp() {
                 return newState;
             });
             setSelectedFace(null);
-            document.getElementById('designer').style.display = 'none';
+            setSelectedDesigner(null);
         } else {
             setFaceState(() => {
                 const newState = defaultState;
-                newState[faceIndex] = designers[designerNames[faceIndex]];
+                newState[faceIndex] = designers[designerNames[faceIndex]].color;
                 return newState;
             });
             setSelectedFace(faceIndex);
 
-            // TODO: make this a react component so its less hacky
-            document.getElementById('designer').style.display = 'flex';
-            const bg = designers[designerNames[faceIndex]];
-            document.getElementById('designer').style.backgroundColor = bg;
-            document.getElementById('designer').style.color = bgToFg(bg);
             let name = designerNames[faceIndex];
             if (name === 'Eike Konig') {
                 name = 'Eike König';
             }
-            document.getElementById('name').innerText = name;
-            document.getElementById('archetype').innerText = archetypes[faceIndex];
-            document.getElementById('bio').innerText = bios[faceIndex];
-            document.getElementById('headshot').setAttribute('src', `/headshots/${designerNames[faceIndex]}.png`);
+            const d = designers[designerNames[faceIndex]];
+            setSelectedDesigner({
+                name,
+                archetype: d.archetype,
+                bio: d.bio,
+                bg: d.color,
+                fg: bgToFg(d.color),
+                headshotSrc: `/headshots/${designerNames[faceIndex]}.png`,
+            });
         }
     };
 
-    // TODO: swap IDs with classes, yeah yeah yeah its a mess
     return (
-        <div id="inside">
-            <div id="designer">
-                <img id="headshot" height="192" width="192" />
-                <div className="designer-info">
-                    <h2 id="name"></h2>
-                    <p id="archetype"></p>
-                    <p id="bio"></p>
-                </div>
-            </div>
+        <div className="inside">
+            <DesignerPanel designer={selectedDesigner} />
             
             {/*<Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh' }}>*/}
             <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 75 }} style={{ width: '100vw', height: '100vh', "marginTop": (window.outerWidth < 860 ? "-16rem" : "inherit") }}>
