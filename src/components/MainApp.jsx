@@ -1,7 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { bgToFg, DIM_COLORS_HEX } from '../data/colors';
 
 const designers = {
@@ -89,6 +92,7 @@ const _adjacency = [
 function Dodecahedron({ faceState, onFaceClick }) {
     const meshRef = useRef();
     const edgesRef = useRef();
+    const { size } = useThree();
     
     const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4;
     const geometry = new THREE.DodecahedronGeometry(dodecScale, 0);
@@ -100,8 +104,17 @@ function Dodecahedron({ faceState, onFaceClick }) {
         }
     }
     
-    const edgesGeometry = new THREE.EdgesGeometry(geometry);
-    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 50 });
+    const edgeGeo = new THREE.EdgesGeometry(geometry);
+    const lineGeo = new LineSegmentsGeometry();
+    lineGeo.setPositions(edgeGeo.attributes.position.array);
+    const lineMat = new LineMaterial({
+        color: 'white',
+        linewidth: 2,
+        resolution: [size.width, size.height],
+        worldUnits: false,
+    });
+    
+    const lineSegs = new LineSegments2(lineGeo, lineMat);
     
     // NOTE: there are half the speed from Processing
     const yRotFactor = 0.5;
@@ -148,7 +161,7 @@ function Dodecahedron({ faceState, onFaceClick }) {
                 onClick={handleClick}
                 raycast={THREE.Mesh.prototype.raycast}
             />
-            <lineSegments ref={edgesRef} geometry={edgesGeometry} material={wireframeMaterial} />
+            <primitive object={lineSegs} ref={edgesRef} />
         </group>
     );
 }
