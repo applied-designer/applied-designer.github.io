@@ -172,7 +172,7 @@ function DesignerPanel({ designer }) {
     const d = designer ?? lastDesigner.current;
 
     return (
-        <div className={`designer${designer ? ' designer--visible' : ''}`} style={{ backgroundColor: d?.bg, color: d?.fg }}>
+        <div className={`designer${designer ? ' designer-visible' : ''}`} style={{ backgroundColor: d?.bg, color: d?.fg }}>
             {d && (
                 <>
                     <img className="headshot" height="192" width="192" src={d.headshotSrc} />
