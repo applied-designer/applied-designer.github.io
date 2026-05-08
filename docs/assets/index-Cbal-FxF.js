@@ -11249,7 +11249,7 @@ function requireReactDomClient_production() {
     r: requestFormReset,
     D: prefetchDNS,
     C: preconnect,
-    L: preload,
+    L: preload2,
     m: preloadModule,
     X: preinitScript,
     S: preinitStyle,
@@ -11281,7 +11281,7 @@ function requireReactDomClient_production() {
     previousDispatcher.C(href, crossOrigin);
     preconnectAs("preconnect", href, crossOrigin);
   }
-  function preload(href, as, options3) {
+  function preload2(href, as, options3) {
     previousDispatcher.L(href, as, options3);
     var ownerDocument = globalDocument;
     if (ownerDocument && href && as) {
@@ -12482,6 +12482,61 @@ function requireClient() {
 }
 var clientExports = requireClient();
 const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
+const scriptRel = "modulepreload";
+const assetsURL = function(dep) {
+  return "/" + dep;
+};
+const seen = {};
+const __vitePreload = function preload(baseModule, deps, importerUrl) {
+  let promise = Promise.resolve();
+  if (deps && deps.length > 0) {
+    let allSettled2 = function(promises$2) {
+      return Promise.all(promises$2.map((p2) => Promise.resolve(p2).then((value$1) => ({
+        status: "fulfilled",
+        value: value$1
+      }), (reason) => ({
+        status: "rejected",
+        reason
+      }))));
+    };
+    var allSettled = allSettled2;
+    document.getElementsByTagName("link");
+    const cspNonceMeta = document.querySelector("meta[property=csp-nonce]");
+    const cspNonce = cspNonceMeta?.nonce || cspNonceMeta?.getAttribute("nonce");
+    promise = allSettled2(deps.map((dep) => {
+      dep = assetsURL(dep);
+      if (dep in seen) return;
+      seen[dep] = true;
+      const isCss = dep.endsWith(".css");
+      const cssSelector = isCss ? '[rel="stylesheet"]' : "";
+      if (document.querySelector(`link[href="${dep}"]${cssSelector}`)) return;
+      const link = document.createElement("link");
+      link.rel = isCss ? "stylesheet" : scriptRel;
+      if (!isCss) link.as = "script";
+      link.crossOrigin = "";
+      link.href = dep;
+      if (cspNonce) link.setAttribute("nonce", cspNonce);
+      document.head.appendChild(link);
+      if (isCss) return new Promise((res, rej) => {
+        link.addEventListener("load", res);
+        link.addEventListener("error", () => rej(/* @__PURE__ */ new Error(`Unable to preload CSS for ${dep}`)));
+      });
+    }));
+  }
+  function handlePreloadError(err$2) {
+    const e$12 = new Event("vite:preloadError", { cancelable: true });
+    e$12.payload = err$2;
+    window.dispatchEvent(e$12);
+    if (!e$12.defaultPrevented) throw err$2;
+  }
+  return promise.then((res) => {
+    for (const item of res || []) {
+      if (item.status !== "rejected") continue;
+      handlePreloadError(item.reason);
+    }
+    return baseModule().catch(handlePreloadError);
+  });
+};
 var reactExports = requireReact();
 const React = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
 var PopStateEventType = "popstate";
@@ -29304,7 +29359,7 @@ const _matrix$1 = /* @__PURE__ */ new Matrix4();
 const _whiteColor = /* @__PURE__ */ new Color$1(1, 1, 1);
 const _frustum = /* @__PURE__ */ new Frustum();
 const _frustumArray = /* @__PURE__ */ new FrustumArray();
-const _box$1 = /* @__PURE__ */ new Box3();
+const _box$1$1 = /* @__PURE__ */ new Box3();
 const _sphere$2 = /* @__PURE__ */ new Sphere();
 const _vector$5 = /* @__PURE__ */ new Vector3();
 const _forward$1 = /* @__PURE__ */ new Vector3();
@@ -29520,8 +29575,8 @@ class BatchedMesh extends Mesh {
       if (instanceInfo[i].active === false) continue;
       const geometryId = instanceInfo[i].geometryIndex;
       this.getMatrixAt(i, _matrix$1);
-      this.getBoundingBoxAt(geometryId, _box$1).applyMatrix4(_matrix$1);
-      boundingBox.union(_box$1);
+      this.getBoundingBoxAt(geometryId, _box$1$1).applyMatrix4(_matrix$1);
+      boundingBox.union(_box$1$1);
     }
   }
   /**
@@ -29843,8 +29898,8 @@ class BatchedMesh extends Mesh {
     const geometryInfo = this._geometryInfo[geometryId];
     if (geometryInfo.boundingSphere === null) {
       const sphere = new Sphere();
-      this.getBoundingBoxAt(geometryId, _box$1);
-      _box$1.getCenter(sphere.center);
+      this.getBoundingBoxAt(geometryId, _box$1$1);
+      _box$1$1.getCenter(sphere.center);
       const index = geometry2.index;
       const position = geometry2.attributes.position;
       let maxRadiusSq = 0;
@@ -30281,7 +30336,7 @@ class LineBasicMaterial extends Material {
 const _vStart = /* @__PURE__ */ new Vector3();
 const _vEnd = /* @__PURE__ */ new Vector3();
 const _inverseMatrix$1 = /* @__PURE__ */ new Matrix4();
-const _ray$1 = /* @__PURE__ */ new Ray();
+const _ray$1$1 = /* @__PURE__ */ new Ray();
 const _sphere$1 = /* @__PURE__ */ new Sphere();
 const _intersectPointOnRay = /* @__PURE__ */ new Vector3();
 const _intersectPointOnSegment = /* @__PURE__ */ new Vector3();
@@ -30349,7 +30404,7 @@ let Line$1 = class Line extends Object3D {
     _sphere$1.radius += threshold;
     if (raycaster.ray.intersectsSphere(_sphere$1) === false) return;
     _inverseMatrix$1.copy(matrixWorld).invert();
-    _ray$1.copy(raycaster.ray).applyMatrix4(_inverseMatrix$1);
+    _ray$1$1.copy(raycaster.ray).applyMatrix4(_inverseMatrix$1);
     const localThreshold = threshold / ((this.scale.x + this.scale.y + this.scale.z) / 3);
     const localThresholdSq = localThreshold * localThreshold;
     const step = this.isLineSegments ? 2 : 1;
@@ -30362,7 +30417,7 @@ let Line$1 = class Line extends Object3D {
       for (let i = start, l2 = end - 1; i < l2; i += step) {
         const a2 = index.getX(i);
         const b2 = index.getX(i + 1);
-        const intersect2 = checkIntersection(this, raycaster, _ray$1, localThresholdSq, a2, b2, i);
+        const intersect2 = checkIntersection(this, raycaster, _ray$1$1, localThresholdSq, a2, b2, i);
         if (intersect2) {
           intersects2.push(intersect2);
         }
@@ -30370,7 +30425,7 @@ let Line$1 = class Line extends Object3D {
       if (this.isLineLoop) {
         const a2 = index.getX(end - 1);
         const b2 = index.getX(start);
-        const intersect2 = checkIntersection(this, raycaster, _ray$1, localThresholdSq, a2, b2, end - 1);
+        const intersect2 = checkIntersection(this, raycaster, _ray$1$1, localThresholdSq, a2, b2, end - 1);
         if (intersect2) {
           intersects2.push(intersect2);
         }
@@ -30379,13 +30434,13 @@ let Line$1 = class Line extends Object3D {
       const start = Math.max(0, drawRange.start);
       const end = Math.min(positionAttribute.count, drawRange.start + drawRange.count);
       for (let i = start, l2 = end - 1; i < l2; i += step) {
-        const intersect2 = checkIntersection(this, raycaster, _ray$1, localThresholdSq, i, i + 1, i);
+        const intersect2 = checkIntersection(this, raycaster, _ray$1$1, localThresholdSq, i, i + 1, i);
         if (intersect2) {
           intersects2.push(intersect2);
         }
       }
       if (this.isLineLoop) {
-        const intersect2 = checkIntersection(this, raycaster, _ray$1, localThresholdSq, end - 1, start, end - 1);
+        const intersect2 = checkIntersection(this, raycaster, _ray$1$1, localThresholdSq, end - 1, start, end - 1);
         if (intersect2) {
           intersects2.push(intersect2);
         }
@@ -30435,8 +30490,8 @@ function checkIntersection(object2, raycaster, ray, thresholdSq, a2, b2, i) {
     object: object2
   };
 }
-const _start = /* @__PURE__ */ new Vector3();
-const _end = /* @__PURE__ */ new Vector3();
+const _start$1 = /* @__PURE__ */ new Vector3();
+const _end$1 = /* @__PURE__ */ new Vector3();
 class LineSegments extends Line$1 {
   /**
    * Constructs a new line segments.
@@ -30455,10 +30510,10 @@ class LineSegments extends Line$1 {
       const positionAttribute = geometry2.attributes.position;
       const lineDistances = [];
       for (let i = 0, l2 = positionAttribute.count; i < l2; i += 2) {
-        _start.fromBufferAttribute(positionAttribute, i);
-        _end.fromBufferAttribute(positionAttribute, i + 1);
+        _start$1.fromBufferAttribute(positionAttribute, i);
+        _end$1.fromBufferAttribute(positionAttribute, i + 1);
         lineDistances[i] = i === 0 ? 0 : lineDistances[i - 1];
-        lineDistances[i + 1] = lineDistances[i] + _start.distanceTo(_end);
+        lineDistances[i + 1] = lineDistances[i] + _start$1.distanceTo(_end$1);
       }
       geometry2.setAttribute("lineDistance", new Float32BufferAttribute(lineDistances, 1));
     } else {
@@ -30515,7 +30570,7 @@ class PointsMaterial extends Material {
 }
 const _inverseMatrix = /* @__PURE__ */ new Matrix4();
 const _ray$4 = /* @__PURE__ */ new Ray();
-const _sphere = /* @__PURE__ */ new Sphere();
+const _sphere$7 = /* @__PURE__ */ new Sphere();
 const _position$3 = /* @__PURE__ */ new Vector3();
 class Points extends Object3D {
   /**
@@ -30552,10 +30607,10 @@ class Points extends Object3D {
     const threshold = raycaster.params.Points.threshold;
     const drawRange = geometry2.drawRange;
     if (geometry2.boundingSphere === null) geometry2.computeBoundingSphere();
-    _sphere.copy(geometry2.boundingSphere);
-    _sphere.applyMatrix4(matrixWorld);
-    _sphere.radius += threshold;
-    if (raycaster.ray.intersectsSphere(_sphere) === false) return;
+    _sphere$7.copy(geometry2.boundingSphere);
+    _sphere$7.applyMatrix4(matrixWorld);
+    _sphere$7.radius += threshold;
+    if (raycaster.ray.intersectsSphere(_sphere$7) === false) return;
     _inverseMatrix.copy(matrixWorld).invert();
     _ray$4.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
     const localThreshold = threshold / ((this.scale.x + this.scale.y + this.scale.z) / 3);
@@ -45314,7 +45369,7 @@ class DirectionalLightHelper extends Object3D {
     this.targetLine.scale.z = _v3.length();
   }
 }
-const _vector = /* @__PURE__ */ new Vector3();
+const _vector$d = /* @__PURE__ */ new Vector3();
 const _camera = /* @__PURE__ */ new Camera$2();
 class CameraHelper extends LineSegments {
   /**
@@ -45504,16 +45559,16 @@ class CameraHelper extends LineSegments {
   }
 }
 function setPoint(point, pointMap, geometry2, camera2, x2, y, z) {
-  _vector.set(x2, y, z).unproject(camera2);
+  _vector$d.set(x2, y, z).unproject(camera2);
   const points = pointMap[point];
   if (points !== void 0) {
     const position = geometry2.getAttribute("position");
     for (let i = 0, l2 = points.length; i < l2; i++) {
-      position.setXYZ(points[i], _vector.x, _vector.y, _vector.z);
+      position.setXYZ(points[i], _vector$d.x, _vector$d.y, _vector$d.z);
     }
   }
 }
-const _box = /* @__PURE__ */ new Box3();
+const _box$5 = /* @__PURE__ */ new Box3();
 class BoxHelper extends LineSegments {
   /**
    * Constructs a new box helper.
@@ -45539,11 +45594,11 @@ class BoxHelper extends LineSegments {
    */
   update() {
     if (this.object !== void 0) {
-      _box.setFromObject(this.object);
+      _box$5.setFromObject(this.object);
     }
-    if (_box.isEmpty()) return;
-    const min2 = _box.min;
-    const max2 = _box.max;
+    if (_box$5.isEmpty()) return;
+    const min2 = _box$5.min;
+    const max2 = _box$5.max;
     const position = this.geometry.attributes.position;
     const array2 = position.array;
     array2[0] = max2.x;
@@ -51978,7 +52033,7 @@ const _lightPositionWorld = /* @__PURE__ */ new Vector3();
 const _lookTarget = /* @__PURE__ */ new Vector3();
 function WebGLShadowMap(renderer2, objects, capabilities) {
   let _frustum2 = new Frustum();
-  const _shadowMapSize = new Vector2(), _viewportSize = new Vector2(), _viewport = new Vector4(), _depthMaterial = new MeshDepthMaterial(), _distanceMaterial = new MeshDistanceMaterial(), _materialCache = {}, _maxTextureSize = capabilities.maxTextureSize;
+  const _shadowMapSize = new Vector2(), _viewportSize = new Vector2(), _viewport2 = new Vector4(), _depthMaterial = new MeshDepthMaterial(), _distanceMaterial = new MeshDistanceMaterial(), _materialCache = {}, _maxTextureSize = capabilities.maxTextureSize;
   const shadowSide = { [FrontSide]: BackSide, [BackSide]: FrontSide, [DoubleSide]: DoubleSide };
   const shadowMaterialVertical = new ShaderMaterial({
     defines: {
@@ -52127,13 +52182,13 @@ function WebGLShadowMap(renderer2, objects, capabilities) {
             renderer2.clear();
           }
           const viewport = shadow.getViewport(face);
-          _viewport.set(
+          _viewport2.set(
             _viewportSize.x * viewport.x,
             _viewportSize.y * viewport.y,
             _viewportSize.x * viewport.z,
             _viewportSize.y * viewport.w
           );
-          _state.viewport(_viewport);
+          _state.viewport(_viewport2);
         }
         if (light2.isPointLight) {
           const camera3 = shadow.camera;
@@ -56124,7 +56179,7 @@ class WebGLRenderer {
     let _pixelRatio = 1;
     let _opaqueSort = null;
     let _transparentSort = null;
-    const _viewport = new Vector4(0, 0, _width, _height);
+    const _viewport2 = new Vector4(0, 0, _width, _height);
     const _scissor = new Vector4(0, 0, _width, _height);
     let _scissorTest = false;
     const _frustum2 = new Frustum();
@@ -56293,15 +56348,15 @@ class WebGLRenderer {
       return target.copy(_currentViewport);
     };
     this.getViewport = function(target) {
-      return target.copy(_viewport);
+      return target.copy(_viewport2);
     };
     this.setViewport = function(x2, y, width, height) {
       if (x2.isVector4) {
-        _viewport.set(x2.x, x2.y, x2.z, x2.w);
+        _viewport2.set(x2.x, x2.y, x2.z, x2.w);
       } else {
-        _viewport.set(x2, y, width, height);
+        _viewport2.set(x2, y, width, height);
       }
-      state2.viewport(_currentViewport.copy(_viewport).multiplyScalar(_pixelRatio).round());
+      state2.viewport(_currentViewport.copy(_viewport2).multiplyScalar(_pixelRatio).round());
     };
     this.getScissor = function(target) {
       return target.copy(_scissor);
@@ -57295,7 +57350,7 @@ class WebGLRenderer {
         _currentScissor.copy(renderTarget.scissor);
         _currentScissorTest = renderTarget.scissorTest;
       } else {
-        _currentViewport.copy(_viewport).multiplyScalar(_pixelRatio).floor();
+        _currentViewport.copy(_viewport2).multiplyScalar(_pixelRatio).floor();
         _currentScissor.copy(_scissor).multiplyScalar(_pixelRatio).floor();
         _currentScissorTest = _scissorTest;
       }
@@ -65434,7 +65489,7 @@ var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
-const _ray = /* @__PURE__ */ new Ray();
+const _ray$1 = /* @__PURE__ */ new Ray();
 const _plane = /* @__PURE__ */ new Plane();
 const TILT_LIMIT = Math.cos(70 * (Math.PI / 180));
 const moduloWrapAround = (offset2, capacity) => (offset2 % capacity + capacity) % capacity;
@@ -65659,13 +65714,13 @@ let OrbitControls$1 = class OrbitControls extends EventDispatcher2 {
             if (scope.screenSpacePanning) {
               scope.target.set(0, 0, -1).transformDirection(scope.object.matrix).multiplyScalar(newRadius).add(scope.object.position);
             } else {
-              _ray.origin.copy(scope.object.position);
-              _ray.direction.set(0, 0, -1).transformDirection(scope.object.matrix);
-              if (Math.abs(scope.object.up.dot(_ray.direction)) < TILT_LIMIT) {
+              _ray$1.origin.copy(scope.object.position);
+              _ray$1.direction.set(0, 0, -1).transformDirection(scope.object.matrix);
+              if (Math.abs(scope.object.up.dot(_ray$1.direction)) < TILT_LIMIT) {
                 object2.lookAt(scope.target);
               } else {
                 _plane.setFromNormalAndCoplanarPoint(scope.object.up, scope.target);
-                _ray.intersectPlane(_plane, scope.target);
+                _ray$1.intersectPlane(_plane, scope.target);
               }
             }
           }
@@ -66329,6 +66384,969 @@ const OrbitControls2 = /* @__PURE__ */ reactExports.forwardRef(({
     enableDamping
   }, restProps));
 });
+const _box$1 = new Box3();
+const _vector = new Vector3();
+class LineSegmentsGeometry extends InstancedBufferGeometry {
+  /**
+   * Constructs a new line segments geometry.
+   */
+  constructor() {
+    super();
+    this.isLineSegmentsGeometry = true;
+    this.type = "LineSegmentsGeometry";
+    const positions = [-1, 2, 0, 1, 2, 0, -1, 1, 0, 1, 1, 0, -1, 0, 0, 1, 0, 0, -1, -1, 0, 1, -1, 0];
+    const uvs = [-1, 2, 1, 2, -1, 1, 1, 1, -1, -1, 1, -1, -1, -2, 1, -2];
+    const index = [0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3, 4, 6, 5, 6, 7, 5];
+    this.setIndex(index);
+    this.setAttribute("position", new Float32BufferAttribute(positions, 3));
+    this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+  }
+  /**
+   * Applies the given 4x4 transformation matrix to the geometry.
+   *
+   * @param {Matrix4} matrix - The matrix to apply.
+   * @return {LineSegmentsGeometry} A reference to this instance.
+   */
+  applyMatrix4(matrix2) {
+    const start = this.attributes.instanceStart;
+    const end = this.attributes.instanceEnd;
+    if (start !== void 0) {
+      start.applyMatrix4(matrix2);
+      end.applyMatrix4(matrix2);
+      start.needsUpdate = true;
+    }
+    if (this.boundingBox !== null) {
+      this.computeBoundingBox();
+    }
+    if (this.boundingSphere !== null) {
+      this.computeBoundingSphere();
+    }
+    return this;
+  }
+  /**
+   * Sets the given line positions for this geometry. The length must be a multiple of six since
+   * each line segment is defined by a start end vertex in the pattern `(xyz xyz)`.
+   *
+   * @param {Float32Array|Array<number>} array - The position data to set.
+   * @return {LineSegmentsGeometry} A reference to this geometry.
+   */
+  setPositions(array2) {
+    let lineSegments;
+    if (array2 instanceof Float32Array) {
+      lineSegments = array2;
+    } else if (Array.isArray(array2)) {
+      lineSegments = new Float32Array(array2);
+    }
+    const instanceBuffer = new InstancedInterleavedBuffer(lineSegments, 6, 1);
+    this.setAttribute("instanceStart", new InterleavedBufferAttribute(instanceBuffer, 3, 0));
+    this.setAttribute("instanceEnd", new InterleavedBufferAttribute(instanceBuffer, 3, 3));
+    this.instanceCount = this.attributes.instanceStart.count;
+    this.computeBoundingBox();
+    this.computeBoundingSphere();
+    return this;
+  }
+  /**
+   * Sets the given line colors for this geometry. The length must be a multiple of six since
+   * each line segment is defined by a start end color in the pattern `(rgb rgb)`.
+   *
+   * @param {Float32Array|Array<number>} array - The position data to set.
+   * @return {LineSegmentsGeometry} A reference to this geometry.
+   */
+  setColors(array2) {
+    let colors;
+    if (array2 instanceof Float32Array) {
+      colors = array2;
+    } else if (Array.isArray(array2)) {
+      colors = new Float32Array(array2);
+    }
+    const instanceColorBuffer = new InstancedInterleavedBuffer(colors, 6, 1);
+    this.setAttribute("instanceColorStart", new InterleavedBufferAttribute(instanceColorBuffer, 3, 0));
+    this.setAttribute("instanceColorEnd", new InterleavedBufferAttribute(instanceColorBuffer, 3, 3));
+    return this;
+  }
+  /**
+   * Setups this line segments geometry from the given wireframe geometry.
+   *
+   * @param {WireframeGeometry} geometry - The geometry that should be used as a data source for this geometry.
+   * @return {LineSegmentsGeometry} A reference to this geometry.
+   */
+  fromWireframeGeometry(geometry2) {
+    this.setPositions(geometry2.attributes.position.array);
+    return this;
+  }
+  /**
+   * Setups this line segments geometry from the given edges geometry.
+   *
+   * @param {EdgesGeometry} geometry - The geometry that should be used as a data source for this geometry.
+   * @return {LineSegmentsGeometry} A reference to this geometry.
+   */
+  fromEdgesGeometry(geometry2) {
+    this.setPositions(geometry2.attributes.position.array);
+    return this;
+  }
+  /**
+   * Setups this line segments geometry from the given mesh.
+   *
+   * @param {Mesh} mesh - The mesh geometry that should be used as a data source for this geometry.
+   * @return {LineSegmentsGeometry} A reference to this geometry.
+   */
+  fromMesh(mesh) {
+    this.fromWireframeGeometry(new WireframeGeometry(mesh.geometry));
+    return this;
+  }
+  /**
+   * Setups this line segments geometry from the given line segments.
+   *
+   * @param {LineSegments} lineSegments - The line segments that should be used as a data source for this geometry.
+   * Assumes the source geometry is not using indices.
+   * @return {LineSegmentsGeometry} A reference to this geometry.
+   */
+  fromLineSegments(lineSegments) {
+    const geometry2 = lineSegments.geometry;
+    this.setPositions(geometry2.attributes.position.array);
+    return this;
+  }
+  computeBoundingBox() {
+    if (this.boundingBox === null) {
+      this.boundingBox = new Box3();
+    }
+    const start = this.attributes.instanceStart;
+    const end = this.attributes.instanceEnd;
+    if (start !== void 0 && end !== void 0) {
+      this.boundingBox.setFromBufferAttribute(start);
+      _box$1.setFromBufferAttribute(end);
+      this.boundingBox.union(_box$1);
+    }
+  }
+  computeBoundingSphere() {
+    if (this.boundingSphere === null) {
+      this.boundingSphere = new Sphere();
+    }
+    if (this.boundingBox === null) {
+      this.computeBoundingBox();
+    }
+    const start = this.attributes.instanceStart;
+    const end = this.attributes.instanceEnd;
+    if (start !== void 0 && end !== void 0) {
+      const center = this.boundingSphere.center;
+      this.boundingBox.getCenter(center);
+      let maxRadiusSq = 0;
+      for (let i = 0, il = start.count; i < il; i++) {
+        _vector.fromBufferAttribute(start, i);
+        maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vector));
+        _vector.fromBufferAttribute(end, i);
+        maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(_vector));
+      }
+      this.boundingSphere.radius = Math.sqrt(maxRadiusSq);
+      if (isNaN(this.boundingSphere.radius)) {
+        console.error("THREE.LineSegmentsGeometry.computeBoundingSphere(): Computed radius is NaN. The instanced position data is likely to have NaN values.", this);
+      }
+    }
+  }
+  toJSON() {
+  }
+}
+UniformsLib.line = {
+  worldUnits: { value: 1 },
+  linewidth: { value: 1 },
+  resolution: { value: new Vector2(1, 1) },
+  dashOffset: { value: 0 },
+  dashScale: { value: 1 },
+  dashSize: { value: 1 },
+  gapSize: { value: 1 }
+  // todo FIX - maybe change to totalSize
+};
+ShaderLib["line"] = {
+  uniforms: UniformsUtils.merge([
+    UniformsLib.common,
+    UniformsLib.fog,
+    UniformsLib.line
+  ]),
+  vertexShader: (
+    /* glsl */
+    `
+		#include <common>
+		#include <color_pars_vertex>
+		#include <fog_pars_vertex>
+		#include <logdepthbuf_pars_vertex>
+		#include <clipping_planes_pars_vertex>
+
+		uniform float linewidth;
+		uniform vec2 resolution;
+
+		attribute vec3 instanceStart;
+		attribute vec3 instanceEnd;
+
+		attribute vec3 instanceColorStart;
+		attribute vec3 instanceColorEnd;
+
+		#ifdef WORLD_UNITS
+
+			varying vec4 worldPos;
+			varying vec3 worldStart;
+			varying vec3 worldEnd;
+
+			#ifdef USE_DASH
+
+				varying vec2 vUv;
+
+			#endif
+
+		#else
+
+			varying vec2 vUv;
+
+		#endif
+
+		#ifdef USE_DASH
+
+			uniform float dashScale;
+			attribute float instanceDistanceStart;
+			attribute float instanceDistanceEnd;
+			varying float vLineDistance;
+
+		#endif
+
+		void trimSegment( const in vec4 start, inout vec4 end ) {
+
+			// trim end segment so it terminates between the camera plane and the near plane
+
+			// conservative estimate of the near plane
+			float a = projectionMatrix[ 2 ][ 2 ]; // 3nd entry in 3th column
+			float b = projectionMatrix[ 3 ][ 2 ]; // 3nd entry in 4th column
+			float nearEstimate = - 0.5 * b / a;
+
+			float alpha = ( nearEstimate - start.z ) / ( end.z - start.z );
+
+			end.xyz = mix( start.xyz, end.xyz, alpha );
+
+		}
+
+		void main() {
+
+			#ifdef USE_COLOR
+
+				vColor.xyz = ( position.y < 0.5 ) ? instanceColorStart : instanceColorEnd;
+
+			#endif
+
+			#ifdef USE_DASH
+
+				vLineDistance = ( position.y < 0.5 ) ? dashScale * instanceDistanceStart : dashScale * instanceDistanceEnd;
+				vUv = uv;
+
+			#endif
+
+			float aspect = resolution.x / resolution.y;
+
+			// camera space
+			vec4 start = modelViewMatrix * vec4( instanceStart, 1.0 );
+			vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );
+
+			#ifdef WORLD_UNITS
+
+				worldStart = start.xyz;
+				worldEnd = end.xyz;
+
+			#else
+
+				vUv = uv;
+
+			#endif
+
+			// special case for perspective projection, and segments that terminate either in, or behind, the camera plane
+			// clearly the gpu firmware has a way of addressing this issue when projecting into ndc space
+			// but we need to perform ndc-space calculations in the shader, so we must address this issue directly
+			// perhaps there is a more elegant solution -- WestLangley
+
+			bool perspective = ( projectionMatrix[ 2 ][ 3 ] == - 1.0 ); // 4th entry in the 3rd column
+
+			if ( perspective ) {
+
+				if ( start.z < 0.0 && end.z >= 0.0 ) {
+
+					trimSegment( start, end );
+
+				} else if ( end.z < 0.0 && start.z >= 0.0 ) {
+
+					trimSegment( end, start );
+
+				}
+
+			}
+
+			// clip space
+			vec4 clipStart = projectionMatrix * start;
+			vec4 clipEnd = projectionMatrix * end;
+
+			// ndc space
+			vec3 ndcStart = clipStart.xyz / clipStart.w;
+			vec3 ndcEnd = clipEnd.xyz / clipEnd.w;
+
+			// direction
+			vec2 dir = ndcEnd.xy - ndcStart.xy;
+
+			// account for clip-space aspect ratio
+			dir.x *= aspect;
+			dir = normalize( dir );
+
+			#ifdef WORLD_UNITS
+
+				vec3 worldDir = normalize( end.xyz - start.xyz );
+				vec3 tmpFwd = normalize( mix( start.xyz, end.xyz, 0.5 ) );
+				vec3 worldUp = normalize( cross( worldDir, tmpFwd ) );
+				vec3 worldFwd = cross( worldDir, worldUp );
+				worldPos = position.y < 0.5 ? start: end;
+
+				// height offset
+				float hw = linewidth * 0.5;
+				worldPos.xyz += position.x < 0.0 ? hw * worldUp : - hw * worldUp;
+
+				// don't extend the line if we're rendering dashes because we
+				// won't be rendering the endcaps
+				#ifndef USE_DASH
+
+					// cap extension
+					worldPos.xyz += position.y < 0.5 ? - hw * worldDir : hw * worldDir;
+
+					// add width to the box
+					worldPos.xyz += worldFwd * hw;
+
+					// endcaps
+					if ( position.y > 1.0 || position.y < 0.0 ) {
+
+						worldPos.xyz -= worldFwd * 2.0 * hw;
+
+					}
+
+				#endif
+
+				// project the worldpos
+				vec4 clip = projectionMatrix * worldPos;
+
+				// shift the depth of the projected points so the line
+				// segments overlap neatly
+				vec3 clipPose = ( position.y < 0.5 ) ? ndcStart : ndcEnd;
+				clip.z = clipPose.z * clip.w;
+
+			#else
+
+				vec2 offset = vec2( dir.y, - dir.x );
+				// undo aspect ratio adjustment
+				dir.x /= aspect;
+				offset.x /= aspect;
+
+				// sign flip
+				if ( position.x < 0.0 ) offset *= - 1.0;
+
+				// endcaps
+				if ( position.y < 0.0 ) {
+
+					offset += - dir;
+
+				} else if ( position.y > 1.0 ) {
+
+					offset += dir;
+
+				}
+
+				// adjust for linewidth
+				offset *= linewidth;
+
+				// adjust for clip-space to screen-space conversion // maybe resolution should be based on viewport ...
+				offset /= resolution.y;
+
+				// select end
+				vec4 clip = ( position.y < 0.5 ) ? clipStart : clipEnd;
+
+				// back to clip space
+				offset *= clip.w;
+
+				clip.xy += offset;
+
+			#endif
+
+			gl_Position = clip;
+
+			vec4 mvPosition = ( position.y < 0.5 ) ? start : end; // this is an approximation
+
+			#include <logdepthbuf_vertex>
+			#include <clipping_planes_vertex>
+			#include <fog_vertex>
+
+		}
+		`
+  ),
+  fragmentShader: (
+    /* glsl */
+    `
+		uniform vec3 diffuse;
+		uniform float opacity;
+		uniform float linewidth;
+
+		#ifdef USE_DASH
+
+			uniform float dashOffset;
+			uniform float dashSize;
+			uniform float gapSize;
+
+		#endif
+
+		varying float vLineDistance;
+
+		#ifdef WORLD_UNITS
+
+			varying vec4 worldPos;
+			varying vec3 worldStart;
+			varying vec3 worldEnd;
+
+			#ifdef USE_DASH
+
+				varying vec2 vUv;
+
+			#endif
+
+		#else
+
+			varying vec2 vUv;
+
+		#endif
+
+		#include <common>
+		#include <color_pars_fragment>
+		#include <fog_pars_fragment>
+		#include <logdepthbuf_pars_fragment>
+		#include <clipping_planes_pars_fragment>
+
+		vec2 closestLineToLine(vec3 p1, vec3 p2, vec3 p3, vec3 p4) {
+
+			float mua;
+			float mub;
+
+			vec3 p13 = p1 - p3;
+			vec3 p43 = p4 - p3;
+
+			vec3 p21 = p2 - p1;
+
+			float d1343 = dot( p13, p43 );
+			float d4321 = dot( p43, p21 );
+			float d1321 = dot( p13, p21 );
+			float d4343 = dot( p43, p43 );
+			float d2121 = dot( p21, p21 );
+
+			float denom = d2121 * d4343 - d4321 * d4321;
+
+			float numer = d1343 * d4321 - d1321 * d4343;
+
+			mua = numer / denom;
+			mua = clamp( mua, 0.0, 1.0 );
+			mub = ( d1343 + d4321 * ( mua ) ) / d4343;
+			mub = clamp( mub, 0.0, 1.0 );
+
+			return vec2( mua, mub );
+
+		}
+
+		void main() {
+
+			float alpha = opacity;
+			vec4 diffuseColor = vec4( diffuse, alpha );
+
+			#include <clipping_planes_fragment>
+
+			#ifdef USE_DASH
+
+				if ( vUv.y < - 1.0 || vUv.y > 1.0 ) discard; // discard endcaps
+
+				if ( mod( vLineDistance + dashOffset, dashSize + gapSize ) > dashSize ) discard; // todo - FIX
+
+			#endif
+
+			#ifdef WORLD_UNITS
+
+				// Find the closest points on the view ray and the line segment
+				vec3 rayEnd = normalize( worldPos.xyz ) * 1e5;
+				vec3 lineDir = worldEnd - worldStart;
+				vec2 params = closestLineToLine( worldStart, worldEnd, vec3( 0.0, 0.0, 0.0 ), rayEnd );
+
+				vec3 p1 = worldStart + lineDir * params.x;
+				vec3 p2 = rayEnd * params.y;
+				vec3 delta = p1 - p2;
+				float len = length( delta );
+				float norm = len / linewidth;
+
+				#ifndef USE_DASH
+
+					#ifdef USE_ALPHA_TO_COVERAGE
+
+						float dnorm = fwidth( norm );
+						alpha = 1.0 - smoothstep( 0.5 - dnorm, 0.5 + dnorm, norm );
+
+					#else
+
+						if ( norm > 0.5 ) {
+
+							discard;
+
+						}
+
+					#endif
+
+				#endif
+
+			#else
+
+				#ifdef USE_ALPHA_TO_COVERAGE
+
+					// artifacts appear on some hardware if a derivative is taken within a conditional
+					float a = vUv.x;
+					float b = ( vUv.y > 0.0 ) ? vUv.y - 1.0 : vUv.y + 1.0;
+					float len2 = a * a + b * b;
+					float dlen = fwidth( len2 );
+
+					if ( abs( vUv.y ) > 1.0 ) {
+
+						alpha = 1.0 - smoothstep( 1.0 - dlen, 1.0 + dlen, len2 );
+
+					}
+
+				#else
+
+					if ( abs( vUv.y ) > 1.0 ) {
+
+						float a = vUv.x;
+						float b = ( vUv.y > 0.0 ) ? vUv.y - 1.0 : vUv.y + 1.0;
+						float len2 = a * a + b * b;
+
+						if ( len2 > 1.0 ) discard;
+
+					}
+
+				#endif
+
+			#endif
+
+			#include <logdepthbuf_fragment>
+			#include <color_fragment>
+
+			gl_FragColor = vec4( diffuseColor.rgb, alpha );
+
+			#include <tonemapping_fragment>
+			#include <colorspace_fragment>
+			#include <fog_fragment>
+			#include <premultiplied_alpha_fragment>
+
+		}
+		`
+  )
+};
+class LineMaterial extends ShaderMaterial {
+  /**
+   * Constructs a new line segments geometry.
+   *
+   * @param {Object} [parameters] - An object with one or more properties
+   * defining the material's appearance. Any property of the material
+   * (including any property from inherited materials) can be passed
+   * in here. Color values can be passed any type of value accepted
+   * by {@link Color#set}.
+   */
+  constructor(parameters) {
+    super({
+      type: "LineMaterial",
+      uniforms: UniformsUtils.clone(ShaderLib["line"].uniforms),
+      vertexShader: ShaderLib["line"].vertexShader,
+      fragmentShader: ShaderLib["line"].fragmentShader,
+      clipping: true
+      // required for clipping support
+    });
+    this.isLineMaterial = true;
+    this.setValues(parameters);
+  }
+  /**
+   * The material's color.
+   *
+   * @type {Color}
+   * @default (1,1,1)
+   */
+  get color() {
+    return this.uniforms.diffuse.value;
+  }
+  set color(value) {
+    this.uniforms.diffuse.value = value;
+  }
+  /**
+   * Whether the material's sizes (width, dash gaps) are in world units.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  get worldUnits() {
+    return "WORLD_UNITS" in this.defines;
+  }
+  set worldUnits(value) {
+    if (value === true !== this.worldUnits) {
+      this.needsUpdate = true;
+    }
+    if (value === true) {
+      this.defines.WORLD_UNITS = "";
+    } else {
+      delete this.defines.WORLD_UNITS;
+    }
+  }
+  /**
+   * Controls line thickness in CSS pixel units when `worldUnits` is `false` (default),
+   * or in world units when `worldUnits` is `true`.
+   *
+   * @type {number}
+   * @default 1
+   */
+  get linewidth() {
+    return this.uniforms.linewidth.value;
+  }
+  set linewidth(value) {
+    if (!this.uniforms.linewidth) return;
+    this.uniforms.linewidth.value = value;
+  }
+  /**
+   * Whether the line is dashed, or solid.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  get dashed() {
+    return "USE_DASH" in this.defines;
+  }
+  set dashed(value) {
+    if (value === true !== this.dashed) {
+      this.needsUpdate = true;
+    }
+    if (value === true) {
+      this.defines.USE_DASH = "";
+    } else {
+      delete this.defines.USE_DASH;
+    }
+  }
+  /**
+   * The scale of the dashes and gaps.
+   *
+   * @type {number}
+   * @default 1
+   */
+  get dashScale() {
+    return this.uniforms.dashScale.value;
+  }
+  set dashScale(value) {
+    this.uniforms.dashScale.value = value;
+  }
+  /**
+   * The size of the dash.
+   *
+   * @type {number}
+   * @default 1
+   */
+  get dashSize() {
+    return this.uniforms.dashSize.value;
+  }
+  set dashSize(value) {
+    this.uniforms.dashSize.value = value;
+  }
+  /**
+   * Where in the dash cycle the dash starts.
+   *
+   * @type {number}
+   * @default 0
+   */
+  get dashOffset() {
+    return this.uniforms.dashOffset.value;
+  }
+  set dashOffset(value) {
+    this.uniforms.dashOffset.value = value;
+  }
+  /**
+   * The size of the gap.
+   *
+   * @type {number}
+   * @default 0
+   */
+  get gapSize() {
+    return this.uniforms.gapSize.value;
+  }
+  set gapSize(value) {
+    this.uniforms.gapSize.value = value;
+  }
+  /**
+   * The opacity.
+   *
+   * @type {number}
+   * @default 1
+   */
+  get opacity() {
+    return this.uniforms.opacity.value;
+  }
+  set opacity(value) {
+    if (!this.uniforms) return;
+    this.uniforms.opacity.value = value;
+  }
+  /**
+   * The size of the viewport, in screen pixels. This must be kept updated to make
+   * screen-space rendering accurate.The `LineSegments2.onBeforeRender` callback
+   * performs the update for visible objects.
+   *
+   * @type {Vector2}
+   */
+  get resolution() {
+    return this.uniforms.resolution.value;
+  }
+  set resolution(value) {
+    this.uniforms.resolution.value.copy(value);
+  }
+  /**
+   * Whether to use alphaToCoverage or not. When enabled, this can improve the
+   * anti-aliasing of line edges when using MSAA.
+   *
+   * @type {boolean}
+   */
+  get alphaToCoverage() {
+    return "USE_ALPHA_TO_COVERAGE" in this.defines;
+  }
+  set alphaToCoverage(value) {
+    if (!this.defines) return;
+    if (value === true !== this.alphaToCoverage) {
+      this.needsUpdate = true;
+    }
+    if (value === true) {
+      this.defines.USE_ALPHA_TO_COVERAGE = "";
+    } else {
+      delete this.defines.USE_ALPHA_TO_COVERAGE;
+    }
+  }
+}
+const _viewport = new Vector4();
+const _start = new Vector3();
+const _end = new Vector3();
+const _start4 = new Vector4();
+const _end4 = new Vector4();
+const _ssOrigin = new Vector4();
+const _ssOrigin3 = new Vector3();
+const _mvMatrix = new Matrix4();
+const _line = new Line3();
+const _closestPoint = new Vector3();
+const _box = new Box3();
+const _sphere = new Sphere();
+const _clipToWorldVector = new Vector4();
+let _ray, _lineWidth;
+function getWorldSpaceHalfWidth(camera2, distance2, resolution) {
+  _clipToWorldVector.set(0, 0, -distance2, 1).applyMatrix4(camera2.projectionMatrix);
+  _clipToWorldVector.multiplyScalar(1 / _clipToWorldVector.w);
+  _clipToWorldVector.x = _lineWidth / resolution.width;
+  _clipToWorldVector.y = _lineWidth / resolution.height;
+  _clipToWorldVector.applyMatrix4(camera2.projectionMatrixInverse);
+  _clipToWorldVector.multiplyScalar(1 / _clipToWorldVector.w);
+  return Math.abs(Math.max(_clipToWorldVector.x, _clipToWorldVector.y));
+}
+function raycastWorldUnits(lineSegments, intersects2) {
+  const matrixWorld = lineSegments.matrixWorld;
+  const geometry2 = lineSegments.geometry;
+  const instanceStart = geometry2.attributes.instanceStart;
+  const instanceEnd = geometry2.attributes.instanceEnd;
+  const segmentCount = Math.min(geometry2.instanceCount, instanceStart.count);
+  for (let i = 0, l2 = segmentCount; i < l2; i++) {
+    _line.start.fromBufferAttribute(instanceStart, i);
+    _line.end.fromBufferAttribute(instanceEnd, i);
+    _line.applyMatrix4(matrixWorld);
+    const pointOnLine = new Vector3();
+    const point = new Vector3();
+    _ray.distanceSqToSegment(_line.start, _line.end, point, pointOnLine);
+    const isInside = point.distanceTo(pointOnLine) < _lineWidth * 0.5;
+    if (isInside) {
+      intersects2.push({
+        point,
+        pointOnLine,
+        distance: _ray.origin.distanceTo(point),
+        object: lineSegments,
+        face: null,
+        faceIndex: i,
+        uv: null,
+        uv1: null
+      });
+    }
+  }
+}
+function raycastScreenSpace(lineSegments, camera2, intersects2) {
+  const projectionMatrix = camera2.projectionMatrix;
+  const material2 = lineSegments.material;
+  const resolution = material2.resolution;
+  const matrixWorld = lineSegments.matrixWorld;
+  const geometry2 = lineSegments.geometry;
+  const instanceStart = geometry2.attributes.instanceStart;
+  const instanceEnd = geometry2.attributes.instanceEnd;
+  const segmentCount = Math.min(geometry2.instanceCount, instanceStart.count);
+  const near = -camera2.near;
+  _ray.at(1, _ssOrigin);
+  _ssOrigin.w = 1;
+  _ssOrigin.applyMatrix4(camera2.matrixWorldInverse);
+  _ssOrigin.applyMatrix4(projectionMatrix);
+  _ssOrigin.multiplyScalar(1 / _ssOrigin.w);
+  _ssOrigin.x *= resolution.x / 2;
+  _ssOrigin.y *= resolution.y / 2;
+  _ssOrigin.z = 0;
+  _ssOrigin3.copy(_ssOrigin);
+  _mvMatrix.multiplyMatrices(camera2.matrixWorldInverse, matrixWorld);
+  for (let i = 0, l2 = segmentCount; i < l2; i++) {
+    _start4.fromBufferAttribute(instanceStart, i);
+    _end4.fromBufferAttribute(instanceEnd, i);
+    _start4.w = 1;
+    _end4.w = 1;
+    _start4.applyMatrix4(_mvMatrix);
+    _end4.applyMatrix4(_mvMatrix);
+    const isBehindCameraNear = _start4.z > near && _end4.z > near;
+    if (isBehindCameraNear) {
+      continue;
+    }
+    if (_start4.z > near) {
+      const deltaDist = _start4.z - _end4.z;
+      const t2 = (_start4.z - near) / deltaDist;
+      _start4.lerp(_end4, t2);
+    } else if (_end4.z > near) {
+      const deltaDist = _end4.z - _start4.z;
+      const t2 = (_end4.z - near) / deltaDist;
+      _end4.lerp(_start4, t2);
+    }
+    _start4.applyMatrix4(projectionMatrix);
+    _end4.applyMatrix4(projectionMatrix);
+    _start4.multiplyScalar(1 / _start4.w);
+    _end4.multiplyScalar(1 / _end4.w);
+    _start4.x *= resolution.x / 2;
+    _start4.y *= resolution.y / 2;
+    _end4.x *= resolution.x / 2;
+    _end4.y *= resolution.y / 2;
+    _line.start.copy(_start4);
+    _line.start.z = 0;
+    _line.end.copy(_end4);
+    _line.end.z = 0;
+    const param = _line.closestPointToPointParameter(_ssOrigin3, true);
+    _line.at(param, _closestPoint);
+    const zPos = MathUtils.lerp(_start4.z, _end4.z, param);
+    const isInClipSpace = zPos >= -1 && zPos <= 1;
+    const isInside = _ssOrigin3.distanceTo(_closestPoint) < _lineWidth * 0.5;
+    if (isInClipSpace && isInside) {
+      _line.start.fromBufferAttribute(instanceStart, i);
+      _line.end.fromBufferAttribute(instanceEnd, i);
+      _line.start.applyMatrix4(matrixWorld);
+      _line.end.applyMatrix4(matrixWorld);
+      const pointOnLine = new Vector3();
+      const point = new Vector3();
+      _ray.distanceSqToSegment(_line.start, _line.end, point, pointOnLine);
+      intersects2.push({
+        point,
+        pointOnLine,
+        distance: _ray.origin.distanceTo(point),
+        object: lineSegments,
+        face: null,
+        faceIndex: i,
+        uv: null,
+        uv1: null
+      });
+    }
+  }
+}
+class LineSegments2 extends Mesh {
+  /**
+   * Constructs a new wide line.
+   *
+   * @param {LineSegmentsGeometry} [geometry] - The line geometry.
+   * @param {LineMaterial} [material] - The line material.
+   */
+  constructor(geometry2 = new LineSegmentsGeometry(), material2 = new LineMaterial({ color: Math.random() * 16777215 })) {
+    super(geometry2, material2);
+    this.isLineSegments2 = true;
+    this.type = "LineSegments2";
+  }
+  /**
+   * Computes an array of distance values which are necessary for rendering dashed lines.
+   * For each vertex in the geometry, the method calculates the cumulative length from the
+   * current point to the very beginning of the line.
+   *
+   * @return {LineSegments2} A reference to this instance.
+   */
+  computeLineDistances() {
+    const geometry2 = this.geometry;
+    const instanceStart = geometry2.attributes.instanceStart;
+    const instanceEnd = geometry2.attributes.instanceEnd;
+    const lineDistances = new Float32Array(2 * instanceStart.count);
+    for (let i = 0, j2 = 0, l2 = instanceStart.count; i < l2; i++, j2 += 2) {
+      _start.fromBufferAttribute(instanceStart, i);
+      _end.fromBufferAttribute(instanceEnd, i);
+      lineDistances[j2] = j2 === 0 ? 0 : lineDistances[j2 - 1];
+      lineDistances[j2 + 1] = lineDistances[j2] + _start.distanceTo(_end);
+    }
+    const instanceDistanceBuffer = new InstancedInterleavedBuffer(lineDistances, 2, 1);
+    geometry2.setAttribute("instanceDistanceStart", new InterleavedBufferAttribute(instanceDistanceBuffer, 1, 0));
+    geometry2.setAttribute("instanceDistanceEnd", new InterleavedBufferAttribute(instanceDistanceBuffer, 1, 1));
+    return this;
+  }
+  /**
+   * Computes intersection points between a casted ray and this instance.
+   *
+   * @param {Raycaster} raycaster - The raycaster.
+   * @param {Array<Object>} intersects - The target array that holds the intersection points.
+   */
+  raycast(raycaster, intersects2) {
+    const worldUnits = this.material.worldUnits;
+    const camera2 = raycaster.camera;
+    if (camera2 === null && !worldUnits) {
+      console.error('LineSegments2: "Raycaster.camera" needs to be set in order to raycast against LineSegments2 while worldUnits is set to false.');
+    }
+    const threshold = raycaster.params.Line2 !== void 0 ? raycaster.params.Line2.threshold || 0 : 0;
+    _ray = raycaster.ray;
+    const matrixWorld = this.matrixWorld;
+    const geometry2 = this.geometry;
+    const material2 = this.material;
+    _lineWidth = material2.linewidth + threshold;
+    if (geometry2.boundingSphere === null) {
+      geometry2.computeBoundingSphere();
+    }
+    _sphere.copy(geometry2.boundingSphere).applyMatrix4(matrixWorld);
+    let sphereMargin;
+    if (worldUnits) {
+      sphereMargin = _lineWidth * 0.5;
+    } else {
+      const distanceToSphere = Math.max(camera2.near, _sphere.distanceToPoint(_ray.origin));
+      sphereMargin = getWorldSpaceHalfWidth(camera2, distanceToSphere, material2.resolution);
+    }
+    _sphere.radius += sphereMargin;
+    if (_ray.intersectsSphere(_sphere) === false) {
+      return;
+    }
+    if (geometry2.boundingBox === null) {
+      geometry2.computeBoundingBox();
+    }
+    _box.copy(geometry2.boundingBox).applyMatrix4(matrixWorld);
+    let boxMargin;
+    if (worldUnits) {
+      boxMargin = _lineWidth * 0.5;
+    } else {
+      const distanceToBox = Math.max(camera2.near, _box.distanceToPoint(_ray.origin));
+      boxMargin = getWorldSpaceHalfWidth(camera2, distanceToBox, material2.resolution);
+    }
+    _box.expandByScalar(boxMargin);
+    if (_ray.intersectsBox(_box) === false) {
+      return;
+    }
+    if (worldUnits) {
+      raycastWorldUnits(this, intersects2);
+    } else {
+      raycastScreenSpace(this, camera2, intersects2);
+    }
+  }
+  onBeforeRender(renderer2) {
+    const uniforms = this.material.uniforms;
+    if (uniforms && uniforms.resolution) {
+      renderer2.getViewport(_viewport);
+      this.material.uniforms.resolution.value.set(_viewport.z, _viewport.w);
+    }
+  }
+}
 const DIM_COLORS_HEX = [
   "#1975A1",
   "#7B392A",
@@ -66354,56 +67372,73 @@ const PANEL_COLORS_HEX = {
   "quiz-panel-yellow": { bg: "#FAA41A", fg: "#000000" },
   "quiz-panel-purple": { bg: "#893A69", fg: "#ffffff" }
 };
-const brandColors = DIM_COLORS_HEX;
-const archetypes = [
-  "The Multidisciplinary",
-  "The Researcher",
-  "The Generalist",
-  "The Director",
-  "The Orchestrator",
-  "The Advocate",
-  "The Experimentalist",
-  "The Disruptor",
-  "The Connector",
-  "The Idealist",
-  "The Improviser",
-  "The Educator"
-];
-const designers = [
-  "Irma Boom",
-  "Ruben Pater",
-  "Zak Kyes",
-  "Tom Hingston",
-  "Min Lew",
-  "Dori Tunstall",
-  "Martine Syms",
-  "Samuel Ross",
-  "Juliette Cezzar",
-  "Eike Konig",
-  // TODO: figure out the o-umlaut
-  "Julian Glander",
-  "Silas Munro"
-];
-const bios = [
-  "Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture.",
-  "A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism.",
-  "Balances roles as a graphic designer, curator, and publisher, showing how designers can move fluidly between disciplines while maintaining a strong conceptual voice.",
-  "A creative director known for blending typography, motion, and music in visual storytelling, leading major branding and music industry projects.",
-  "A Base Design partner who leads multidisciplinary teams across strategy, branding, and communication design, demonstrating a structured and intentional approach to building scalable design systems.",
-  "A design anthropologist and former OCAD University dean, Tunstall advocates for decolonizing design and fostering inclusivity in creative industries.",
-  "A designer and artist who explores the intersection of design, film, and technology, constantly pushing the boundaries of narrative and media.",
-  "Founder of A-COLD-WALL*, Ross blends industrial design, fashion, and graphic design to challenge conventions in both high fashion and streetwear.",
-  "An educator, writer, and designer who bridges academia and professional practice, making design knowledge more accessible and actionable.",
-  "Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence.",
-  "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media.",
-  "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
-];
-function idxToBg(faceIndex) {
-  return brandColors[faceIndex % brandColors.length];
-}
+const designers = {
+  "Irma Boom": {
+    color: DIM_COLORS_HEX[0],
+    archetype: "The Multidisciplinary",
+    bio: "Originally trained as a graphic designer, Boom has expanded book design into a multidisciplinary art form, merging publishing, architecture, and sculpture."
+  },
+  "Ruben Pater": {
+    color: DIM_COLORS_HEX[1],
+    archetype: "The Researcher",
+    bio: "A critical designer and educator who investigates the intersection of design, geopolitics, and social issues, using research-driven design as a tool for activism."
+  },
+  "Zak Kyes": {
+    color: DIM_COLORS_HEX[2],
+    archetype: "The Generalist",
+    bio: "Balances roles as a graphic designer, curator, and publisher, showing how designers can move fluidly between disciplines while maintaining a strong conceptual voice."
+  },
+  "Tom Hingston": {
+    color: DIM_COLORS_HEX[3],
+    archetype: "The Director",
+    bio: "A creative director known for blending typography, motion, and music in visual storytelling, leading major branding and music industry projects."
+  },
+  "Min Lew": {
+    color: DIM_COLORS_HEX[4],
+    archetype: "The Orchestrator",
+    bio: "A Base Design partner who leads multidisciplinary teams across strategy, branding, and communication design, demonstrating a structured and intentional approach to building scalable design systems."
+  },
+  "Dori Tunstall": {
+    color: DIM_COLORS_HEX[0],
+    archetype: "The Advocate",
+    bio: "A design anthropologist and former OCAD University dean, Tunstall advocates for decolonizing design and fostering inclusivity in creative industries."
+  },
+  "Martine Syms": {
+    color: DIM_COLORS_HEX[1],
+    archetype: "The Experimentalist",
+    bio: "A designer and artist who explores the intersection of design, film, and technology, constantly pushing the boundaries of narrative and media."
+  },
+  "Samuel Ross": {
+    color: DIM_COLORS_HEX[2],
+    archetype: "The Disruptor",
+    bio: "Founder of A-COLD-WALL*, Ross blends industrial design, fashion, and graphic design to challenge conventions in both high fashion and streetwear."
+  },
+  "Juliette Cezzar": {
+    color: DIM_COLORS_HEX[1],
+    archetype: "The Connector",
+    bio: "An educator, writer, and designer who bridges academia and professional practice, making design knowledge more accessible and actionable."
+  },
+  "Eike Konig": {
+    color: DIM_COLORS_HEX[3],
+    archetype: "The Idealist",
+    bio: "Founder of HORT, a studio that embraces experimental, non-hierarchical collaboration while promoting artistic integrity and creative independence."
+  },
+  "Julian Glander": {
+    color: DIM_COLORS_HEX[0],
+    archetype: "The Improviser",
+    bio: "A 3D artist and designer whose work playfully blends surrealism, humor, and interactive storytelling across multiple media."
+  },
+  "Silas Munro": {
+    color: DIM_COLORS_HEX[4],
+    archetype: "The Educator",
+    bio: "A designer and educator who champions diversity in design history and actively works to bring underrepresented narratives into the mainstream."
+  }
+};
+const designerNames = Object.keys(designers);
 function Dodecahedron({ faceState, onFaceClick }) {
   const meshRef = reactExports.useRef();
   const edgesRef = reactExports.useRef();
+  const { size } = useThree();
   const dodecScale = window.outerWidth > 860 ? 1.75 : 1.4;
   const geometry2 = new DodecahedronGeometry(dodecScale, 0);
   if (geometry2.groups.length === 0) {
@@ -66412,8 +67447,16 @@ function Dodecahedron({ faceState, onFaceClick }) {
       geometry2.addGroup(i * 9, 9, i);
     }
   }
-  const edgesGeometry = new EdgesGeometry(geometry2);
-  const wireframeMaterial = new LineBasicMaterial({ color: "white", linewidth: 50 });
+  const edgeGeo = new EdgesGeometry(geometry2);
+  const lineGeo = new LineSegmentsGeometry();
+  lineGeo.setPositions(edgeGeo.attributes.position.array);
+  const lineMat = new LineMaterial({
+    color: "white",
+    linewidth: 2,
+    resolution: [size.width, size.height],
+    worldUnits: false
+  });
+  const lineSegs = new LineSegments2(lineGeo, lineMat);
   const yRotFactor = 0.5;
   const xRotFactor = yRotFactor / 2;
   useFrame((state2) => {
@@ -66440,7 +67483,7 @@ function Dodecahedron({ faceState, onFaceClick }) {
     return new MeshBasicMaterial({
       color: color2,
       side: DoubleSide,
-      opacity: isClicked ? 0.5 : 0,
+      opacity: isClicked ? 1 : 0,
       transparent: !isClicked
     });
   });
@@ -66455,13 +67498,33 @@ function Dodecahedron({ faceState, onFaceClick }) {
         raycast: Mesh.prototype.raycast
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("lineSegments", { ref: edgesRef, geometry: edgesGeometry, material: wireframeMaterial })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("primitive", { object: lineSegs, ref: edgesRef })
   ] });
+}
+function DesignerPanel({ designer }) {
+  const lastDesigner = reactExports.useRef(null);
+  if (designer) lastDesigner.current = designer;
+  const d2 = designer ?? lastDesigner.current;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `designer${designer ? " designer-visible" : ""}`, style: { backgroundColor: d2?.bg, color: d2?.fg }, children: d2 && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "headshot", height: "192", width: "192", src: d2.headshotSrc }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "designer-info", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "name", children: d2.name }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "archetype", children: d2.archetype }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "bio", children: d2.bio })
+    ] })
+  ] }) });
 }
 function MainApp() {
   const defaultState = new Array(12).fill("white");
   const [faceState, setFaceState] = React.useState(defaultState);
+  reactExports.useEffect(() => {
+    designerNames.forEach((name) => {
+      const img = new Image();
+      img.src = `/headshots/${name}.png`;
+    });
+  }, []);
   const [selectedFace, setSelectedFace] = React.useState(null);
+  const [selectedDesigner, setSelectedDesigner] = React.useState(null);
   const handleFaceClick = (faceIndex) => {
     if (selectedFace === faceIndex) {
       setFaceState((prev) => {
@@ -66470,42 +67533,36 @@ function MainApp() {
         return newState;
       });
       setSelectedFace(null);
-      document.getElementById("designer").style.display = "none";
+      setSelectedDesigner(null);
     } else {
       setFaceState(() => {
         const newState = defaultState;
-        newState[faceIndex] = idxToBg(faceIndex);
+        newState[faceIndex] = designers[designerNames[faceIndex]].color;
         return newState;
       });
       setSelectedFace(faceIndex);
-      document.getElementById("designer").style.display = "flex";
-      const bg = idxToBg(faceIndex);
-      document.getElementById("designer").style.backgroundColor = bg;
-      document.getElementById("designer").style.color = bgToFg(bg);
-      let name = designers[faceIndex];
+      let name = designerNames[faceIndex];
       if (name === "Eike Konig") {
         name = "Eike König";
       }
-      document.getElementById("name").innerText = name;
-      document.getElementById("archetype").innerText = archetypes[faceIndex];
-      document.getElementById("bio").innerText = bios[faceIndex];
-      document.getElementById("headshot").setAttribute("src", `/headshots/${designers[faceIndex]}.png`);
+      const d2 = designers[designerNames[faceIndex]];
+      setSelectedDesigner({
+        name,
+        archetype: d2.archetype,
+        bio: d2.bio,
+        bg: d2.color,
+        fg: bgToFg(d2.color),
+        headshotSrc: `/headshots/${designerNames[faceIndex]}.png`
+      });
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "inside", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: "designer", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { id: "headshot", height: "192", width: "192" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "designer-info", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { id: "name" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { id: "archetype" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { id: "bio" })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], camera: { position: [0, 0, 5], fov: 75 }, style: { width: "100vw", height: "100vh", "marginTop": window.outerWidth < 860 ? "-16rem" : "inherit" }, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inside", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(DesignerPanel, { designer: selectedDesigner }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "canvas-wrap", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Canvas, { dpr: [1, 2], flat: true, camera: { position: [0, 0, 5], fov: 75 }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("color", { attach: "background", args: ["#969696"] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Dodecahedron, { faceState, onFaceClick: handleFaceClick }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(OrbitControls2, {})
-    ] })
+    ] }) })
   ] });
 }
 class DomWindowHelper {
@@ -136276,140 +137333,6 @@ ReactElementFactory.Instance.registerElement(LocalizableString.editableRenderer,
   return reactExports.createElement(SurveyLocStringEditor, props);
 });
 checkLibraryVersion(`${"2.5.15"}`, "survey-react-ui");
-const quizQuestions = [
-  {
-    id: "Q1",
-    text: "What excites you most when starting a new project?",
-    choices: [
-      { text: "Finding patterns and designing a system", archetype: "The Orchestrator" },
-      { text: "Researching the context", archetype: "The Researcher" },
-      { text: "Trying a lot of different ideas", archetype: "The Experimentalist" },
-      { text: "Getting the team to work toward the same vision", archetype: "The Director" },
-      { text: "Discovery along the way", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q2",
-    text: "How do you approach working with others?",
-    choices: [
-      { text: "Bridging gaps between people or roles", archetype: "The Connector" },
-      { text: "Taking the lead and shaping the process", archetype: "The Director" },
-      { text: "Filling in wherever I’m needed", archetype: "The Improviser" },
-      { text: "Supporting others as they grow", archetype: "The Educator" },
-      { text: "Keeping things small and focused", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q3",
-    text: "What’s your creative strength?",
-    choices: [
-      { text: "Connecting unexpected ideas", archetype: "The Multidisciplinary" },
-      { text: "Making sense of messy information", archetype: "The Orchestrator" },
-      { text: "Asking bold questions", archetype: "The Disruptor" },
-      { text: "Turning plans into action", archetype: "The Advocate" },
-      { text: "Explaining ideas clearly", archetype: "The Educator" }
-    ]
-  },
-  {
-    id: "Q4",
-    text: "What kind of challenge energizes you?",
-    choices: [
-      { text: "Scaling an idea across different contexts", archetype: "The Orchestrator" },
-      { text: "Working without a clear path", archetype: "The Improviser" },
-      { text: "Digging into deeper meaning", archetype: "The Researcher" },
-      { text: "Changing how people think or act", archetype: "The Advocate" },
-      { text: "Reinventing how things are done", archetype: "The Disruptor" }
-    ]
-  },
-  {
-    id: "Q5",
-    text: "When I’m stuck, I…",
-    choices: [
-      { text: "Jump into making something", archetype: "The Experimentalist" },
-      { text: "Look back at my research", archetype: "The Researcher" },
-      { text: "Zoom out and reframe the problem", archetype: "The Generalist" },
-      { text: "Talk it through with someone", archetype: "The Connector" },
-      { text: "Try something totally unexpected", archetype: "The Disruptor" }
-    ]
-  },
-  {
-    id: "Q6",
-    text: "How would I describe my creative path so far?",
-    choices: [
-      { text: "Nonlinear and cross-disciplinary", archetype: "The Multidisciplinary" },
-      { text: "Driven by purpose or values", archetype: "The Idealist" },
-      { text: "Full of pivots and changes", archetype: "The Improviser" },
-      { text: "Focused on shaping ideas with others", archetype: "The Director" },
-      { text: "Still in motion — and open", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q7",
-    text: "In an ideal world, my work would…",
-    choices: [
-      { text: "Teach or inspire someone else", archetype: "The Educator" },
-      { text: "Spark new possibilities", archetype: "The Experimentalist" },
-      { text: "Shift a system or community", archetype: "The Advocate" },
-      { text: "Work across different platforms", archetype: "The Orchestrator" },
-      { text: "Stay fluid and adaptable", archetype: "The Generalist" }
-    ]
-  },
-  {
-    id: "Q8",
-    text: "What do I value most when designing?",
-    choices: [
-      { text: "Structure and cohesion", archetype: "The Orchestrator" },
-      { text: "Context and clarity", archetype: "The Researcher" },
-      { text: "Play and experimentation", archetype: "The Experimentalist" },
-      { text: "Connection and collaboration", archetype: "The Connector" },
-      { text: "Speed and flow", archetype: "The Improviser" }
-    ]
-  },
-  {
-    id: "Q9",
-    text: "My dream project would be…",
-    choices: [
-      { text: "Designing a system or workflow", archetype: "The Orchestrator" },
-      { text: "A speculative exhibition or provocation", archetype: "The Experimentalist" },
-      { text: "A mentorship or learning experience", archetype: "The Educator" },
-      { text: "A tool that reshapes how we work", archetype: "The Disruptor" },
-      { text: "Something that spans industries", archetype: "The Multidisciplinary" }
-    ]
-  },
-  {
-    id: "Q10",
-    text: "I relate to design tools as…",
-    choices: [
-      { text: "Extensions of my thinking", archetype: "The Researcher" },
-      { text: "Things to question or remix", archetype: "The Disruptor" },
-      { text: "Flexible and ever-changing", archetype: "The Generalist" },
-      { text: "Something I share or teach", archetype: "The Educator" },
-      { text: "A way to visualize deeper ideas", archetype: "The Idealist" }
-    ]
-  },
-  {
-    id: "Q11",
-    text: "The kind of feedback that fuels me is…",
-    choices: [
-      { text: "Open-ended questions", archetype: "The Researcher" },
-      { text: "Insight that clarifies meaning", archetype: "The Educator" },
-      { text: "Fast reactions that shift the work", archetype: "The Improviser" },
-      { text: "Honest conversations", archetype: "The Director" },
-      { text: "Seeing it work in the real world", archetype: "The Advocate" }
-    ]
-  },
-  {
-    id: "Q12",
-    text: "I wish more people understood that design…",
-    choices: [
-      { text: "Visuals can be strategic", archetype: "The Orchestrator" },
-      { text: "Can change how things work", archetype: "The Advocate" },
-      { text: "Is a way of thinking", archetype: "The Multidisciplinary" },
-      { text: "Thrives in complexity", archetype: "The Researcher" },
-      { text: "Belongs everywhere", archetype: "The Connector" }
-    ]
-  }
-];
 const archetypeData = {
   "The Orchestrator": {
     emoji: "🧠",
@@ -136508,6 +137431,144 @@ const archetypeData = {
     dimensions: { strategy: 4, adaptability: 2, collaboration: 5, experimentation: 2, impact: 5 }
   }
 };
+const quizQuestions = [
+  {
+    id: "Q1",
+    text: "What excites you most when starting a new project?",
+    choices: [
+      { text: "Finding patterns and designing a system", archetype: "The Orchestrator" },
+      { text: "Researching the context", archetype: "The Researcher" },
+      { text: "Trying a lot of different ideas", archetype: "The Experimentalist" },
+      { text: "Getting the team to work toward the same vision", archetype: "The Director" },
+      { text: "Discovery along the way", archetype: "The Generalist" }
+    ]
+  },
+  {
+    id: "Q2",
+    text: "How do you approach working with others?",
+    choices: [
+      { text: "Bridging gaps between people or roles", archetype: "The Connector" },
+      { text: "Taking the lead and shaping the process", archetype: "The Director" },
+      { text: "Filling in wherever I'm needed", archetype: "The Improviser" },
+      { text: "Supporting others as they grow", archetype: "The Educator" },
+      { text: "Building tools that help the team", archetype: "The Multidisciplinary" }
+    ]
+  },
+  {
+    id: "Q3",
+    text: "What's your creative strength?",
+    choices: [
+      { text: "Connecting unexpected ideas", archetype: "The Multidisciplinary" },
+      { text: "Imagining better futures", archetype: "The Idealist" },
+      { text: "Asking bold questions", archetype: "The Disruptor" },
+      { text: "Turning plans into action", archetype: "The Advocate" },
+      { text: "Explaining ideas clearly", archetype: "The Educator" }
+    ]
+  },
+  {
+    id: "Q4",
+    text: "What kind of challenge energizes you?",
+    choices: [
+      { text: "Scaling an idea across different contexts", archetype: "The Orchestrator" },
+      { text: "Working without a clear path", archetype: "The Improviser" },
+      { text: "Bridging disciplines and communities", archetype: "The Connector" },
+      { text: "Changing how people think or act", archetype: "The Advocate" },
+      { text: "Reinventing how things are done", archetype: "The Disruptor" }
+    ]
+  },
+  {
+    id: "Q5",
+    text: "When I'm stuck, I...",
+    choices: [
+      { text: "Jump into making something", archetype: "The Experimentalist" },
+      { text: "Look back at my research", archetype: "The Researcher" },
+      { text: "Zoom out and reframe the problem", archetype: "The Generalist" },
+      { text: "Talk it through with someone", archetype: "The Connector" },
+      { text: "Try something totally unexpected", archetype: "The Disruptor" }
+    ]
+  },
+  {
+    id: "Q6",
+    text: "How would I describe my creative path so far?",
+    choices: [
+      { text: "Nonlinear and cross-disciplinary", archetype: "The Multidisciplinary" },
+      { text: "Driven by purpose or values", archetype: "The Idealist" },
+      { text: "Full of pivots and changes", archetype: "The Improviser" },
+      { text: "Focused on shaping ideas with others", archetype: "The Director" },
+      { text: "Still in motion — and open", archetype: "The Generalist" }
+    ]
+  },
+  {
+    id: "Q7",
+    text: "In an ideal world, my work would...",
+    choices: [
+      { text: "Teach or inspire someone else", archetype: "The Educator" },
+      { text: "Spark new possibilities", archetype: "The Experimentalist" },
+      { text: "Shift a system or community", archetype: "The Advocate" },
+      { text: "Imagine better futures", archetype: "The Idealist" },
+      { text: "Stay fluid and adaptable", archetype: "The Generalist" }
+    ]
+  },
+  {
+    id: "Q8",
+    text: "What do I value most when designing?",
+    choices: [
+      { text: "Systems that scale and adapt", archetype: "The Orchestrator" },
+      { text: "Context and clarity", archetype: "The Researcher" },
+      { text: "Play and experimentation", archetype: "The Experimentalist" },
+      { text: "Connection and collaboration", archetype: "The Connector" },
+      { text: "Speed and flow", archetype: "The Improviser" }
+    ]
+  },
+  {
+    id: "Q9",
+    text: "My dream project would be...",
+    choices: [
+      { text: "Designing a system or workflow", archetype: "The Orchestrator" },
+      { text: "A speculative exhibition or provocation", archetype: "The Experimentalist" },
+      { text: "A mentorship or learning experience", archetype: "The Educator" },
+      { text: "A tool that reshapes how we work", archetype: "The Disruptor" },
+      { text: "Something that spans industries", archetype: "The Multidisciplinary" }
+    ]
+  },
+  {
+    id: "Q10",
+    text: "I relate to design tools as…",
+    choices: [
+      { text: "Extensions of my thinking", archetype: "The Researcher" },
+      { text: "Things to question or remix", archetype: "The Disruptor" },
+      { text: "Flexible and ever-changing", archetype: "The Generalist" },
+      { text: "Something I share or teach", archetype: "The Educator" },
+      { text: "A way to visualize deeper ideas", archetype: "The Idealist" }
+    ]
+  },
+  {
+    id: "Q11",
+    text: "The kind of feedback that fuels me is…",
+    choices: [
+      { text: "Open-ended questions", archetype: "The Researcher" },
+      { text: "Insight that clarifies meaning", archetype: "The Educator" },
+      { text: "Fast reactions that shift the work", archetype: "The Improviser" },
+      { text: "Honest conversations", archetype: "The Director" },
+      { text: "Makes the world better", archetype: "The Idealist" }
+    ]
+  },
+  {
+    id: "Q12",
+    text: "I wish more people understood that design...",
+    choices: [
+      { text: "Visuals can be strategic", archetype: "The Director" },
+      { text: "Can change how things work", archetype: "The Advocate" },
+      { text: "Is a way of thinking", archetype: "The Multidisciplinary" },
+      { text: "Thrives in complexity", archetype: "The Researcher" },
+      { text: "Belongs everywhere", archetype: "The Connector" }
+    ]
+  }
+];
+const quizData_v2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  quizQuestions
+}, Symbol.toStringTag, { value: "Module" }));
 const ARCHETYPE_ORDER = Object.keys(archetypeData);
 const DIMENSION_KEYS = Object.keys(archetypeData[ARCHETYPE_ORDER[0]].dimensions);
 function createEmptyScores() {
@@ -136668,88 +137729,98 @@ function getClosestArchetypes(userDims) {
 function QuizPage() {
   const [survey, setSurvey] = reactExports.useState(null);
   const [isComplete, setIsComplete] = reactExports.useState(false);
+  const [quizQuestions2, setQuizQuestions] = reactExports.useState([]);
   const navigate = useNavigate();
-  const checkCompletion = (surveyData) => {
-    const answeredCount = Object.keys(surveyData || {}).filter(
-      (key) => surveyData[key] !== void 0 && surveyData[key] !== null
-    ).length;
-    const allAnswered = answeredCount === quizQuestions.length;
-    console.log("Completion check:", answeredCount, "of", quizQuestions.length, "=>", allAnswered);
-    return allAnswered;
-  };
   reactExports.useEffect(() => {
-    const panelClassOrder = [
-      "quiz-panel-blue",
-      "quiz-panel-brown",
-      "quiz-panel-green",
-      "quiz-panel-yellow",
-      "quiz-panel-purple"
-    ];
-    const surveyModel = new SurveyModel({
-      questions: quizQuestions.map((q, index) => ({
-        type: "radiogroup",
-        name: q.id,
-        title: q.text,
-        description: `${index + 1} of ${quizQuestions.length}`,
-        choices: q.choices.map((c4) => c4.text),
-        isRequired: true,
-        showNoneItem: false
-      })),
-      showNavigationButtons: false,
-      showProgressBar: false,
-      completedHtml: "<div></div>"
-    });
-    const applyPanelStyle = (questionName) => {
-      const questionIndex = quizQuestions.findIndex((question) => question.id === questionName);
-      if (questionIndex === -1) return;
-      const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
-      const colors = PANEL_COLORS_HEX[panelClass];
-      if (!colors) return;
-      const questionElements = document.querySelectorAll(".sd-question");
-      questionElements.forEach((el) => {
-        const titleEl = el.querySelector(".sd-question__title");
-        if (titleEl && titleEl.textContent.includes(quizQuestions[questionIndex].text.substring(0, 20))) {
-          el.style.backgroundColor = colors.bg;
-          el.style.color = colors.fg;
-          el.style.setProperty("--panel-fg", colors.fg);
-          el.classList.add("quiz-panel", panelClass);
+    const checkCompletion = (surveyData, questions) => {
+      const answeredCount = Object.keys(surveyData || {}).filter(
+        (key) => surveyData[key] !== void 0 && surveyData[key] !== null
+      ).length;
+      const allAnswered = answeredCount === questions.length;
+      console.log("Completion check:", answeredCount, "of", questions.length, "=>", allAnswered);
+      return allAnswered;
+    };
+    const loadQuizData = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const useV1 = params.get("v") === "1";
+      const module = await (useV1 ? __vitePreload(() => import("./quizData_v1-Dn8aNCMe.js"), true ? [] : void 0) : __vitePreload(() => Promise.resolve().then(() => quizData_v2), true ? void 0 : void 0));
+      return module.quizQuestions;
+    };
+    loadQuizData().then((questions) => {
+      setQuizQuestions(questions);
+      const panelClassOrder = [
+        "quiz-panel-blue",
+        "quiz-panel-brown",
+        "quiz-panel-green",
+        "quiz-panel-yellow",
+        "quiz-panel-purple"
+      ];
+      const surveyModel = new SurveyModel({
+        questions: questions.map((q, index) => ({
+          type: "radiogroup",
+          name: q.id,
+          title: q.text,
+          description: `${index + 1} of ${questions.length}`,
+          choices: q.choices.map((c4) => c4.text),
+          isRequired: true,
+          showNoneItem: false
+        })),
+        showNavigationButtons: false,
+        showProgressBar: false,
+        completedHtml: "<div></div>"
+      });
+      const applyPanelStyle = (questionName) => {
+        const questionIndex = questions.findIndex((question) => question.id === questionName);
+        if (questionIndex === -1) return;
+        const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
+        const colors = PANEL_COLORS_HEX[panelClass];
+        if (!colors) return;
+        const questionElements = document.querySelectorAll(".sd-question");
+        questionElements.forEach((el) => {
+          const titleEl = el.querySelector(".sd-question__title");
+          if (titleEl && titleEl.textContent.includes(questions[questionIndex].text.substring(0, 20))) {
+            el.style.backgroundColor = colors.bg;
+            el.style.color = colors.fg;
+            el.style.setProperty("--panel-fg", colors.fg);
+            el.classList.add("quiz-panel", panelClass);
+          }
+        });
+      };
+      surveyModel.onValueChanged.add((sender, options2) => {
+        const allAnswered = checkCompletion(sender.data, questions);
+        setIsComplete(allAnswered);
+        if (options2.question) {
+          setTimeout(() => applyPanelStyle(options2.question.name), 0);
         }
       });
-    };
-    surveyModel.onValueChanged.add((sender, options2) => {
-      const allAnswered = checkCompletion(sender.data);
-      setIsComplete(allAnswered);
-      if (options2.question) {
-        setTimeout(() => applyPanelStyle(options2.question.name), 0);
-      }
-    });
-    surveyModel.onCurrentPageChanged.add((sender, _options) => {
-      const allAnswered = checkCompletion(sender.data);
-      setIsComplete(allAnswered);
-    });
-    surveyModel.onAfterRenderQuestion.add((sender, options2) => {
-      const questionIndex = quizQuestions.findIndex((question) => question.id === options2.question.name);
-      if (questionIndex === -1) return;
-      const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
-      const colors = PANEL_COLORS_HEX[panelClass];
-      if (!colors) return;
-      options2.htmlElement.style.backgroundColor = colors.bg;
-      options2.htmlElement.style.color = colors.fg;
-      options2.htmlElement.style.setProperty("--panel-fg", colors.fg);
-      options2.htmlElement.classList.add("quiz-panel", panelClass);
-      const parentEl = options2.htmlElement.closest(".sd-row__question, .sd-question");
-      if (parentEl && parentEl !== options2.htmlElement) {
-        parentEl.classList.add("quiz-panel", panelClass);
-      }
-    });
-    const initiallyComplete = checkCompletion(surveyModel.data);
-    setIsComplete(initiallyComplete);
-    setSurvey(surveyModel);
-    setTimeout(() => {
-      quizQuestions.forEach((q) => {
-        applyPanelStyle(q.id);
+      surveyModel.onCurrentPageChanged.add((sender, _options) => {
+        const allAnswered = checkCompletion(sender.data, questions);
+        setIsComplete(allAnswered);
       });
-    }, 100);
+      surveyModel.onAfterRenderQuestion.add((sender, options2) => {
+        const questionIndex = questions.findIndex((question) => question.id === options2.question.name);
+        if (questionIndex === -1) return;
+        const panelClass = panelClassOrder[questionIndex % panelClassOrder.length];
+        const colors = PANEL_COLORS_HEX[panelClass];
+        if (!colors) return;
+        options2.htmlElement.style.backgroundColor = colors.bg;
+        options2.htmlElement.style.color = colors.fg;
+        options2.htmlElement.style.setProperty("--panel-fg", colors.fg);
+        options2.htmlElement.classList.add("quiz-panel", panelClass);
+        const parentEl = options2.htmlElement.closest(".sd-row__question, .sd-question");
+        if (parentEl && parentEl !== options2.htmlElement) {
+          parentEl.classList.add("quiz-panel", panelClass);
+        }
+      });
+      const initiallyComplete = checkCompletion(surveyModel.data, questions);
+      setIsComplete(initiallyComplete);
+      setSurvey(surveyModel);
+      setTimeout(() => {
+        questions.forEach((q) => {
+          applyPanelStyle(q.id);
+        });
+      }, 100);
+    });
   }, []);
   const handleSubmit = () => {
     if (!survey || !isComplete) return;
@@ -136765,17 +137836,22 @@ function QuizPage() {
     const dimsB64 = btoa(dimsRaw);
     window.gtag?.("event", "quiz_complete", {
       dims_raw: dimsRaw,
-      version: 1,
+      version: 2,
       strategy: dims.strategy,
       adaptability: dims.adaptability,
       collaboration: dims.collaboration,
       experimentation: dims.experimentation,
       impact: dims.impact,
+      primary: scores.primary.archetype,
+      secondary: scores.secondary?.archetype,
       question_answers: JSON.stringify(survey.data)
     });
-    navigate(`/results?dims=${encodeURIComponent(dimsB64)}`);
+    const params = new URLSearchParams({ v: "2", dims: dimsB64 });
+    if (scores.primary?.archetype) params.set("p", scores.primary.archetype);
+    if (scores.secondary?.archetype) params.set("s", scores.secondary.archetype);
+    navigate(`/results?${params.toString()}`);
   };
-  if (!survey) {
+  if (!survey || quizQuestions2.length === 0) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "quiz-container", children: "Loading..." });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "quiz-container", children: [
@@ -174379,17 +175455,17 @@ function textOutput(p53, fn2) {
     let shapeNumber = 0;
     for (let x2 in ingredients) {
       for (let y in ingredients[x2]) {
-        let _line = `<li><a href="#${idT}shape${shapeNumber}">${ingredients[x2][y].color} ${x2}</a>`;
+        let _line2 = `<li><a href="#${idT}shape${shapeNumber}">${ingredients[x2][y].color} ${x2}</a>`;
         if (x2 === "line") {
-          _line = _line + `, ${ingredients[x2][y].pos}, ${ingredients[x2][y].length} pixels long.</li>`;
+          _line2 = _line2 + `, ${ingredients[x2][y].pos}, ${ingredients[x2][y].length} pixels long.</li>`;
         } else {
-          _line = _line + `, at ${ingredients[x2][y].pos}`;
+          _line2 = _line2 + `, at ${ingredients[x2][y].pos}`;
           if (x2 !== "point") {
-            _line = _line + `, covering ${ingredients[x2][y].area}% of the canvas`;
+            _line2 = _line2 + `, covering ${ingredients[x2][y].area}% of the canvas`;
           }
-          _line = _line + ".</li>";
+          _line2 = _line2 + ".</li>";
         }
-        shapeList = shapeList + _line;
+        shapeList = shapeList + _line2;
         shapeNumber++;
       }
     }
@@ -182030,14 +183106,14 @@ function initializeContext(params) {
 function process$1(schema, ctx, _params = { path: [], schemaPath: [] }) {
   var _a2;
   const def = schema._zod.def;
-  const seen = ctx.seen.get(schema);
-  if (seen) {
-    seen.count++;
+  const seen2 = ctx.seen.get(schema);
+  if (seen2) {
+    seen2.count++;
     const isCycle = _params.schemaPath.includes(schema);
     if (isCycle) {
-      seen.cycle = _params.path;
+      seen2.cycle = _params.path;
     }
-    return seen.schema;
+    return seen2.schema;
   }
   const result = { schema: {}, count: 1, cycle: void 0, path: _params.path };
   ctx.seen.set(schema, result);
@@ -182120,12 +183196,12 @@ function extractDefs(ctx, schema) {
     if (entry[1].schema.$ref) {
       return;
     }
-    const seen = entry[1];
+    const seen2 = entry[1];
     const { ref: ref2, defId } = makeURI(entry);
-    seen.def = { ...seen.schema };
+    seen2.def = { ...seen2.schema };
     if (defId)
-      seen.defId = defId;
-    const schema2 = seen.schema;
+      seen2.defId = defId;
+    const schema2 = seen2.schema;
     for (const key in schema2) {
       delete schema2[key];
     }
@@ -182133,16 +183209,16 @@ function extractDefs(ctx, schema) {
   };
   if (ctx.cycles === "throw") {
     for (const entry of ctx.seen.entries()) {
-      const seen = entry[1];
-      if (seen.cycle) {
-        throw new Error(`Cycle detected: #/${seen.cycle?.join("/")}/<root>
+      const seen2 = entry[1];
+      if (seen2.cycle) {
+        throw new Error(`Cycle detected: #/${seen2.cycle?.join("/")}/<root>
 
 Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.`);
       }
     }
   }
   for (const entry of ctx.seen.entries()) {
-    const seen = entry[1];
+    const seen2 = entry[1];
     if (schema === entry[0]) {
       extractToDef(entry);
       continue;
@@ -182159,11 +183235,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       extractToDef(entry);
       continue;
     }
-    if (seen.cycle) {
+    if (seen2.cycle) {
       extractToDef(entry);
       continue;
     }
-    if (seen.count > 1) {
+    if (seen2.count > 1) {
       if (ctx.reused === "ref") {
         extractToDef(entry);
         continue;
@@ -182176,13 +183252,13 @@ function finalize(ctx, schema) {
   if (!root2)
     throw new Error("Unprocessed schema. This is a bug in Zod.");
   const flattenRef = (zodSchema) => {
-    const seen = ctx.seen.get(zodSchema);
-    if (seen.ref === null)
+    const seen2 = ctx.seen.get(zodSchema);
+    if (seen2.ref === null)
       return;
-    const schema2 = seen.def ?? seen.schema;
+    const schema2 = seen2.def ?? seen2.schema;
     const _cached = { ...schema2 };
-    const ref2 = seen.ref;
-    seen.ref = null;
+    const ref2 = seen2.ref;
+    seen2.ref = null;
     if (ref2) {
       flattenRef(ref2);
       const refSeen = ctx.seen.get(ref2);
@@ -182234,7 +183310,7 @@ function finalize(ctx, schema) {
     ctx.override({
       zodSchema,
       jsonSchema: schema2,
-      path: seen.path ?? []
+      path: seen2.path ?? []
     });
   };
   for (const entry of [...ctx.seen.entries()].reverse()) {
@@ -182258,9 +183334,9 @@ function finalize(ctx, schema) {
   Object.assign(result, root2.def ?? root2.schema);
   const defs = ctx.external?.defs ?? {};
   for (const entry of ctx.seen.entries()) {
-    const seen = entry[1];
-    if (seen.def && seen.defId) {
-      defs[seen.defId] = seen.def;
+    const seen2 = entry[1];
+    if (seen2.def && seen2.defId) {
+      defs[seen2.defId] = seen2.def;
     }
   }
   if (ctx.external) ;
@@ -182634,9 +183710,9 @@ const tupleProcessor = (schema, ctx, _json, params) => {
 const nullableProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   const inner = process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
+  const seen2 = ctx.seen.get(schema);
   if (ctx.target === "openapi-3.0") {
-    seen.ref = def.innerType;
+    seen2.ref = def.innerType;
     json.nullable = true;
   } else {
     json.anyOf = [inner, { type: "null" }];
@@ -182645,29 +183721,29 @@ const nullableProcessor = (schema, ctx, json, params) => {
 const nonoptionalProcessor = (schema, ctx, _json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
 };
 const defaultProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   json.default = JSON.parse(JSON.stringify(def.defaultValue));
 };
 const prefaultProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   if (ctx.io === "input")
     json._prefault = JSON.parse(JSON.stringify(def.defaultValue));
 };
 const catchProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   let catchValue;
   try {
     catchValue = def.catchValue(void 0);
@@ -182680,21 +183756,21 @@ const pipeProcessor = (schema, ctx, _json, params) => {
   const def = schema._zod.def;
   const innerType = ctx.io === "input" ? def.in._zod.def.type === "transform" ? def.out : def.in : def.out;
   process$1(innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = innerType;
 };
 const readonlyProcessor = (schema, ctx, json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
   json.readOnly = true;
 };
 const optionalProcessor = (schema, ctx, _json, params) => {
   const def = schema._zod.def;
   process$1(def.innerType, ctx, params);
-  const seen = ctx.seen.get(schema);
-  seen.ref = def.innerType;
+  const seen2 = ctx.seen.get(schema);
+  seen2.ref = def.innerType;
 };
 const ZodISODateTime = /* @__PURE__ */ $constructor("ZodISODateTime", (inst, def) => {
   $ZodISODateTime.init(inst, def);
@@ -206261,20 +207337,20 @@ class Font {
       newVertexIndex.push(vertexIndices[id]);
     }
     const newFaces = geom.faces.map((f) => f.map((i) => newVertexIndex[i]));
-    const seen = {};
+    const seen2 = {};
     for (const face of newFaces) {
       for (let off = 0; off < face.length; off++) {
         const a2 = face[off];
         const b2 = face[(off + 1) % face.length];
         const id = `${Math.min(a2, b2)}-${Math.max(a2, b2)}`;
-        if (!seen[id]) seen[id] = [];
-        seen[id].push([a2, b2]);
+        if (!seen2[id]) seen2[id] = [];
+        seen2[id].push([a2, b2]);
       }
     }
     const validEdges = [];
-    for (const key in seen) {
-      if (seen[key].length === 1) {
-        validEdges.push(seen[key][0]);
+    for (const key in seen2) {
+      if (seen2[key].length === 1) {
+        validEdges.push(seen2[key][0]);
       }
     }
     const extruded = this._pInst.buildGeometry(() => {
@@ -216246,13 +217322,30 @@ function ResultsPage() {
   const navigate = useNavigate();
   const [copyText, setCopyText] = reactExports.useState("Copy Link");
   const params = new URLSearchParams(location2.search);
+  const version2 = params.get("v");
   const dimsB64 = params.get("dims");
   const dims = dimsB64 ? decodeDims(dimsB64) : null;
   if (!dims) {
     navigate("/quiz", { replace: true });
     return null;
   }
-  const { primary, secondary } = getClosestArchetypes(dims);
+  if (version2 !== null && version2 !== "2") {
+    navigate("/quiz", { replace: true });
+    return null;
+  }
+  let primary, secondary;
+  if (version2 === "2") {
+    const votePrimary = params.get("p");
+    const voteSecondary = params.get("s");
+    if (votePrimary && archetypeData[votePrimary]) {
+      primary = votePrimary;
+      secondary = voteSecondary && archetypeData[voteSecondary] ? voteSecondary : null;
+    } else {
+      ({ primary, secondary } = getClosestArchetypes(dims));
+    }
+  } else {
+    ({ primary, secondary } = getClosestArchetypes(dims));
+  }
   const primaryData = archetypeData[primary] || {};
   const secondaryData = archetypeData[secondary] || {};
   const radarValues = dimsToArray(dims);

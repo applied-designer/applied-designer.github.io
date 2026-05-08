@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils';
 import { calculateScores } from '../data/scoringUtils';
-import { quizQuestions } from '../data/quizData';
+import { quizQuestions } from '../data/quizData_v2';
 import { getAnswerForArchetype, ORCHESTRATOR, DISRUPTOR } from './utils/archetypeTestUtils';
 import ResultsPage from '../pages/Results';
 import QuizPage from '../pages/Quiz';

@@ -1,5 +1,5 @@
 import { archetypeData } from '../../data/archetypeData';
-import { quizQuestions } from '../../data/quizData';
+import { quizQuestions } from '../../data/quizData_v2';
 
 // Export all archetype name constants - single source of truth
 export const ARCHETYPES = Object.keys(archetypeData);

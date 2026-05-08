@@ -19,7 +19,7 @@ const int GZIP_BUFFER_SIZE = 4 * 1024 * 1024; // 4MB gzip read buffer
 const int WRITE_BUFFER_SIZE = 100000; // Batch write every 100k rows
 const int LINE_BUFFER_SIZE = 256;
 
-// Archetype dimension profiles from archetypeData.js
+// Archetype dimension profiles from archetypeData.js (MUST match JS exactly)
 struct Archetype {
     std::string id;
     std::string name;
@@ -28,93 +28,85 @@ struct Archetype {
 };
 
 std::vector<Archetype> archetypes = {
-    {"orchestrator", "The Orchestrator", {5, 3, 4, 2, 4}, 0.0},
-    {"generalist", "The Generalist", {4, 4, 3, 3, 4}, 0.0},
-    {"researcher", "The Researcher", {4, 2, 2, 5, 3}, 0.0},
+    {"orchestrator", "The Orchestrator", {5, 3, 4, 2, 3}, 0.0},
+    {"generalist", "The Generalist", {3, 5, 3, 3, 2}, 0.0},
+    {"researcher", "The Researcher", {5, 2, 3, 2, 5}, 0.0},
     {"experimentalist", "The Experimentalist", {2, 4, 2, 5, 3}, 0.0},
-    {"director", "The Director", {5, 2, 3, 2, 5}, 0.0},
-    {"disruptor", "The Disruptor", {3, 3, 2, 5, 4}, 0.0},
-    {"educator", "The Educator", {3, 3, 5, 3, 4}, 0.0},
-    {"connector", "The Connector", {2, 3, 5, 3, 4}, 0.0},
-    {"improviser", "The Improviser", {2, 4, 4, 4, 3}, 0.0},
-    {"advocate", "The Advocate", {3, 3, 5, 2, 4}, 0.0},
-    {"multidisciplinary", "The Multidisciplinary", {4, 4, 4, 4, 3}, 0.0},
-    {"idealist", "The Idealist", {2, 2, 4, 3, 5}, 0.0},
+    {"director", "The Director", {4, 2, 5, 2, 3}, 0.0},
+    {"disruptor", "The Disruptor", {3, 4, 2, 5, 4}, 0.0},
+    {"educator", "The Educator", {4, 2, 5, 2, 5}, 0.0},
+    {"connector", "The Connector", {3, 3, 5, 2, 4}, 0.0},
+    {"improviser", "The Improviser", {2, 5, 3, 4, 3}, 0.0},
+    {"advocate", "The Advocate", {3, 3, 4, 2, 5}, 0.0},
+    {"multidisciplinary", "The Multidisciplinary", {3, 5, 3, 4, 2}, 0.0},
+    {"idealist", "The Idealist", {4, 3, 4, 2, 5}, 0.0},
 };
 
 // Quiz answer to archetype mapping (from quizData.js)
+// Archetype indices: 0=orchestrator,1=generalist,2=researcher,3=experimentalist,4=director,
+// 5=disruptor,6=educator,7=connector,8=improviser,9=advocate,10=multidisciplinary,11=idealist
 std::vector<int> quizAnswerToArchetype = {
-    0,  // Q1: A1 -> Orchestrator
-    1,  // Q1: A2 -> Generalist
-    2,  // Q1: A3 -> Researcher
-    3,  // Q1: A4 -> Experimentalist
-    4,  // Q1: A5 -> Director
-    5,  // Q2: A1 -> Disruptor
-    6,  // Q2: A2 -> Educator
-    7,  // Q2: A3 -> Connector
-    8,  // Q2: A4 -> Improviser
-    9,  // Q2: A5 -> Advocate
-    10, // Q3: A1 -> Multidisciplinary
-    11, // Q3: A2 -> Idealist
-    0,  // Q3: A3 -> Orchestrator
-    1,  // Q3: A4 -> Generalist
-    2,  // Q3: A5 -> Researcher
-    3,  // Q4: A1 -> Experimentalist
-    4,  // Q4: A2 -> Director
-    5,  // Q4: A3 -> Disruptor
-    6,  // Q4: A4 -> Educator
-    7,  // Q4: A5 -> Connector
-    8,  // Q5: A1 -> Improviser
-    9,  // Q5: A2 -> Advocate
-    10, // Q5: A3 -> Multidisciplinary
-    11, // Q5: A4 -> Idealist
-    0,  // Q5: A5 -> Orchestrator
-    1,  // Q6: A1 -> Generalist
-    2,  // Q6: A2 -> Researcher
-    3,  // Q6: A3 -> Experimentalist
-    4,  // Q6: A4 -> Director
-    5,  // Q6: A5 -> Disruptor
-    6,  // Q7: A1 -> Educator
-    7,  // Q7: A2 -> Connector
-    8,  // Q7: A3 -> Improviser
-    9,  // Q7: A4 -> Advocate
-    10, // Q7: A5 -> Multidisciplinary
-    11, // Q8: A1 -> Idealist
-    0,  // Q8: A2 -> Orchestrator
-    1,  // Q8: A3 -> Generalist
-    2,  // Q8: A4 -> Researcher
-    3,  // Q8: A5 -> Experimentalist
-    4,  // Q9: A1 -> Director
-    5,  // Q9: A2 -> Disruptor
-    6,  // Q9: A3 -> Educator
-    7,  // Q9: A4 -> Connector
-    8,  // Q9: A5 -> Improviser
-    9,  // Q10: A1 -> Advocate
-    10, // Q10: A2 -> Multidisciplinary
-    11, // Q10: A3 -> Idealist
-    0,  // Q10: A4 -> Orchestrator
-    1,  // Q10: A5 -> Generalist
-    2,  // Q11: A1 -> Researcher
-    3,  // Q11: A2 -> Experimentalist
-    4,  // Q11: A3 -> Director
-    5,  // Q11: A4 -> Disruptor
-    6,  // Q11: A5 -> Educator
-    7,  // Q12: A1 -> Connector
-    8,  // Q12: A2 -> Improviser
-    9,  // Q12: A3 -> Advocate
-    10, // Q12: A4 -> Multidisciplinary
-    11, // Q12: A5 -> Idealist
+    0,  // Q1: A1 -> The Orchestrator
+    2,  // Q1: A2 -> The Researcher
+    3,  // Q1: A3 -> The Experimentalist
+    4,  // Q1: A4 -> The Director
+    1,  // Q1: A5 -> The Generalist
+    7,  // Q2: A1 -> The Connector
+    4,  // Q2: A2 -> The Director
+    8,  // Q2: A3 -> The Improviser
+    6,  // Q2: A4 -> The Educator
+    10, // Q2: A5 -> The Multidisciplinary
+    10, // Q3: A1 -> The Multidisciplinary
+    11, // Q3: A2 -> The Idealist
+    5,  // Q3: A3 -> The Disruptor
+    9,  // Q3: A4 -> The Advocate
+    6,  // Q3: A5 -> The Educator
+    0,  // Q4: A1 -> The Orchestrator
+    8,  // Q4: A2 -> The Improviser
+    7,  // Q4: A3 -> The Connector
+    9,  // Q4: A4 -> The Advocate
+    5,  // Q4: A5 -> The Disruptor
+    3,  // Q5: A1 -> The Experimentalist
+    2,  // Q5: A2 -> The Researcher
+    1,  // Q5: A3 -> The Generalist
+    7,  // Q5: A4 -> The Connector
+    5,  // Q5: A5 -> The Disruptor
+    10, // Q6: A1 -> The Multidisciplinary
+    11, // Q6: A2 -> The Idealist
+    8,  // Q6: A3 -> The Improviser
+    4,  // Q6: A4 -> The Director
+    1,  // Q6: A5 -> The Generalist
+    6,  // Q7: A1 -> The Educator
+    3,  // Q7: A2 -> The Experimentalist
+    9,  // Q7: A3 -> The Advocate
+    11, // Q7: A4 -> The Idealist
+    1,  // Q7: A5 -> The Generalist
+    0,  // Q8: A1 -> The Orchestrator
+    2,  // Q8: A2 -> The Researcher
+    3,  // Q8: A3 -> The Experimentalist
+    7,  // Q8: A4 -> The Connector
+    8,  // Q8: A5 -> The Improviser
+    0,  // Q9: A1 -> The Orchestrator
+    3,  // Q9: A2 -> The Experimentalist
+    6,  // Q9: A3 -> The Educator
+    5,  // Q9: A4 -> The Disruptor
+    10, // Q9: A5 -> The Multidisciplinary
+    2,  // Q10: A1 -> The Researcher
+    5,  // Q10: A2 -> The Disruptor
+    1,  // Q10: A3 -> The Generalist
+    6,  // Q10: A4 -> The Educator
+    11, // Q10: A5 -> The Idealist
+    2,  // Q11: A1 -> The Researcher
+    6,  // Q11: A2 -> The Educator
+    8,  // Q11: A3 -> The Improviser
+    4,  // Q11: A4 -> The Director
+    11, // Q11: A5 -> The Idealist
+    4,  // Q12: A1 -> The Director
+    9,  // Q12: A2 -> The Advocate
+    10, // Q12: A3 -> The Multidisciplinary
+    2,  // Q12: A4 -> The Researcher
+    7,  // Q12: A5 -> The Connector
 };
-
-double cosineSimilarity(const std::vector<double>& a, const std::vector<double>& b, double b_norm) {
-    double dot = 0, normA = 0;
-    for (int i = 0; i < NUM_DIMENSIONS; ++i) {
-        dot += a[i] * b[i];
-        normA += a[i] * a[i];
-    }
-    if (normA == 0 || b_norm == 0) return 0;
-    return dot / (std::sqrt(normA) * b_norm);
-}
 
 struct TieResult {
     int primaryCount;
@@ -123,33 +115,39 @@ struct TieResult {
     int secondaryArchetype;
 };
 
-TieResult getClosestArchetypesWithTies(const std::vector<double>& dims) {
-    std::vector<std::pair<double, int>> similarities;
-    for (int i = 0; i < NUM_ARCHETYPES; ++i) {
-        similarities.push_back({cosineSimilarity(dims, archetypes[i].dimensions, archetypes[i].norm), i});
-    }
-    
-    std::sort(similarities.rbegin(), similarities.rend());
-    
-    // Count primary ties
-    int primaryCount = 1;
+TieResult getArchetypesFromVotes(const std::vector<int>& voteCounts) {
+    // Find primary (highest vote count)
+    int primaryIdx = 0;
     for (int i = 1; i < NUM_ARCHETYPES; ++i) {
-        if (std::abs(similarities[i].first - similarities[0].first) < 1e-9) {
-            primaryCount++;
-        } else {
-            break;
+        if (voteCounts[i] > voteCounts[primaryIdx]) {
+            primaryIdx = i;
         }
     }
     
-    // Count secondary ties (unique secondary archetypes with same similarity)
-    int secondaryCount = 1;
-    int secondaryIdx = primaryCount;
-    if (secondaryIdx < NUM_ARCHETYPES) {
-        for (int i = secondaryIdx + 1; i < NUM_ARCHETYPES; ++i) {
-            if (std::abs(similarities[i].first - similarities[secondaryIdx].first) < 1e-9) {
+    // Count primary ties
+    int primaryCount = 0;
+    for (int i = 0; i < NUM_ARCHETYPES; ++i) {
+        if (voteCounts[i] == voteCounts[primaryIdx]) {
+            primaryCount++;
+        }
+    }
+    
+    // Find secondary (highest vote count excluding primary)
+    int secondaryIdx = -1;
+    for (int i = 0; i < NUM_ARCHETYPES; ++i) {
+        if (i == primaryIdx) continue;
+        if (secondaryIdx == -1 || voteCounts[i] > voteCounts[secondaryIdx]) {
+            secondaryIdx = i;
+        }
+    }
+    
+    // Count secondary ties
+    int secondaryCount = 0;
+    if (secondaryIdx >= 0) {
+        for (int i = 0; i < NUM_ARCHETYPES; ++i) {
+            if (i == primaryIdx) continue;
+            if (voteCounts[i] == voteCounts[secondaryIdx]) {
                 secondaryCount++;
-            } else {
-                break;
             }
         }
     }
@@ -157,8 +155,8 @@ TieResult getClosestArchetypesWithTies(const std::vector<double>& dims) {
     return {
         primaryCount,
         secondaryCount,
-        similarities[0].second,
-        secondaryIdx < NUM_ARCHETYPES ? similarities[secondaryIdx].second : -1
+        primaryIdx,
+        secondaryIdx
     };
 }
 
@@ -235,17 +233,15 @@ int main() {
         
         if (answers.size() != QUESTIONS) continue;
         
-        // Calculate dimension scores
-        std::fill(dims.begin(), dims.end(), 0);
+        // Count votes for each archetype
+        std::vector<int> voteCounts(NUM_ARCHETYPES, 0);
         for (int q = 0; q < QUESTIONS; ++q) {
             int archetypeIdx = quizAnswerToArchetype[q * CHOICES + answers[q]];
-            for (int d = 0; d < NUM_DIMENSIONS; ++d) {
-                dims[d] += archetypes[archetypeIdx].dimensions[d];
-            }
+            voteCounts[archetypeIdx]++;
         }
         
-        // Find closest archetypes and track ties
-        TieResult result = getClosestArchetypesWithTies(dims);
+        // Find archetypes from vote counts
+        TieResult result = getArchetypesFromVotes(voteCounts);
         
         // Track tie statistics
         wayTieCount[result.primaryCount]++;

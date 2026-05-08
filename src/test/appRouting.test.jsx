@@ -21,7 +21,7 @@ describe('App Routing - Individual Pages', () => {
             renderPage('/', <MainApp />);
             
             await waitFor(() => {
-                const insideDiv = document.getElementById('inside');
+                const insideDiv = document.querySelector('.inside');
                 expect(insideDiv).toBeTruthy();
             }, { timeout: 3000 });
         });
@@ -30,7 +30,7 @@ describe('App Routing - Individual Pages', () => {
             renderPage('/unknown', <MainApp />);
             
             await waitFor(() => {
-                const insideDiv = document.getElementById('inside');
+                const insideDiv = document.querySelector('.inside');
                 expect(insideDiv).toBeTruthy();
             }, { timeout: 3000 });
         });
@@ -104,7 +104,7 @@ describe('App Routing - Individual Pages', () => {
             renderPage('/foo/bar/baz', <MainApp />);
             
             await waitFor(() => {
-                const insideDiv = document.getElementById('inside');
+                const insideDiv = document.querySelector('.inside');
                 expect(insideDiv).toBeTruthy();
             }, { timeout: 3000 });
         });

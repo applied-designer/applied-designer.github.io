@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, act } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { encodeDimsV1, DIM_KEYS } from '../data/quizUtils';
-import { quizQuestions } from '../data/quizData';
+import { quizQuestions } from '../data/quizData_v2';
 import { calculateScores } from '../data/scoringUtils';
 import { ORCHESTRATOR, getAnswerForArchetype } from './utils/archetypeTestUtils';
 import QuizPage from '../pages/Quiz';
@@ -32,10 +32,18 @@ vi.mock('survey-react-ui', async () => {
                             );
                             DIM_KEYS.forEach(k => { if (!(k in dimsResult)) dimsResult[k] = 0; });
                             
+                            const scores = calculateScores(responses);
+
                             window.gtag?.('event', 'quiz_complete', {
                                 dims_raw: encodeDimsV1(dimsResult),
-                                version: 1,
-                                ...dimsResult,
+                                version: 2,
+                                strategy: dimsResult.strategy,
+                                adaptability: dimsResult.adaptability,
+                                collaboration: dimsResult.collaboration,
+                                experimentation: dimsResult.experimentation,
+                                impact: dimsResult.impact,
+                                primary: scores.primary.archetype,
+                                secondary: scores.secondary?.archetype,
                                 question_answers: JSON.stringify(model.data)
                             });
                         }}
@@ -233,6 +241,11 @@ describe('Quiz Analytics', () => {
             const dims = getExpectedDimsForArchetype(ORCHESTRATOR);
             const expectedDimsRaw = encodeDimsV1(dims);
             const expectedSurveyData = getSurveyDataForArchetype(ORCHESTRATOR);
+            const expectedResponses = quizQuestions.map(q => ({
+                questionId: q.id,
+                answer: getAnswerForArchetype(q.id, ORCHESTRATOR)
+            }));
+            const expectedScores = calculateScores(expectedResponses);
 
             render(
                 <MemoryRouter initialEntries={['/quiz']}>
@@ -258,12 +271,14 @@ describe('Quiz Analytics', () => {
                 'quiz_complete',
                 expect.objectContaining({
                     dims_raw: expectedDimsRaw,
-                    version: 1,
+                    version: 2,
                     strategy: dims.strategy,
                     adaptability: dims.adaptability,
                     collaboration: dims.collaboration,
                     experimentation: dims.experimentation,
                     impact: dims.impact,
+                    primary: expectedScores.primary.archetype,
+                    secondary: expectedScores.secondary?.archetype,
                     question_answers: JSON.stringify(expectedSurveyData)
                 })
             );

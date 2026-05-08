@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { quizQuestions } from '../data/quizData';
+import { quizQuestions } from '../data/quizData_v2';
 import { archetypeData } from '../data/archetypeData';
 import { ARCHETYPES } from './utils/archetypeTestUtils';
 
